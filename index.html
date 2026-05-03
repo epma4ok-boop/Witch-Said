@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#120f1b" />
+  <title>Ведьма сказала</title>
+  <meta name="description" content="Дерзкая мемная гадалка для Telegram Mini App." />
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Russo+One&family=Inter:wght@400;500;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #120f1b;
+      --bg-soft: #1a1427;
+      --card: rgba(255,255,255,.08);
+      --card-strong: rgba(255,255,255,.12);
+      --text: #f5efff;
+      --muted: #b9acd4;
+      --accent: #d34dff;
+      --accent-2: #8bffb0;
+      --danger: #ff6b8f;
+      --shadow: 0 20px 50px rgba(0,0,0,.35);
+      --radius: 24px;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; min-height: 100%; background: radial-gradient(circle at top, #24133d 0%, var(--bg) 55%); color: var(--text); font-family: Inter, sans-serif; }
+    body { padding: 18px; }
+    .app { max-width: 560px; margin: 0 auto; min-height: calc(100dvh - 36px); display: grid; grid-template-rows: auto 1fr auto; gap: 18px; }
+    .topbar, .panel, .actions, .chips { display: flex; gap: 10px; }
+    .topbar { justify-content: space-between; align-items: center; }
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .logo { width: 48px; height: 48px; border-radius: 16px; background: linear-gradient(135deg, var(--accent), #5e2bff); display: grid; place-items: center; box-shadow: var(--shadow); }
+    .logo svg { width: 28px; height: 28px; }
+    .brand h1 { margin: 0; font-family: 'Russo One', sans-serif; font-size: 22px; letter-spacing: .02em; }
+    .brand p { margin: 2px 0 0; color: var(--muted); font-size: 13px; }
+    .badge { border: 1px solid rgba(255,255,255,.12); border-radius: 999px; padding: 10px 12px; color: var(--muted); font-size: 12px; background: rgba(255,255,255,.04); }
+    .hero { display: grid; gap: 14px; align-content: center; }
+    .ball-wrap { position: relative; display: grid; place-items: center; padding: 26px 0 10px; }
+    .aura, .aura2 { position: absolute; border-radius: 999px; filter: blur(24px); opacity: .75; }
+    .aura { width: 220px; height: 220px; background: rgba(211,77,255,.32); }
+    .aura2 { width: 130px; height: 130px; background: rgba(139,255,176,.20); transform: translateY(30px); }
+    .ball {
+      width: min(78vw, 280px); aspect-ratio: 1;
+      border-radius: 999px;
+      background: radial-gradient(circle at 35% 30%, #3d2b64 0%, #1b1530 45%, #08060d 100%);
+      border: 1px solid rgba(255,255,255,.16);
+      box-shadow: inset 0 8px 22px rgba(255,255,255,.08), inset 0 -20px 30px rgba(0,0,0,.55), 0 30px 70px rgba(0,0,0,.45);
+      display: grid; place-items: center; position: relative; overflow: hidden;
+    }
+    .ball::before { content: ""; position: absolute; width: 42%; height: 18%; border-radius: 999px; background: rgba(255,255,255,.18); top: 12%; left: 16%; transform: rotate(-18deg); filter: blur(4px); }
+    .ball-inner {
+      width: 48%; aspect-ratio: 1; display: grid; place-items: center;
+      clip-path: polygon(50% 3%, 96% 84%, 4% 84%);
+      background: linear-gradient(180deg, rgba(211,77,255,.95), rgba(94,43,255,.75));
+      box-shadow: 0 0 30px rgba(211,77,255,.5);
+      padding: 14px;
+      text-align: center;
+    }
+    .ball-inner span { font-family: 'Russo One', sans-serif; font-size: 20px; line-height: 1.1; }
+    .card {
+      background: linear-gradient(180deg, rgba(255,255,255,.09), rgba(255,255,255,.05));
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: var(--radius);
+      padding: 18px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(12px);
+    }
+    .subtitle { color: var(--accent-2); text-transform: uppercase; letter-spacing: .12em; font-weight: 800; font-size: 11px; margin-bottom: 10px; }
+    .prediction { font-size: clamp(22px, 5vw, 34px); font-weight: 800; line-height: 1.08; margin: 0 0 12px; }
+    .hint { margin: 0; color: var(--muted); font-size: 14px; line-height: 1.5; }
+    .chips { flex-wrap: wrap; }
+    .chip {
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.05);
+      color: var(--text);
+      border-radius: 999px;
+      padding: 10px 14px;
+      font-weight: 700;
+      font-size: 13px;
+    }
+    .chip.active { background: rgba(211,77,255,.18); border-color: rgba(211,77,255,.5); }
+    .actions { flex-wrap: wrap; }
+    button {
+      border: 0; border-radius: 18px; padding: 16px 18px; font-weight: 800; font-size: 15px; color: var(--text);
+      background: rgba(255,255,255,.08); min-height: 52px;
+    }
+    .primary { flex: 1 1 220px; background: linear-gradient(135deg, var(--accent), #5e2bff); box-shadow: 0 16px 32px rgba(128,46,255,.35); }
+    .secondary { flex: 1 1 150px; }
+    .footer-note { text-align: center; color: var(--muted); font-size: 12px; padding-bottom: 6px; }
+    .shake { animation: shake .9s ease; }
+    @keyframes shake {
+      0%, 100% { transform: rotate(0); }
+      15% { transform: rotate(-7deg) scale(1.02); }
+      30% { transform: rotate(6deg) scale(.99); }
+      45% { transform: rotate(-5deg); }
+      60% { transform: rotate(4deg); }
+      75% { transform: rotate(-2deg); }
+    }
+    @media (max-width: 420px) {
+      body { padding: 14px; }
+      .brand h1 { font-size: 20px; }
+      .prediction { font-size: 24px; }
+      .badge { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <section class="topbar">
+      <div class="brand">
+        <div class="logo" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 3c1.4 2.7 3.3 4.8 5.8 6.3-1.8 1-3 2.5-3.8 4.4 0 0-1.9-1.7-4-1.7s-4 1.7-4 1.7c-.8-1.9-2-3.4-3.8-4.4C4.7 7.8 6.6 5.7 8 3c.8.9 2.2 1.5 4 1.5S11.2 3.9 12 3Z"></path>
+            <path d="M9.5 14.5c.7.8 1.5 1.2 2.5 1.2s1.8-.4 2.5-1.2"></path>
+            <path d="M9 18.5h6"></path>
+          </svg>
+        </div>
+        <div>
+          <h1>Ведьма сказала</h1>
+          <p>Мемная гадалка без иллюзий</p>
+        </div>
+      </div>
+      <div class="badge">100 фраз в колоде</div>
+    </section>
+
+    <section class="hero">
+      <div class="ball-wrap">
+        <div class="aura"></div>
+        <div class="aura2"></div>
+        <div class="ball" id="ball">
+          <div class="ball-inner"><span id="innerText">СПРОСИ</span></div>
+        </div>
+      </div>
+
+      <article class="card">
+        <div class="subtitle">Вердикт ведьмы</div>
+        <p class="prediction" id="prediction">Нажми на шар и приготовь самооценку.</p>
+        <p class="hint" id="hint">Ведьма не лечит, не судит и почти не врёт. Иногда.</p>
+      </article>
+
+      <div class="chips" id="chips">
+        <button class="chip active" data-key="all">Все</button>
+        <button class="chip" data-key="love">Любовь</button>
+        <button class="chip" data-key="work">Работа</button>
+        <button class="chip" data-key="money">Деньги</button>
+        <button class="chip" data-key="yesno">Да/Нет</button>
+        <button class="chip" data-key="chaos">Хаос</button>
+      </div>
+
+      <div class="actions">
+        <button class="primary" id="askBtn">Спросить ведьму</button>
+        <button class="secondary" id="shareBtn">Поделиться</button>
+      </div>
+    </section>
+
+    <div class="footer-note">Сегодня магия работает с сарказмом.</div>
+  </main>
+
+  <script>
+    const tg = window.Telegram?.WebApp;
+    tg?.ready();
+    tg?.expand();
+
+    const fallbackPredictions = [
+      'Да, но потом не жалуйся на сюжет.',
+      'Нет. Вселенная видела твой план и устала.',
+      'Он напишет. Когда снова станет одиноко.',
+      'Карьера растёт. Нервы быстрее.'
+    ];
+
+    const categoryHints = {
+      all: 'Ведьма смотрит на всё сразу. И ей есть что сказать.',
+      love: 'Любовные дела: красиво, странно, местами унизительно.',
+      work: 'Рабочие прогнозы: амбиции есть, сна нет.',
+      money: 'Финансовый расклад: магия магией, бюджет отдельно.',
+      yesno: 'Самые опасные ответы — короткие.',
+      chaos: 'Категория для дней, когда вселенная решила импровизировать.'
+    };
+
+
+    let allPredictions = [];
+    let activeCategory = 'all';
+
+    const askBtn = document.getElementById('askBtn');
+    const shareBtn = document.getElementById('shareBtn');
+    const predictionEl = document.getElementById('prediction');
+    const hintEl = document.getElementById('hint');
+    const ball = document.getElementById('ball');
+    const innerText = document.getElementById('innerText');
+    const chips = [...document.querySelectorAll('.chip')];
+
+    async function loadPredictions() {
+      try {
+        const response = await fetch('./app/data/predictions.json');
+        allPredictions = await response.json();
+      } catch (e) {
+        allPredictions = fallbackPredictions;
+      }
+    }
+
+    function filterPredictions() {
+      if (activeCategory === 'all') return allPredictions;
+      const filtered = allPredictions.filter(item => item.category === activeCategory);
+      return filtered.length ? filtered : allPredictions;
+    }
+
+    function randomPrediction() {
+      const pool = filterPredictions();
+      const item = pool[Math.floor(Math.random() * pool.length)];
+      return item?.text || 'Ведьма временно молчит, но осуждающе.';
+    }
+
+    async function askWitch() {
+      askBtn.disabled = true;
+      shareBtn.disabled = true;
+      ball.classList.remove('shake');
+      void ball.offsetWidth;
+      ball.classList.add('shake');
+      innerText.textContent = 'ХМ...';
+      predictionEl.textContent = 'Ведьма закатывает глаза и смотрит в туман...';
+      hintEl.textContent = categoryHints[activeCategory];
+
+      await new Promise(resolve => setTimeout(resolve, 900));
+      const prediction = randomPrediction();
+      predictionEl.textContent = prediction;
+      hintEl.textContent = 'Неприятно точный расклад уже у тебя на экране.';
+      innerText.textContent = 'ДА?';
+      askBtn.disabled = false;
+      shareBtn.disabled = false;
+      shareBtn.dataset.text = 'Ведьма сказала: ' + prediction;
+
+      if (tg?.HapticFeedback) {
+        tg.HapticFeedback.notificationOccurred('success');
+      }
+    }
+
+    function sharePrediction() {
+      const text = shareBtn.dataset.text || ('Ведьма сказала: ' + predictionEl.textContent);
+      const url = `https://t.me/share/url?url=${encodeURIComponent('https://t.me')}&text=${encodeURIComponent(text)}`;
+      if (tg?.openTelegramLink) {
+        tg.openTelegramLink(url);
+      } else {
+        window.open(url, '_blank');
+      }
+    }
+
+    chips.forEach(chip => {
+      chip.addEventListener('click', () => {
+        chips.forEach(c => c.classList.remove('active'));
+        chip.classList.add('active');
+        activeCategory = chip.dataset.key;
+        hintEl.textContent = categoryHints[activeCategory];
+      });
+    });
+
+    askBtn.addEventListener('click', askWitch);
+    ball.addEventListener('click', askWitch);
+    shareBtn.addEventListener('click', sharePrediction);
+
+    loadPredictions().then(() => {
+      hintEl.textContent = categoryHints[activeCategory];
+    });
+  </script>
+</body>
+</html>
