@@ -1,0 +1,1025 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#120f1d" />
+  <title>Ведьма сказала</title>
+  <meta name="description" content="Telegram Web App с ведьмой и магическим шаром: предсказание появляется только внутри шара, с полноэкранным ритуалом." />
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #120f1d;
+      --bg-2: #1b142b;
+      --panel: rgba(255,255,255,.08);
+      --line: rgba(255,255,255,.10);
+      --text: #f4efff;
+      --muted: #b8add2;
+      --accent: #b465ff;
+      --accent-2: #72f1d1;
+      --accent-3: #ffd36a;
+      --shadow: 0 24px 80px rgba(0,0,0,.42);
+      --btn-h: 56px;
+      --ease: 420ms cubic-bezier(.22,1,.36,1);
+      --orb-font-size: clamp(23px, 6vw, 42px);
+      --orb-line-height: 0.96;
+      --orb-letter-spacing: -0.03em;
+      --orb-max-width: 9ch;
+    }
+
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      min-height: 100%;
+      background:
+        radial-gradient(circle at 20% 0%, rgba(180,101,255,.18), transparent 28%),
+        radial-gradient(circle at 84% 10%, rgba(114,241,209,.12), transparent 22%),
+        radial-gradient(circle at 50% 120%, rgba(255,140,184,.10), transparent 34%),
+        linear-gradient(180deg, #1d1530 0%, var(--bg) 100%);
+      color: var(--text);
+      font-family: Inter, system-ui, sans-serif;
+      overflow-x: hidden;
+    }
+
+    body { padding: 14px; }
+    button, input, textarea, select { font: inherit; }
+
+    .shell {
+      width: min(100%, 560px);
+      margin: 0 auto;
+      min-height: calc(100dvh - 28px);
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      gap: 14px;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .brand-mark {
+      width: 54px;
+      height: 54px;
+      border-radius: 18px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, rgba(180,101,255,.98), rgba(101,70,255,.9));
+      border: 1px solid rgba(255,255,255,.14);
+      box-shadow: var(--shadow);
+      flex: 0 0 auto;
+    }
+
+    .brand-mark svg { width: 30px; height: 30px; }
+
+    .brand-title {
+      margin: 0;
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(28px, 7vw, 38px);
+      line-height: .92;
+      font-weight: 700;
+      letter-spacing: -.03em;
+    }
+
+    .brand-subtitle {
+      margin-top: 3px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.3;
+    }
+
+    .top-pill {
+      padding: 10px 12px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.06);
+      border: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .stage {
+      position: relative;
+      overflow: hidden;
+      border-radius: 32px;
+      border: 1px solid var(--line);
+      background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.04));
+      box-shadow: var(--shadow);
+      padding: 18px;
+      isolation: isolate;
+    }
+
+    .back-glow, .stars, .fog {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+    }
+
+    .back-glow::before,
+    .back-glow::after {
+      content: "";
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(30px);
+      opacity: .7;
+    }
+
+    .back-glow::before {
+      width: 220px;
+      height: 220px;
+      top: 8%;
+      left: -10%;
+      background: rgba(180,101,255,.22);
+    }
+
+    .back-glow::after {
+      width: 180px;
+      height: 180px;
+      right: -8%;
+      bottom: 16%;
+      background: rgba(114,241,209,.14);
+    }
+
+    .stars::before,
+    .stars::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background-image:
+        radial-gradient(circle, rgba(255,255,255,.95) 0 1.2px, transparent 1.4px),
+        radial-gradient(circle, rgba(114,241,209,.9) 0 1px, transparent 1.2px),
+        radial-gradient(circle, rgba(180,101,255,.9) 0 1.4px, transparent 1.6px);
+      background-size: 130px 130px, 170px 170px, 220px 220px;
+      background-position: 16px 22px, 64px 88px, 102px 12px;
+      opacity: .24;
+      animation: drift 20s linear infinite;
+    }
+
+    .stars::after {
+      opacity: .14;
+      transform: scale(1.06);
+      animation-duration: 28s;
+    }
+
+    .fog::before,
+    .fog::after {
+      content: "";
+      position: absolute;
+      left: -8%;
+      right: -8%;
+      border-radius: 999px;
+      filter: blur(22px);
+    }
+
+    .fog::before {
+      bottom: 34px;
+      height: 64px;
+      background: rgba(180,101,255,.12);
+      animation: wave 8s ease-in-out infinite;
+    }
+
+    .fog::after {
+      bottom: 12px;
+      height: 52px;
+      background: rgba(114,241,209,.08);
+      animation: wave 9.5s ease-in-out infinite reverse;
+    }
+
+    .content {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      gap: 16px;
+    }
+
+    .hero-top {
+      display: grid;
+      justify-items: center;
+      gap: 10px;
+    }
+
+    .witch-wrap {
+      position: relative;
+      width: min(82vw, 320px);
+      min-height: 260px;
+      display: grid;
+      justify-items: center;
+      align-items: end;
+      margin-top: 0;
+      transition: opacity var(--ease), transform var(--ease);
+    }
+
+    .witch-wrap::after {
+      content: "";
+      position: absolute;
+      bottom: 16px;
+      width: 78%;
+      height: 42px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(180,101,255,.30), transparent 70%);
+      filter: blur(18px);
+      z-index: 0;
+    }
+
+    .witch-img {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-height: 320px;
+      height: auto;
+      object-fit: contain;
+      object-position: center bottom;
+      transform: translateY(6px);
+      filter: drop-shadow(0 18px 32px rgba(0,0,0,.28));
+      animation: floatWitch 4.8s ease-in-out infinite;
+    }
+
+    .witch-fallback {
+      position: relative;
+      z-index: 1;
+      width: min(100%, 270px);
+      aspect-ratio: 1 / 1.15;
+      display: none;
+      place-items: end center;
+    }
+
+    .witch-fallback.show { display: grid; }
+
+    .witch-fallback svg {
+      width: 100%;
+      height: auto;
+      filter: drop-shadow(0 18px 32px rgba(0,0,0,.28));
+      animation: floatWitch 4.8s ease-in-out infinite;
+    }
+
+    .chat-box {
+      position: relative;
+      border-radius: 24px;
+      padding: 14px 16px;
+      background: rgba(255,255,255,.08);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+      width: 100%;
+      text-align: center;
+      transition: opacity var(--ease), transform var(--ease);
+    }
+
+    .chat-kicker {
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: .16em;
+      color: var(--accent-2);
+      margin-bottom: 8px;
+    }
+
+    .chat-text {
+      margin: 0 auto;
+      font-size: 15px;
+      line-height: 1.45;
+      max-width: 34ch;
+    }
+
+    .orb-zone {
+      display: grid;
+      gap: 14px;
+      justify-items: center;
+    }
+
+    .orb-stage {
+      position: relative;
+      width: min(82vw, 340px);
+      aspect-ratio: 1;
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+      transition: transform var(--ease), filter var(--ease), opacity var(--ease);
+      z-index: 3;
+    }
+
+    .orb-stage:focus-visible {
+      outline: 2px solid rgba(114,241,209,.9);
+      outline-offset: 6px;
+      border-radius: 50%;
+    }
+
+    .aura,
+    .aura::before,
+    .aura::after,
+    .orb-ring,
+    .orb-ring::before,
+    .orb-ring::after {
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+    }
+
+    .aura {
+      background: radial-gradient(circle, rgba(180,101,255,.24) 0%, rgba(180,101,255,0) 62%);
+      transform: scale(1.12);
+      animation: auraPulse 3.8s ease-in-out infinite;
+    }
+
+    .aura::before,
+    .aura::after {
+      content: "";
+      inset: 10%;
+      border: 1px solid rgba(114,241,209,.18);
+      animation: rotateSlow 8s linear infinite;
+    }
+
+    .aura::after {
+      inset: 2%;
+      border-color: rgba(255,255,255,.08);
+      animation-duration: 12s;
+      animation-direction: reverse;
+    }
+
+    .orb-ring::before,
+    .orb-ring::after {
+      content: "";
+      inset: 13%;
+      border: 1px dashed rgba(255,255,255,.08);
+      animation: rotateSlow 14s linear infinite;
+    }
+
+    .orb-ring::after {
+      inset: 22%;
+      border-style: solid;
+      border-color: rgba(255,211,106,.14);
+      animation-duration: 9s;
+      animation-direction: reverse;
+    }
+
+    .orb {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 1;
+      border-radius: 50%;
+      background:
+        radial-gradient(circle at 34% 28%, rgba(255,255,255,.22) 0 10%, transparent 12%),
+        radial-gradient(circle at 50% 36%, #5a3788 0%, #241538 46%, #09070e 100%);
+      border: 1px solid rgba(255,255,255,.16);
+      box-shadow:
+        inset 0 10px 30px rgba(255,255,255,.06),
+        inset 0 -24px 34px rgba(0,0,0,.64),
+        0 26px 80px rgba(0,0,0,.5);
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+      animation: orbIdle 4.2s ease-in-out infinite;
+      padding: 52px;
+      transition: transform var(--ease), box-shadow var(--ease);
+    }
+
+    .orb::before {
+      content: "";
+      position: absolute;
+      width: 50%;
+      height: 18%;
+      top: 12%;
+      left: 15%;
+      transform: rotate(-16deg);
+      border-radius: 999px;
+      background: rgba(255,255,255,.18);
+      filter: blur(4px);
+    }
+
+    .orb::after {
+      content: "";
+      position: absolute;
+      inset: 12%;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(114,241,209,.14), rgba(180,101,255,.18) 35%, transparent 66%);
+      filter: blur(10px);
+      animation: coreBreath 2.8s ease-in-out infinite;
+    }
+
+    .orb-message {
+      position: relative;
+      z-index: 2;
+      width: 100%;
+      min-height: 160px;
+      display: grid;
+      place-items: center;
+      text-align: center;
+      padding: 12px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(255,255,255,.06), rgba(255,255,255,0) 70%);
+      backdrop-filter: blur(3px);
+    }
+
+    .orb-text {
+      position: relative;
+      z-index: 2;
+      width: 100%;
+      font-family: 'Cormorant Garamond', serif;
+      font-size: var(--orb-font-size);
+      line-height: var(--orb-line-height);
+      font-weight: 700;
+      letter-spacing: var(--orb-letter-spacing);
+      text-wrap: balance;
+      text-shadow: 0 0 22px rgba(180,101,255,.42);
+      max-width: var(--orb-max-width);
+      transition: opacity 260ms ease, transform 260ms ease;
+      display: inline-grid;
+      justify-items: center;
+      gap: 0.18em;
+    }
+
+    .orb-line {
+      display: block;
+      opacity: 0;
+      transform: translateY(10px) scale(.96);
+      filter: blur(8px);
+      animation: lineReveal .56s cubic-bezier(.19,1,.22,1) forwards;
+      will-change: transform, opacity, filter;
+    }
+
+    .orb-line:nth-child(2) { animation-delay: .08s; }
+    .orb-line:nth-child(3) { animation-delay: .16s; }
+    .orb-line:nth-child(4) { animation-delay: .24s; }
+
+    .orb-subtext { display: none; }
+
+    .particle-field {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+    }
+
+    .particle {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: radial-gradient(circle, #fff 0%, var(--accent-2) 46%, transparent 72%);
+      box-shadow: 0 0 18px rgba(114,241,209,.7);
+      opacity: 0;
+    }
+
+    .particle.p1 { transform: translate(-50%, -50%) rotate(0deg) translateY(-126px); }
+    .particle.p2 { transform: translate(-50%, -50%) rotate(45deg) translateY(-132px); }
+    .particle.p3 { transform: translate(-50%, -50%) rotate(90deg) translateY(-124px); }
+    .particle.p4 { transform: translate(-50%, -50%) rotate(135deg) translateY(-134px); }
+    .particle.p5 { transform: translate(-50%, -50%) rotate(180deg) translateY(-126px); }
+    .particle.p6 { transform: translate(-50%, -50%) rotate(225deg) translateY(-130px); }
+    .particle.p7 { transform: translate(-50%, -50%) rotate(270deg) translateY(-128px); }
+    .particle.p8 { transform: translate(-50%, -50%) rotate(315deg) translateY(-136px); }
+
+    .chips-wrap,
+    .actions,
+    .foot {
+      transition: opacity var(--ease), transform var(--ease);
+    }
+
+    .section-kicker {
+      width: 100%;
+      text-align: center;
+      color: var(--muted);
+      font-size: 12px;
+      letter-spacing: .18em;
+      text-transform: uppercase;
+    }
+
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      width: 100%;
+      justify-content: center;
+    }
+
+    .chip {
+      min-height: 42px;
+      padding: 10px 14px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.05);
+      color: var(--text);
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform .18s ease, background .18s ease, border-color .18s ease;
+    }
+
+    .chip.active {
+      background: rgba(180,101,255,.18);
+      border-color: rgba(180,101,255,.42);
+      box-shadow: inset 0 0 0 1px rgba(180,101,255,.18);
+    }
+
+    .actions {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      width: 100%;
+    }
+
+    button {
+      appearance: none;
+      border: 0;
+      cursor: pointer;
+      color: var(--text);
+      min-height: var(--btn-h);
+      border-radius: 18px;
+      padding: 14px 18px;
+      font-weight: 800;
+      transition: transform .18s ease, opacity .18s ease, box-shadow .18s ease, background .18s ease;
+    }
+
+    button:active { transform: translateY(1px) scale(.99); }
+
+    .primary {
+      flex: 1 1 220px;
+      background: linear-gradient(135deg, var(--accent), #6d4dff);
+      box-shadow: 0 18px 38px rgba(109,77,255,.34);
+    }
+
+    .secondary {
+      flex: 1 1 150px;
+      background: rgba(255,255,255,.08);
+      border: 1px solid var(--line);
+    }
+
+    .foot {
+      text-align: center;
+      color: var(--muted);
+      font-size: 12px;
+      padding-bottom: 4px;
+    }
+
+    .stage.casting .witch-wrap,
+    .stage.casting .chat-box,
+    .stage.casting .chips-wrap,
+    .stage.casting .actions,
+    .stage.casting .foot-inline {
+      opacity: 0;
+      transform: translateY(18px);
+      pointer-events: none;
+    }
+
+    .stage.casting .orb-stage {
+      position: fixed;
+      left: 50%;
+      top: 50%;
+      width: min(100vw, 100dvh);
+      transform: translate(-50%, -50%) scale(1.14);
+      z-index: 40;
+      filter: drop-shadow(0 0 90px rgba(180,101,255,.28));
+    }
+
+    .stage.casting .aura { animation: auraHyper 1.2s ease-in-out forwards; }
+    .stage.casting .orb-ring::before,
+    .stage.casting .orb-ring::after,
+    .stage.casting .aura::before,
+    .stage.casting .aura::after { animation-duration: 2.2s; }
+
+    .stage.casting .orb {
+      animation: orbZoomCast 1.4s cubic-bezier(.18,.9,.18,1) forwards;
+      box-shadow:
+        inset 0 12px 34px rgba(255,255,255,.08),
+        inset 0 -36px 50px rgba(0,0,0,.7),
+        0 40px 120px rgba(0,0,0,.6);
+    }
+
+    .stage.casting .orb::after { animation: coreBlast 1.2s ease-in-out forwards; }
+    .stage.casting .particle { animation: burst 1s ease-out forwards; }
+    .stage.casting .witch-img,
+    .stage.casting .witch-fallback svg { animation: witchCast 1.2s ease; }
+    .stage.casting .chat-box { animation: chatPulse 1.2s ease; }
+    .stage.casting .orb-text { animation: textMist 1s ease forwards; }
+    .stage.casting .orb-subtext { opacity: 0; }
+
+    .orb-stage.revealed .orb {
+      box-shadow:
+        inset 0 12px 34px rgba(255,255,255,.08),
+        inset 0 -32px 46px rgba(0,0,0,.7),
+        0 40px 110px rgba(0,0,0,.55);
+    }
+
+    .overlay-vignette {
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(circle at center, rgba(90,55,136,.16) 0%, rgba(18,15,29,.40) 44%, rgba(8,6,15,.94) 100%);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 320ms ease;
+      z-index: 25;
+    }
+
+    .stage.casting + .overlay-vignette,
+    .overlay-vignette.show { opacity: 1; }
+
+    @keyframes drift { 0% { transform: translateY(0); } 50% { transform: translateY(10px); } 100% { transform: translateY(0); } }
+    @keyframes wave { 0%, 100% { transform: translateX(0) scaleX(1); } 50% { transform: translateX(-3%) scaleX(1.04); } }
+    @keyframes floatWitch { 0%, 100% { transform: translateY(6px); } 50% { transform: translateY(0); } }
+    @keyframes auraPulse { 0%, 100% { transform: scale(1.08); opacity: .45; } 50% { transform: scale(1.18); opacity: .86; } }
+    @keyframes auraHyper { 0% { transform: scale(1.12); opacity: .42; } 45% { transform: scale(1.35); opacity: 1; } 100% { transform: scale(1.26); opacity: .78; } }
+    @keyframes rotateSlow { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+    @keyframes orbIdle { 0%, 100% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(-4px) rotate(1deg); } }
+    @keyframes coreBreath { 0%, 100% { transform: scale(.92); opacity: .46; } 50% { transform: scale(1.08); opacity: .92; } }
+    @keyframes orbZoomCast { 0% { transform: rotate(0) scale(1); } 18% { transform: rotate(-6deg) scale(1.03); } 36% { transform: rotate(5deg) scale(1.08); } 58% { transform: rotate(-3deg) scale(1.16); } 78% { transform: rotate(2deg) scale(1.22); } 100% { transform: rotate(0) scale(1.18); } }
+    @keyframes coreBlast { 0% { transform: scale(.84); opacity: .3; } 35% { transform: scale(1.38); opacity: 1; } 100% { transform: scale(1.04); opacity: .72; } }
+    @keyframes witchCast { 0%, 100% { transform: translateY(6px) rotate(0); } 20% { transform: translateY(2px) rotate(-2deg) scale(1.01); } 40% { transform: translateY(-3px) rotate(2deg) scale(1.02); } 60% { transform: translateY(0) rotate(-1deg); } }
+    @keyframes chatPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.02); } }
+    @keyframes textMist { 0% { opacity: 1; transform: scale(1); filter: blur(0); } 50% { opacity: .25; transform: scale(1.08); filter: blur(8px); } 100% { opacity: .06; transform: scale(.92); filter: blur(16px); } }
+    @keyframes lineReveal { 0% { opacity: 0; transform: translateY(14px) scale(.94); filter: blur(12px); } 60% { opacity: 1; transform: translateY(-1px) scale(1.03); filter: blur(0); } 100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); } }
+    @keyframes burst { 0% { opacity: 0; } 14% { opacity: 1; } 100% { opacity: 0; transform: translate(-50%, -50%) scale(1.8) var(--move); } }
+
+    @media (max-width: 460px) {
+      body { padding: 12px; }
+      .shell { min-height: calc(100dvh - 24px); }
+      .top-pill { display: none; }
+      .orb { padding: 36px; }
+      .orb-message { min-height: 120px; }
+      .brand-subtitle { max-width: 20ch; }
+      .stage.casting .orb-stage { width: 100vw; }
+      .witch-wrap { width: min(88vw, 290px); min-height: 220px; }
+      .witch-img { max-height: 260px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: .01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: .01ms !important;
+      }
+      .stage.casting .orb-stage { transform: translate(-50%, -50%) scale(1.02); }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 3c1.4 2.7 3.3 4.8 5.8 6.3-1.8 1-3 2.5-3.8 4.4 0 0-1.9-1.7-4-1.7s-4 1.7-4 1.7c-.8-1.9-2-3.4-3.8-4.4C4.7 7.8 6.6 5.7 8 3c.8.9 2.2 1.5 4 1.5S11.2 3.9 12 3Z"></path>
+            <path d="M9.2 14.5c.7.9 1.6 1.3 2.8 1.3s2.1-.4 2.8-1.3"></path>
+            <path d="M8.8 18.5h6.4"></path>
+          </svg>
+        </div>
+        <div>
+          <h1 class="brand-title">Ведьма сказала</h1>
+          <div class="brand-subtitle">Шар сам подстраивает текст и разворачивает ответ на весь экран</div>
+        </div>
+      </div>
+      <div class="top-pill">v5 • witch fixed</div>
+    </header>
+
+    <section class="stage" id="stage">
+      <div class="back-glow"></div>
+      <div class="stars"></div>
+      <div class="fog"></div>
+
+      <div class="content">
+        <div class="hero-top">
+          <div class="witch-wrap">
+            <img class="witch-img" id="witchImg" src="https://user-gen-media-assets.s3.amazonaws.com/gpt4o_images/789d27e9-b8c2-4082-801a-066051756bd6.png" alt="Мультяшная ведьма над магическим шаром" width="768" height="1365" loading="eager" decoding="async">
+            <div class="witch-fallback" id="witchFallback" aria-hidden="true">
+              <svg viewBox="0 0 280 320" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                  <linearGradient id="hat" x1="70" y1="30" x2="180" y2="210" gradientUnits="userSpaceOnUse">
+                    <stop stop-color="#1E1532"/>
+                    <stop offset="1" stop-color="#6E3D9F"/>
+                  </linearGradient>
+                  <linearGradient id="cloak" x1="90" y1="150" x2="220" y2="308" gradientUnits="userSpaceOnUse">
+                    <stop stop-color="#2C1D48"/>
+                    <stop offset="1" stop-color="#0B0814"/>
+                  </linearGradient>
+                  <radialGradient id="orbGlow" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(140 242) rotate(90) scale(54)">
+                    <stop stop-color="#BA82FF"/>
+                    <stop offset="0.55" stop-color="#592E8B"/>
+                    <stop offset="1" stop-color="#09070E"/>
+                  </radialGradient>
+                </defs>
+                <ellipse cx="140" cy="298" rx="72" ry="12" fill="#7D4BC9" fill-opacity="0.28"/>
+                <path d="M146 36L72 164C103 148 149 139 210 145L146 36Z" fill="url(#hat)"/>
+                <path d="M62 166C117 150 180 151 230 169C188 181 101 182 62 166Z" fill="#150F26"/>
+                <path d="M116 111C130 99 154 100 165 116C174 129 173 148 160 160C148 171 129 170 117 158C104 146 103 124 116 111Z" fill="#F2D8D0"/>
+                <path d="M112 146C132 161 153 161 169 145L187 192L97 192L112 146Z" fill="#F2D8D0"/>
+                <path d="M96 186C116 170 166 171 188 188L219 300H67L96 186Z" fill="url(#cloak)"/>
+                <circle cx="140" cy="242" r="49" fill="url(#orbGlow)"/>
+                <circle cx="140" cy="242" r="49" stroke="#FFFFFF" stroke-opacity="0.18"/>
+                <ellipse cx="123" cy="223" rx="18" ry="12" fill="#FFFFFF" fill-opacity="0.24"/>
+              </svg>
+            </div>
+          </div>
+
+          <div class="chat-box">
+            <div class="chat-kicker">Ведьма комментирует</div>
+            <p class="chat-text" id="witchLine">Теперь ведьма не теряется сверху, а подпись внутри шара убрана совсем.</p>
+          </div>
+        </div>
+
+        <div class="orb-zone">
+          <div class="orb-stage" id="orbStage" role="button" tabindex="0" aria-label="Спросить ведьму">
+            <div class="aura"></div>
+            <div class="orb-ring"></div>
+            <div class="orb">
+              <div class="orb-message">
+                <div class="orb-text" id="orbText" aria-live="polite"></div>
+              </div>
+              <div class="orb-subtext" id="orbSubtext"></div>
+            </div>
+            <div class="particle-field">
+              <div class="particle p1" style="--move: rotate(0deg) translateY(-160px);"></div>
+              <div class="particle p2" style="--move: rotate(45deg) translateY(-154px);"></div>
+              <div class="particle p3" style="--move: rotate(90deg) translateY(-150px);"></div>
+              <div class="particle p4" style="--move: rotate(135deg) translateY(-156px);"></div>
+              <div class="particle p5" style="--move: rotate(180deg) translateY(-152px);"></div>
+              <div class="particle p6" style="--move: rotate(225deg) translateY(-158px);"></div>
+              <div class="particle p7" style="--move: rotate(270deg) translateY(-152px);"></div>
+              <div class="particle p8" style="--move: rotate(315deg) translateY(-160px);"></div>
+            </div>
+          </div>
+
+          <div class="chips-wrap">
+            <div class="section-kicker" id="hint">Выбери режим гадания</div>
+            <div class="chips">
+              <button class="chip active" data-key="all">Все</button>
+              <button class="chip" data-key="love">Любовь</button>
+              <button class="chip" data-key="work">Работа</button>
+              <button class="chip" data-key="money">Деньги</button>
+              <button class="chip" data-key="yesno">Да / Нет</button>
+              <button class="chip" data-key="chaos">Хаос</button>
+            </div>
+          </div>
+
+          <div class="actions">
+            <button class="primary" id="askBtn">Запустить ритуал</button>
+            <button class="secondary" id="shareBtn">Поделиться ответом</button>
+          </div>
+
+          <div class="foot foot-inline">Фокус оставили только на ведьме и тексте внутри шара.</div>
+        </div>
+      </div>
+    </section>
+
+    <div class="foot">Исправлено по замечаниям: ведьма видна, нижняя подпись на шаре убрана.</div>
+  </main>
+
+  <div class="overlay-vignette" id="overlay"></div>
+
+  <script>
+    const tg = window.Telegram?.WebApp;
+    tg?.ready();
+    tg?.expand();
+    tg?.setHeaderColor?.('#120f1d');
+    tg?.setBackgroundColor?.('#120f1d');
+
+    const askBtn = document.getElementById('askBtn');
+    const shareBtn = document.getElementById('shareBtn');
+    const hintEl = document.getElementById('hint');
+    const witchLineEl = document.getElementById('witchLine');
+    const orbTextEl = document.getElementById('orbText');
+    const orbStage = document.getElementById('orbStage');
+    const stageEl = document.getElementById('stage');
+    const overlayEl = document.getElementById('overlay');
+    const witchImg = document.getElementById('witchImg');
+    const witchFallback = document.getElementById('witchFallback');
+    const chips = [...document.querySelectorAll('.chip')];
+
+    const witchLines = {
+      idle: [
+        'Теперь ведьма сверху читается намного лучше и не теряется на фоне.',
+        'Смотрим только на две вещи: ведьма наверху и ответ внутри шара.',
+        'Подпись под текстом убрали, чтобы шар не дробил внимание.',
+        'Теперь композиция чище: персонаж сверху, предсказание по центру.'
+      ],
+      cast: [
+        'Туман собирается. Шар сейчас захватит почти весь экран.',
+        'Колдовство пошло. Буквы уже выплывают из мрака по одной.',
+        'Сейчас будет аккуратный удар по самооценке, зато очень кинематографичный.',
+        'Держись. Ответ уже растягивает пространство вокруг себя.'
+      ],
+      after: [
+        'Так лучше: ведьма видна, а подпись больше не мешает.',
+        'Теперь шар выглядит чище и собраннее.',
+        'Фокус наконец не распадается на мелкие подписи.',
+        'Вот, теперь композиция держится заметно увереннее.'
+      ]
+    };
+
+    const categoryHints = {
+      all: 'Полный расклад: любовь, хаос, деньги и лёгкое унижение.',
+      love: 'Любовь, привязанность и сообщения, о которых жалеют утром.',
+      work: 'Работа, дедлайны и усталость с характером.',
+      money: 'Деньги, траты и финансовые фокусы без аплодисментов.',
+      yesno: 'Короткий вердикт без права красиво отвертеться.',
+      chaos: 'Режим для случаев, когда жизнь уже и так перегнула.'
+    };
+
+    let allPredictions = [];
+    let activeCategory = 'all';
+    let casting = false;
+    let lastPrediction = 'Ведьма сказала: судьба ждёт, пока ты наконец нажмёшь на шар.';
+
+    function pick(arr) {
+      return arr[Math.floor(Math.random() * arr.length)];
+    }
+
+    function escapeHtml(value) {
+      return value
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    function splitPrediction(text) {
+      const normalized = text.replace(/\s+/g, ' ').trim();
+      const sentenceChunks = normalized
+        .split(/(?<=[.!?])\s+/)
+        .map(part => part.trim())
+        .filter(Boolean);
+
+      if (sentenceChunks.length >= 2 && sentenceChunks.every(s => s.length <= 52)) {
+        return sentenceChunks.slice(0, 4);
+      }
+
+      const words = normalized.split(' ');
+      const lines = [];
+      let current = '';
+      const target = normalized.length > 90 ? 16 : normalized.length > 60 ? 18 : 20;
+
+      for (const word of words) {
+        const next = current ? `${current} ${word}` : word;
+        if (next.length > target && current) {
+          lines.push(current);
+          current = word;
+        } else {
+          current = next;
+        }
+      }
+      if (current) lines.push(current);
+      return lines.slice(0, 4);
+    }
+
+    function applyOrbSizing(text, lines) {
+      const length = text.length;
+      let fontSize = 'clamp(23px, 6vw, 42px)';
+      let maxWidth = '9ch';
+      let lineHeight = '.96';
+      let letterSpacing = '-0.03em';
+
+      if (lines.length >= 4 || length > 95) {
+        fontSize = 'clamp(15px, 3.9vw, 27px)';
+        maxWidth = '15ch';
+        lineHeight = '1.03';
+        letterSpacing = '-0.015em';
+      } else if (lines.length === 3 || length > 68) {
+        fontSize = 'clamp(18px, 4.6vw, 34px)';
+        maxWidth = '12ch';
+        lineHeight = '1';
+        letterSpacing = '-0.02em';
+      } else if (length < 28) {
+        fontSize = 'clamp(28px, 7vw, 48px)';
+        maxWidth = '8ch';
+      }
+
+      document.documentElement.style.setProperty('--orb-font-size', fontSize);
+      document.documentElement.style.setProperty('--orb-max-width', maxWidth);
+      document.documentElement.style.setProperty('--orb-line-height', lineHeight);
+      document.documentElement.style.setProperty('--orb-letter-spacing', letterSpacing);
+    }
+
+    function setOrbText(text, mode = 'reveal') {
+      const lines = splitPrediction(text);
+      applyOrbSizing(text, lines);
+      orbTextEl.innerHTML = lines.map(line => {
+        const cls = mode === 'reveal' ? 'orb-line' : '';
+        return `<span class="${cls}">${escapeHtml(line)}</span>`;
+      }).join('');
+    }
+
+    async function loadPredictions() {
+      const candidates = ['./predictions.json', './app/data/predictions.json'];
+      for (const url of candidates) {
+        try {
+          const res = await fetch(url, { cache: 'no-store' });
+          if (res.ok) {
+            allPredictions = await res.json();
+            return;
+          }
+        } catch (e) {}
+      }
+      allPredictions = [{ category: 'all', text: 'Шар завис, но внутренне он всё равно прав.' }];
+    }
+
+    function getPool() {
+      if (activeCategory === 'all') return allPredictions;
+      const filtered = allPredictions.filter(item => item.category === activeCategory);
+      return filtered.length ? filtered : allPredictions;
+    }
+
+    function nextPrediction() {
+      const pool = getPool();
+      const item = pick(pool);
+      return item?.text || 'Шар завис, но внутренне он всё равно прав.';
+    }
+
+    async function askWitch() {
+      if (casting) return;
+      casting = true;
+      askBtn.disabled = true;
+      shareBtn.disabled = true;
+      stageEl.classList.remove('casting');
+      orbStage.classList.remove('revealed');
+      void stageEl.offsetWidth;
+      stageEl.classList.add('casting');
+      overlayEl.classList.add('show');
+
+      setOrbText('Туман идёт', 'static');
+      hintEl.textContent = categoryHints[activeCategory];
+      witchLineEl.textContent = pick(witchLines.cast);
+
+      if (tg?.HapticFeedback) {
+        tg.HapticFeedback.impactOccurred('medium');
+      }
+
+      await new Promise(resolve => setTimeout(resolve, 1380));
+
+      const value = nextPrediction();
+      lastPrediction = `Ведьма сказала: ${value}`;
+      setOrbText(value, 'reveal');
+      witchLineEl.textContent = pick(witchLines.after);
+      shareBtn.dataset.text = lastPrediction;
+
+      stageEl.classList.remove('casting');
+      overlayEl.classList.remove('show');
+      orbStage.classList.add('revealed');
+
+      if (tg?.HapticFeedback) {
+        tg.HapticFeedback.notificationOccurred('success');
+      }
+
+      askBtn.disabled = false;
+      shareBtn.disabled = false;
+      casting = false;
+    }
+
+    function sharePrediction() {
+      const text = shareBtn.dataset.text || lastPrediction;
+      const url = `https://t.me/share/url?url=${encodeURIComponent('https://t.me')}&text=${encodeURIComponent(text)}`;
+      if (tg?.openTelegramLink) {
+        tg.openTelegramLink(url);
+      } else {
+        window.open(url, '_blank', 'noopener,noreferrer');
+      }
+    }
+
+    chips.forEach(chip => {
+      chip.addEventListener('click', () => {
+        chips.forEach(c => c.classList.remove('active'));
+        chip.classList.add('active');
+        activeCategory = chip.dataset.key;
+        hintEl.textContent = categoryHints[activeCategory];
+        witchLineEl.textContent = pick(witchLines.idle);
+      });
+    });
+
+    askBtn.addEventListener('click', askWitch);
+    shareBtn.addEventListener('click', sharePrediction);
+    orbStage.addEventListener('click', askWitch);
+    orbStage.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        askWitch();
+      }
+    });
+
+    if (witchImg) {
+      witchImg.addEventListener('error', () => {
+        witchImg.style.display = 'none';
+        witchFallback?.classList.add('show');
+      });
+    }
+
+    loadPredictions().then(() => {
+      hintEl.textContent = categoryHints[activeCategory];
+      witchLineEl.textContent = pick(witchLines.idle);
+      setOrbText('Спроси ведьму', 'static');
+    });
+  </script>
+</body>
+</html>
