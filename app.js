@@ -241,6 +241,5 @@ const tg = window.Telegram?.WebApp;
     loadPredictions().then(() => {
       hintEl.textContent = categoryHints[activeCategory];
       witchLineEl.textContent = pick(witchLines.idle);
-      setOrbText('Спроси
-ведьму', 'static');
+      setOrbText('Спроси\nведьму', 'static');
     });
