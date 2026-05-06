@@ -4,8 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no" />
   <meta name="theme-color" content="#0a0a1a" />
-  <title>Ведьма сказала | Шар Теслы Судьбы</title>
-  <meta name="description" content="Магический шар Теслы с молниями. Предсказания ведьмы." />
+  <title>Ведьма сказала | Плазменный шар Теслы</title>
+  <meta name="description" content="Магический плазменный шар Теслы с живыми молниями. Предсказания ведьмы." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
@@ -24,21 +24,19 @@
       overflow-x: hidden;
     }
 
-    /* Динамический фон */
+    /* Фон и звёзды */
     .bg-gradient {
       position: fixed;
       inset: 0;
       z-index: -2;
-      background: radial-gradient(ellipse at 30% 20%, #1a1030 0%, #0a0a1a 60%, #050510 100%);
+      background: radial-gradient(ellipse at 30% 20%, #0e0a1a 0%, #050510 100%);
     }
-
     .stars {
       position: fixed;
       inset: 0;
       z-index: -1;
       pointer-events: none;
     }
-
     .star {
       position: absolute;
       background: white;
@@ -46,13 +44,12 @@
       opacity: 0;
       animation: starTwinkle 4s ease-in-out infinite;
     }
-
     @keyframes starTwinkle {
       0%, 100% { opacity: 0; transform: scale(0.3); }
-      50% { opacity: 0.7; transform: scale(1); }
+      50% { opacity: 0.6; transform: scale(1); }
     }
 
-    /* Контейнер приложения */
+    /* Контейнер */
     .container {
       max-width: 500px;
       margin: 0 auto;
@@ -99,113 +96,41 @@
     }
     .lang.active { background: rgba(155,107,255,0.3); color: white; }
 
-    /* Карточка */
+    /* Карточка с шаром */
     .magic-card {
-      background: linear-gradient(135deg, rgba(25,15,45,0.6), rgba(15,8,30,0.7));
-      border-radius: 56px; padding: 32px 24px;
+      background: linear-gradient(135deg, rgba(25,15,45,0.5), rgba(15,8,30,0.6));
+      border-radius: 56px;
       backdrop-filter: blur(20px);
       border: 1px solid rgba(255,255,255,0.08);
       box-shadow: 0 25px 45px -15px rgba(0,0,0,0.5);
       margin-bottom: 24px;
-    }
-
-    /* ----- Шар Теслы с Молниями (ОБНОВЛЁННЫЙ СТИЛЬ) ----- */
-    .orb-wrapper {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      position: relative;
-    }
-    .orb-container {
-      position: relative;
-      width: 260px;
-      height: 260px;
-      margin-bottom: 20px;
-    }
-    /* Эффект сияния вокруг шара */
-    .orb-glow {
-      position: absolute;
-      inset: -20px;
-      border-radius: 50%;
-      background: radial-gradient(circle, rgba(155,107,255,0.3), transparent 70%);
-      opacity: 0.5;
-      transition: opacity 0.3s;
-      pointer-events: none;
-    }
-    /* Сам шар */
-    .orb {
-      position: relative;
-      width: 100%;
-      height: 100%;
-      border-radius: 50%;
-      background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.2), rgba(80,60,120,0.3));
-      backdrop-filter: blur(6px);
-      box-shadow: 0 0 0 2px rgba(255,255,255,0.4), 0 20px 40px rgba(0,0,0,0.6), inset 0 0 40px rgba(155,107,255,0.3);
-      cursor: pointer;
-      transition: all 0.3s;
       overflow: hidden;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      position: relative;
+      aspect-ratio: 1 / 1;
     }
-    .orb:active { transform: scale(0.96); }
-    /* Внутреннее свечение */
-    .orb::before {
-      content: '';
-      position: absolute;
-      inset: 10%;
-      border-radius: 50%;
-      background: radial-gradient(circle, rgba(155,107,255,0.4), transparent 70%);
-      pointer-events: none;
-      z-index: 1;
-    }
-    /* SVG с молниями */
-    .lightning-svg {
-      position: absolute;
-      inset: 0;
+    /* Canvas для Three.js занимает всю карточку */
+    #threeCanvas {
       width: 100%;
       height: 100%;
+      display: block;
+      cursor: pointer;
+    }
+    
+    /* Текст поверх шара (предсказание) — налагается поверх canvas */
+    .orb-text-overlay {
+      position: absolute;
+      bottom: 20%;
+      left: 0;
+      right: 0;
+      text-align: center;
+      z-index: 10;
       pointer-events: none;
-      z-index: 2;
-      opacity: 0.8;
-      mix-blend-mode: screen;
-    }
-    /* Стиль путей молний */
-    .lightning-path {
-      stroke: url(#lightningGrad);
-      stroke-width: 2;
-      fill: none;
-      stroke-linecap: round;
-      stroke-linejoin: round;
-      filter: drop-shadow(0 0 5px #b77eff);
-      animation: idleLightning 2.5s infinite ease-in-out;
-    }
-    /* Анимация случайного мерцания молний */
-    @keyframes idleLightning {
-      0%, 80%, 86%, 100% { opacity: 0.3; stroke-width: 1.5; }
-      83%, 84% { opacity: 1; stroke-width: 3; filter: drop-shadow(0 0 12px #fff); }
-    }
-    /* Реакция на колдовство */
-    .orb.casting .lightning-path {
-      animation: castLightning 0.5s cubic-bezier(0.2, 1, 0.3, 1) forwards;
-    }
-    @keyframes castLightning {
-      0% { opacity: 0.2; stroke-width: 1; }
-      20% { opacity: 1; stroke-width: 5; filter: drop-shadow(0 0 20px #fff); }
-      50% { opacity: 0.8; stroke-width: 2; }
-      100% { opacity: 0.4; stroke-width: 1.5; }
-    }
-    .orb-text {
-      position: relative;
-      z-index: 3;
       font-family: 'Cormorant Garamond', serif;
       font-size: 22px;
       font-weight: 700;
       color: #1a052a;
-      text-shadow: 0 0 12px rgba(255, 255, 255, 0.8);
-      text-align: center;
-      padding: 20px;
-      max-width: 85%;
+      text-shadow: 0 0 12px rgba(255,255,255,0.9);
+      padding: 0 20px;
     }
     .orb-line {
       display: block;
@@ -216,14 +141,7 @@
     @keyframes lineAppear {
       to { opacity: 1; transform: translateY(0); }
     }
-    .orb.casting .orb-text {
-      animation: textFlash 0.3s ease-out;
-    }
-    @keyframes textFlash {
-      0% { text-shadow: 0 0 0 rgba(255,255,255,0); }
-      50% { text-shadow: 0 0 20px #fff; }
-      100% { text-shadow: 0 0 8px rgba(255,255,255,0.8); }
-    }
+    
     .witch-message {
       font-size: 13px;
       color: #b8a8d8;
@@ -234,7 +152,9 @@
       backdrop-filter: blur(8px);
       border: 1px solid rgba(255,255,255,0.05);
       max-width: 280px;
-      margin: 0 auto;
+      margin: -12px auto 0;
+      position: relative;
+      z-index: 2;
     }
 
     /* Категории */
@@ -400,10 +320,8 @@
       transition: width 0.2s ease;
     }
     @media (max-width: 450px) {
-      .orb-container { width: 220px; height: 220px; }
-      .btn-row { flex-direction: column; gap: 10px; }
       .main-title { font-size: 24px; }
-      .magic-card { padding: 24px 16px; }
+      .orb-text-overlay { font-size: 18px; bottom: 15%; }
     }
   </style>
 </head>
@@ -417,7 +335,7 @@
   <div class="splash-content">
     <div class="splash-orb"></div>
     <div class="splash-title">ВЕДЬМА<br>СКАЗАЛА</div>
-    <div class="splash-sub">TESLA SPHERE ORACLE</div>
+    <div class="splash-sub">PLASMA TESLA ORACLE</div>
     <div class="splash-progress">
       <div class="splash-progress-bar" id="progressBar"></div>
     </div>
@@ -428,7 +346,7 @@
 <div class="container" id="app">
   <div class="header">
     <div class="title-section">
-      <div class="badge">⚡ МАГИЧЕСКИЙ ШАР ТЕСЛА</div>
+      <div class="badge">⚡ ПЛАЗМЕННЫЙ ШАР ТЕСЛА</div>
       <h1 class="main-title">Коснись шара —<br>узнаешь ответ</h1>
     </div>
     <div class="lang-switch">
@@ -437,32 +355,13 @@
     </div>
   </div>
 
-  <div class="magic-card">
-    <div class="orb-wrapper">
-      <div class="orb-container">
-        <div class="orb-glow" id="orbGlow"></div>
-        <div class="orb" id="orb">
-          <div class="orb-text" id="orbText">🔮</div>
-          <svg class="lightning-svg" viewBox="0 0 100 100" preserveAspectRatio="none">
-            <defs>
-              <linearGradient id="lightningGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stop-color="#fff" />
-                <stop offset="50%" stop-color="#c88bff" />
-                <stop offset="100%" stop-color="#9b6bff" />
-              </linearGradient>
-            </defs>
-            <path class="lightning-path" d="M28,22 L42,48 L32,52 L53,78 L42,82 L62,92" />
-            <path class="lightning-path" d="M72,18 L62,42 L76,48 L58,72 L72,78 L86,88" style="animation-delay: 0.8s;" />
-            <path class="lightning-path" d="M18,62 L34,56 L28,74 L46,68" style="animation-delay: 1.5s;" />
-            <path class="lightning-path" d="M82,52 L66,62 L76,78 L90,68" style="animation-delay: 2.2s;" />
-            <path class="lightning-path" d="M45,15 L52,30 L48,35 L60,45" style="animation-delay: 0.4s; stroke-width: 1.5;" />
-            <path class="lightning-path" d="M40,85 L50,75 L45,70 L55,62" style="animation-delay: 1.8s; stroke-width: 1.5;" />
-          </svg>
-        </div>
-      </div>
-      <div class="witch-message" id="witchLine">Коснись магического шара Тесла, чтобы начать ритуал</div>
+  <div class="magic-card" id="magicCard">
+    <canvas id="threeCanvas"></canvas>
+    <div class="orb-text-overlay" id="orbTextOverlay">
+      <div id="orbText">🔮</div>
     </div>
   </div>
+  <div class="witch-message" id="witchLine">Коснись плазменного шара, чтобы начать ритуал</div>
 
   <div class="categories">
     <div class="categories-label">🌙 ВЫБЕРИ СФЕРУ</div>
@@ -497,15 +396,173 @@
   </div>
 </div>
 
-<script>
-  (function() {
-    console.log('⚡ Магический шар Теслы активирован');
+<!-- Three.js библиотека -->
+<script type="importmap">
+  {
+    "imports": {
+      "three": "https://unpkg.com/three@0.128.0/build/three.module.js"
+    }
+  }
+</script>
+
+<script type="module">
+  import * as THREE from 'three';
+
+  // --- Инициализация сцены ---
+  const canvas = document.getElementById('threeCanvas');
+  const parent = document.getElementById('magicCard');
+  const width = parent.clientWidth;
+  const height = parent.clientHeight;
+  
+  const scene = new THREE.Scene();
+  scene.background = null; // прозрачный фон
+  const camera = new THREE.PerspectiveCamera(45, width/height, 0.1, 1000);
+  camera.position.set(0, 0, 3.5);
+  const renderer = new THREE.WebGLRenderer({ canvas, alpha: true });
+  renderer.setSize(width, height);
+  renderer.setPixelRatio(window.devicePixelRatio);
+  
+  // --- Создание плазменной сферы ---
+  const geometry = new THREE.SphereGeometry(1, 128, 128);
+  
+  // Кастомный шейдер для эффекта плазмы/молний
+  const vertexShader = `
+    varying vec2 vUv;
+    void main() {
+      vUv = uv;
+      vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+      gl_PointSize = 1.0;
+      gl_Position = projectionMatrix * mvPosition;
+    }
+  `;
+  
+  const fragmentShader = `
+    uniform float uTime;
+    varying vec2 vUv;
     
-    // DOM
-    const splash = document.getElementById('splash');
-    const app = document.getElementById('app');
-    const orb = document.getElementById('orb');
-    const orbText = document.getElementById('orbText');
+    void main() {
+      vec2 uv = vUv;
+      // Сферические координаты для анимации
+      float theta = uv.x * 6.28318;
+      float phi = uv.y * 3.14159;
+      vec3 dir = vec3(sin(theta)*sin(phi), cos(phi), cos(theta)*sin(phi));
+      
+      // Шумоподобные функции для молний
+      float t1 = sin(uTime * 3.0 + uv.x * 20.0) * cos(uTime * 2.5 + uv.y * 18.0);
+      float t2 = sin(uTime * 4.2 + uv.y * 25.0) * cos(uTime * 1.8 + uv.x * 22.0);
+      float t3 = sin(uTime * 5.5 + (uv.x + uv.y) * 15.0);
+      float t4 = sin(uTime * 6.0 + (uv.x - uv.y) * 20.0);
+      float lightning = (t1 + t2 + t3 + t4) / 4.0;
+      lightning = pow(abs(lightning), 1.5) * 0.8 + 0.2;
+      
+      // Цвета: голубые, фиолетовые, белые
+      vec3 color1 = vec3(0.4, 0.2, 0.8); // фиолет
+      vec3 color2 = vec3(0.2, 0.5, 1.0); // синий
+      vec3 color3 = vec3(1.0, 0.6, 1.0); // розовый
+      vec3 color4 = vec3(1.0, 1.0, 1.0);
+      
+      vec3 col = mix(color1, color2, lightning);
+      col = mix(col, color3, sin(uTime * 2.0) * 0.5 + 0.5);
+      col = mix(col, color4, pow(lightning, 2.0) * 0.8);
+      
+      // Яркость в зависимости от интенсивности
+      float alpha = 0.9;
+      float brightness = 0.6 + lightning * 0.5;
+      col *= brightness;
+      
+      gl_FragColor = vec4(col, alpha);
+    }
+  `;
+  
+  const uniforms = {
+    uTime: { value: 0 }
+  };
+  
+  const material = new THREE.ShaderMaterial({
+    uniforms: uniforms,
+    vertexShader: vertexShader,
+    fragmentShader: fragmentShader,
+    transparent: true,
+    side: THREE.DoubleSide
+  });
+  
+  const sphere = new THREE.Mesh(geometry, material);
+  scene.add(sphere);
+  
+  // Добавим внешнее свечение (сфера с размытым шейдером)
+  const glowGeometry = new THREE.SphereGeometry(1.08, 64, 64);
+  const glowMaterial = new THREE.MeshBasicMaterial({
+    color: 0x9b6bff,
+    transparent: true,
+    opacity: 0.15,
+    side: THREE.BackSide
+  });
+  const glowSphere = new THREE.Mesh(glowGeometry, glowMaterial);
+  scene.add(glowSphere);
+  
+  // Добавим парящие частицы (искры)
+  const particleCount = 500;
+  const particleGeometry = new THREE.BufferGeometry();
+  const particlePositions = new Float32Array(particleCount * 3);
+  for (let i = 0; i < particleCount; i++) {
+    // Вектор на сфере радиусом 1.05
+    const theta = Math.random() * Math.PI * 2;
+    const phi = Math.acos(2 * Math.random() - 1);
+    const r = 1.05;
+    const x = r * Math.sin(phi) * Math.cos(theta);
+    const y = r * Math.sin(phi) * Math.sin(theta);
+    const z = r * Math.cos(phi);
+    particlePositions[i*3] = x;
+    particlePositions[i*3+1] = y;
+    particlePositions[i*3+2] = z;
+  }
+  particleGeometry.setAttribute('position', new THREE.BufferAttribute(particlePositions, 3));
+  const particleMaterial = new THREE.PointsMaterial({
+    color: 0xff88ff,
+    size: 0.02,
+    transparent: true,
+    blending: THREE.AdditiveBlending
+  });
+  const particles = new THREE.Points(particleGeometry, particleMaterial);
+  scene.add(particles);
+  
+  // Анимация вращения частиц
+  let particleRotation = 0;
+  
+  // Анимация
+  let time = 0;
+  function animate() {
+    requestAnimationFrame(animate);
+    time += 0.02;
+    uniforms.uTime.value = time;
+    
+    // Вращаем частицы медленно
+    particleRotation += 0.002;
+    particles.rotation.y = particleRotation;
+    particles.rotation.x = particleRotation * 0.5;
+    
+    // Пульсация свечения
+    const pulse = 0.95 + Math.sin(time * 2) * 0.03;
+    glowSphere.scale.set(pulse, pulse, pulse);
+    
+    renderer.render(scene, camera);
+  }
+  animate();
+  
+  // Адаптация размера canvas при изменении окна
+  window.addEventListener('resize', () => {
+    const w = parent.clientWidth;
+    const h = parent.clientHeight;
+    renderer.setSize(w, h);
+    camera.aspect = w / h;
+    camera.updateProjectionMatrix();
+  });
+  
+  // ========== ЛОГИКА ПРИЛОЖЕНИЯ (категории, предсказания, лимиты) ==========
+  // Всё как раньше, но без дублирования кода шара
+  (function() {
+    // DOM элементы
+    const orbTextDiv = document.getElementById('orbText');
     const witchLine = document.getElementById('witchLine');
     const shareBtn = document.getElementById('shareBtn');
     const againBtn = document.getElementById('againBtn');
@@ -515,7 +572,8 @@
     const skinBtn = document.getElementById('skinBtn');
     const questionsLeftSpan = document.getElementById('questionsLeft');
     const chips = document.querySelectorAll('.chip');
-    const orbGlow = document.getElementById('orbGlow');
+    const splash = document.getElementById('splash');
+    const app = document.getElementById('app');
     
     // Состояние
     let questionsLeft = 3;
@@ -523,7 +581,7 @@
     let currentAnswer = '';
     let isCasting = false;
     
-    // Предсказания
+    // База предсказаний
     const predictions = {
       all: ['✨ Звёзды говорят — да! ✨', '🌙 Пока неясно, спроси позже 🌙', '🔮 Нет, не судьба 🔮', '💫 Определённо да! 💫', '🍀 Всё будет хорошо 🍀', '🌟 Вселенная на твоей стороне 🌟', '⚡ Будь смелее — решение за тобой ⚡', '🌸 Скоро всё изменится к лучшему 🌸'],
       love: ['💗 Он думает о тебе 💗', '💗 Судьба готовит встречу 💗', '💗 Не торопи события 💗', '💗 Сердце знает ответ 💗', '💗 Скоро важный разговор 💗', '💗 Любовь ближе, чем кажется 💗'],
@@ -545,8 +603,6 @@
     function saveQuestions() { localStorage.setItem('witch_questions', questionsLeft); }
     function updateCounter() {
       questionsLeftSpan.textContent = questionsLeft;
-      if (questionsLeft <= 0 && orb) orb.style.opacity = '0.6';
-      else if (orb) orb.style.opacity = '1';
       saveQuestions();
     }
     
@@ -563,12 +619,22 @@
         }
       }
       if (current) lines.push(current);
-      orbText.innerHTML = lines.map(l => `<span class="orb-line">${l}</span>`).join('');
+      orbTextDiv.innerHTML = lines.map(l => `<span class="orb-line">${l}</span>`).join('');
     }
     
     function getRandomPrediction() {
       const pool = predictions[activeCategory] || predictions.all;
       return pool[Math.floor(Math.random() * pool.length)];
+    }
+    
+    // Визуальная вспышка шара при колдовстве (добавим анимацию на сцену)
+    function flashSphere() {
+      // Временно увеличим интенсивность свечения
+      glowMaterial.opacity = 0.6;
+      setTimeout(() => { glowMaterial.opacity = 0.15; }, 300);
+      // Также добавим эффект частиц
+      particleMaterial.color.setHex(0xffaaff);
+      setTimeout(() => { particleMaterial.color.setHex(0xff88ff); }, 400);
     }
     
     async function castSpell() {
@@ -581,10 +647,9 @@
       questionsLeft--;
       updateCounter();
       
-      orb.classList.add('casting');
-      if (orbGlow) orbGlow.style.opacity = '0.9';
-      witchLine.textContent = '⚡ Молнии читают судьбу...';
-      orbText.textContent = '✨';
+      witchLine.textContent = '⚡ Плазма читает судьбу...';
+      orbTextDiv.innerHTML = '✨';
+      flashSphere();
       if (window.Telegram?.WebApp?.HapticFeedback) window.Telegram.WebApp.HapticFeedback.impactOccurred('medium');
       
       await new Promise(r => setTimeout(r, 1200));
@@ -592,8 +657,6 @@
       currentAnswer = getRandomPrediction();
       showAnswer(currentAnswer);
       witchLine.textContent = '✨ Вот что сказала ведьма ✨';
-      orb.classList.remove('casting');
-      if (orbGlow) orbGlow.style.opacity = '0.5';
       if (againBtn) againBtn.style.display = 'block';
       if (shareBtn) shareBtn.dataset.text = currentAnswer;
       if (window.Telegram?.WebApp?.HapticFeedback) window.Telegram.WebApp.HapticFeedback.notificationOccurred('success');
@@ -613,7 +676,7 @@
     function inviteFriend() {
       const link = 'https://t.me/place_bot_username?start=ref';
       if (window.Telegram?.WebApp?.openTelegramLink) {
-        window.Telegram.WebApp.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(link)}&text=🧙‍♀️ Приходи гадать на магическом шаре «Ведьма сказала»!`);
+        window.Telegram.WebApp.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(link)}&text=🧙‍♀️ Приходи гадать на плазменном шаре «Ведьма сказала»!`);
       } else {
         alert('👥 Пригласи друга:\n' + link);
       }
@@ -630,7 +693,9 @@
       });
     });
     
-    orb.addEventListener('click', castSpell);
+    // Назначаем обработчик клика на canvas
+    const canvasElem = document.getElementById('threeCanvas');
+    canvasElem.addEventListener('click', castSpell);
     shareBtn.addEventListener('click', shareAnswer);
     againBtn.addEventListener('click', anotherAnswer);
     buyBtn.addEventListener('click', buyQuestions);
@@ -664,9 +729,9 @@
     }, 150);
     
     loadData();
-    orbText.innerHTML = '🔮';
+    orbTextDiv.innerHTML = '🔮';
     
-    // Звёзды
+    // Генерация звёзд
     const starsContainer = document.getElementById('stars');
     for (let i = 0; i < 80; i++) {
       const star = document.createElement('div');
