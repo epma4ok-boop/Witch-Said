@@ -493,19 +493,22 @@
       <button class="chip" data-key="money">💰 Деньги</button>
     </div>
 
-    <div class="actions">
-      <button id="shareBtn" class="btn btn-primary">📤 Поделиться</button>
-      <button id="againBtn" class="btn btn-secondary" style="display: none;">🎭 Другой ответ</button>
-    </div>
-
-    <div class="history-section" id="historySection" style="display: none;">
-      <div class="history-title">📜 Свиток пророчеств</div>
-      <div class="history-list" id="historyList"></div>
-      <div class="clear-history" id="clearHistory">🗑️ Очистить</div>
-    </div>
-
-    <div class="footer-note" data-i18n="footerNote">Магия внутри. Нажми — и шар заговорит</div>
+   <div class="actions">
+  <div style="display: flex; gap: 10px; justify-content: space-between;">
+    <button id="buyQuestionsBtn" class="btn btn-secondary" style="flex:1;">⭐ Купить вопросы</button>
+    <button id="referBtn" class="btn btn-secondary" style="flex:1;">👥 Пригласить</button>
   </div>
+  <div style="display: flex; gap: 10px;">
+    <button id="shareStoryBtn" class="btn btn-secondary" style="flex:1;">📸 В сторис</button>
+    <button id="skinSelector" class="btn btn-secondary" style="flex:1;">✨ Скины</button>
+  </div>
+  <button id="shareBtn" class="btn btn-primary">📤 Поделиться</button>
+  <button id="againBtn" class="btn btn-secondary" style="display: none;">🎭 Другой ответ</button>
+</div>
+
+<!-- Добавь счётчик вопросов -->
+<div style="text-align: center; margin-top: 12px; font-size: 12px; color: #a590c2;">
+  🔮 Сегодня осталось вопросов: <span id="questionsLeft">0/3</span>
 </div>
 
 <script src="app.js"></script>
