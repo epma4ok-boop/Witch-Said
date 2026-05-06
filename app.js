@@ -172,4 +172,188 @@ function applyOrbSizing(text, lines) {
   let letterSpacing = '-0.03em';
 
   if (lines.length >= 4 || length > 80) {
-    
+    fontSize = 'clamp(14px, 3.4vw, 24px)';
+    maxWidth = '15ch';
+    lineHeight = '1.03';
+    letterSpacing = '-0.015em';
+  } else if (lines.length === 3 || length > 60) {
+    fontSize = 'clamp(17px, 4.2vw, 30px)';
+    maxWidth = '12ch';
+    lineHeight = '1';
+    letterSpacing = '-0.02em';
+  } else if (length < 28) {
+    fontSize = 'clamp(28px, 7vw, 48px)';
+    maxWidth = '8ch';
+  }
+
+  document.documentElement.style.setProperty(
+    '--orb-font-size',
+    fontSize
+  );
+  document.documentElement.style.setProperty(
+    '--orb-max-width',
+    maxWidth
+  );
+  document.documentElement.style.setProperty(
+    '--orb-line-height',
+    lineHeight
+  );
+  document.documentElement.style.setProperty(
+    '--orb-letter-spacing',
+    letterSpacing
+  );
+}
+
+function setOrbText(text, mode = 'reveal') {
+  const lines = splitPrediction(text);
+  applyOrbSizing(text, lines);
+  orbTextEl.innerHTML = lines
+    .map((line) => {
+      const cls = mode === 'reveal' ? 'orb-line' : '';
+      return `<span class="${cls}">${escapeHtml(line)}</span>`;
+    })
+    .join('');
+}
+
+function clearOrbText() {
+  orbTextEl.innerHTML = '';
+}
+
+async function loadPredictions() {
+  const candidates = [
+    './predictions.json',
+    './predictions-3.json',
+    './app/data/predictions.json',
+  ];
+  for (const url of candidates) {
+    try {
+      const res = await fetch(url, { cache: 'no-store' });
+      if (res.ok) {
+        allPredictions = await res.json();
+        return;
+      }
+    } catch (e) {
+      // ignore
+    }
+  }
+  allPredictions = [
+    {
+      category: 'all',
+      text: 'Шар завис, но внутренне он всё равно прав.',
+    },
+  ];
+}
+
+function getPool() {
+  if (activeCategory === 'all') return allPredictions;
+  const filtered = allPredictions.filter(
+    (item) => item.category === activeCategory
+  );
+  return filtered.length ? filtered : allPredictions;
+}
+
+function nextPrediction() {
+  const pool = getPool();
+  const item = pick(pool);
+  const fallback =
+    'Шар завис, но внутренне он всё равно прав.';
+  if (!item) return fallback;
+  const text =
+    lang === 'en' && item.text_en ? item.text_en : item.text;
+  return text || fallback;
+}
+
+async function askWitch() {
+  if (casting) return;
+  casting = true;
+  shareBtn.disabled = true;
+
+  stageEl.classList.remove('casting');
+  orbStage.classList.remove('revealed');
+  void stageEl.offsetWidth;
+  clearOrbText();
+
+  stageEl.classList.add('casting');
+  overlayEl.classList.add('show');
+  hintEl.textContent = categoryHints[activeCategory];
+  witchLineEl.textContent = pick(witchLines.cast);
+
+  if (tg?.HapticFeedback) {
+    tg.HapticFeedback.impactOccurred('medium');
+  }
+
+  await new Promise((resolve) => setTimeout(resolve, 1380));
+
+  const value = nextPrediction();
+  lastPrediction = `Ведьма сказала: ${value}`;
+  setOrbText(value, 'reveal');
+  witchLineEl.textContent = pick(witchLines.after);
+  shareBtn.dataset.text = lastPrediction;
+
+  stageEl.classList.remove('casting');
+  overlayEl.classList.remove('show');
+  orbStage.classList.add('revealed');
+
+  if (tg?.HapticFeedback) {
+    tg.HapticFeedback.notificationOccurred('success');
+  }
+
+  shareBtn.disabled = false;
+  casting = false;
+}
+
+function sharePrediction() {
+  const text = shareBtn.dataset.text || lastPrediction;
+  const url = `https://t.me/share/url?url=${encodeURIComponent(
+    'https://t.me'
+  )}&text=${encodeURIComponent(text)}`;
+  if (tg?.openTelegramLink) {
+    tg.openTelegramLink(url);
+  } else {
+    window.open(url, '_blank', 'noopener,noreferrer');
+  }
+}
+
+chips.forEach((chip) => {
+  chip.addEventListener('click', () => {
+    chips.forEach((c) => c.classList.remove('active'));
+    chip.classList.add('active');
+    activeCategory = chip.dataset.key;
+    hintEl.textContent = categoryHints[activeCategory];
+    witchLineEl.textContent = pick(witchLines.idle);
+  });
+});
+
+shareBtn.addEventListener('click', sharePrediction);
+orbStage.addEventListener('click', askWitch);
+orbStage.addEventListener('keydown', (event) => {
+  if (event.key === 'Enter' || event.key === ' ') {
+    event.preventDefault();
+    askWitch();
+  }
+});
+
+if (witchImg) {
+  witchImg.addEventListener('error', () => {
+    witchImg.style.display = 'none';
+    witchFallback?.classList.add('show');
+  });
+}
+
+document.querySelectorAll('.lang').forEach((btn) => {
+  btn.addEventListener('click', () => {
+    const value = btn.dataset.lang;
+    if (!value || value === lang) return;
+    lang = value;
+    document
+      .querySelectorAll('.lang')
+      .forEach((b) => b.classList.toggle('active', b === btn));
+    applyLangTexts();
+  });
+});
+
+loadPredictions().then(() => {
+  hintEl.textContent = categoryHints[activeCategory];
+  witchLineEl.textContent = pick(witchLines.idle);
+  applyLangTexts();
+});
