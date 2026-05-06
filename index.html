@@ -29,73 +29,33 @@
       overflow: hidden;
     }
 
-    /* ===== ЗАСТАВКА ===== */
-    .splash-screen {
-      position: fixed;
-      inset: 0;
-      z-index: 1000;
-      background: radial-gradient(ellipse at 30% 20%, #1a0f2e 0%, #05030b 100%);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: opacity 0.8s ease, visibility 0s linear 0.8s;
-      backdrop-filter: blur(10px);
-    }
-    .splash-screen.hide {
-      opacity: 0;
-      visibility: hidden;
-    }
-    .splash-content {
-      text-align: center;
-      animation: fadeInScale 1.2s ease-out;
-    }
-    @keyframes fadeInScale {
-      0% { opacity: 0; transform: scale(0.85); filter: blur(8px); }
-      100% { opacity: 1; transform: scale(1); filter: blur(0); }
-    }
-    .splash-logo {
-      width: 140px;
-      height: 140px;
-      margin: 0 auto 24px;
-      animation: floatLogo 3s ease-in-out infinite;
-    }
-    @keyframes floatLogo {
-      0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-12px); }
-    }
-    .splash-title {
-      font-family: 'Cormorant Garamond', serif;
-      font-size: 42px;
-      font-weight: 700;
-      background: linear-gradient(135deg, #fff, #d4b8ff, #b26bff);
-      -webkit-background-clip: text;
-      background-clip: text;
-      color: transparent;
-      letter-spacing: 2px;
-      margin-bottom: 12px;
-    }
-    .splash-sub {
-      font-size: 13px;
-      color: #a590c2;
-      letter-spacing: 0.2em;
-      text-transform: uppercase;
-    }
-    .splash-progress {
-      width: 200px;
-      height: 2px;
-      background: rgba(178, 107, 255, 0.2);
-      border-radius: 4px;
-      margin: 32px auto 0;
-      overflow: hidden;
-    }
-    .splash-progress-bar {
-      width: 0%;
-      height: 100%;
-      background: linear-gradient(90deg, #b26bff, #ff7ac2);
-      border-radius: 4px;
-      transition: width 0.2s ease;
-    }
-
+  <!-- ЗАСТАВКА -->
+<div class="splash-screen" id="splash">
+  <div class="splash-content">
+    <div class="splash-logo">
+      <svg width="120" height="120" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="50" cy="50" r="45" stroke="url(#grad)" stroke-width="1.5" fill="none" stroke-dasharray="4 4"/>
+        <path d="M50 20 L58 40 L80 42 L63 56 L68 78 L50 66 L32 78 L37 56 L20 42 L42 40 L50 20Z" fill="url(#grad2)" opacity="0.8"/>
+        <text x="50" y="88" text-anchor="middle" fill="white" font-size="8" font-family="monospace">✦</text>
+        <defs>
+          <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#b26bff"/>
+            <stop offset="100%" stop-color="#ff7ac2"/>
+          </linearGradient>
+          <linearGradient id="grad2" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#b26bff"/>
+            <stop offset="100%" stop-color="#ff7ac2"/>
+          </linearGradient>
+        </defs>
+      </svg>
+    </div>
+    <div class="splash-title">ВЕДЬМА СКАЗАЛА</div>
+    <div class="splash-sub">MAGIC ORACLE</div>
+    <div class="splash-progress">
+      <div class="splash-progress-bar" id="progressBar"></div>
+    </div>
+  </div>
+</div>
     /* ===== ОСНОВНОЕ ПРИЛОЖЕНИЕ ===== */
     .app {
       position: relative;
