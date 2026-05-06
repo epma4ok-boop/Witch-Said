@@ -172,22 +172,22 @@ function applyOrbSizing(text, lines) {
   let letterSpacing = '-0.03em';
 
   if (lines.length >= 4 || length > 80) {
-    fontSize = 'clamp(14px, 3.4vw, 24px)';
+    fontSize = 'clamp(14px, 3.2vw, 22px)';
     maxWidth = '15ch';
-    lineHeight = '1.03';
+    lineHeight = '1.05';
     letterSpacing = '-0.015em';
   } else if (lines.length === 3 || length > 60) {
-    fontSize = 'clamp(17px, 4.2vw, 30px)';
+    fontSize = 'clamp(16px, 4vw, 28px)';
     maxWidth = '12ch';
-    lineHeight = '1';
+    lineHeight = '1.06';
     letterSpacing = '-0.02em';
   } else if (lines.length === 2) {
-    fontSize = 'clamp(20px, 5vw, 34px)';
+    fontSize = 'clamp(19px, 4.8vw, 32px)';
     maxWidth = '11ch';
-    lineHeight = '1.05';
+    lineHeight = '1.08';
     letterSpacing = '-0.02em';
   } else if (length < 28) {
-    fontSize = 'clamp(28px, 7vw, 48px)';
+    fontSize = 'clamp(26px, 6.5vw, 44px)';
     maxWidth = '8ch';
   }
 
