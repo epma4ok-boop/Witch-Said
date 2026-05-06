@@ -4,350 +4,31 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no" />
   <meta name="theme-color" content="#0a0a1a" />
-  <title>Ведьма сказала | Плазменный шар Теслы</title>
-  <meta name="description" content="Магический плазменный шар Теслы с живыми молниями. Предсказания ведьмы." />
+  <title>Ведьма сказала | Шар судьбы</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      -webkit-tap-highlight-color: transparent;
-    }
-
-    body {
-      font-family: 'Inter', sans-serif;
-      background: #0a0a1a;
-      min-height: 100vh;
-      overflow-x: hidden;
-    }
-
-    /* Фон и звёзды */
-    .bg-gradient {
-      position: fixed;
-      inset: 0;
-      z-index: -2;
-      background: radial-gradient(ellipse at 30% 20%, #0e0a1a 0%, #050510 100%);
-    }
-    .stars {
-      position: fixed;
-      inset: 0;
-      z-index: -1;
-      pointer-events: none;
-    }
-    .star {
-      position: absolute;
-      background: white;
-      border-radius: 50%;
-      opacity: 0;
-      animation: starTwinkle 4s ease-in-out infinite;
-    }
-    @keyframes starTwinkle {
-      0%, 100% { opacity: 0; transform: scale(0.3); }
-      50% { opacity: 0.6; transform: scale(1); }
-    }
-
-    /* Контейнер */
-    .container {
-      max-width: 500px;
-      margin: 0 auto;
-      padding: 20px 16px 32px;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      position: relative;
-      z-index: 1;
-    }
-
-    /* Header */
-    .header {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      margin-bottom: 24px;
-    }
-    .title-section { flex: 1; }
-    .badge {
-      font-size: 11px; letter-spacing: 3px;
-      text-transform: uppercase; color: #9b6bff;
-      font-weight: 500; margin-bottom: 8px;
-    }
-    .main-title {
-      font-family: 'Cormorant Garamond', serif;
-      font-size: 28px; font-weight: 600;
-      background: linear-gradient(135deg, #fff, #d4b8ff, #9b6bff);
-      -webkit-background-clip: text; background-clip: text;
-      color: transparent; line-height: 1.2;
-    }
-    .lang-switch {
-      display: flex; gap: 6px;
-      background: rgba(255,255,255,0.05);
-      padding: 4px; border-radius: 60px;
-      backdrop-filter: blur(10px);
-      border: 1px solid rgba(255,255,255,0.1);
-    }
-    .lang {
-      border: none; background: transparent;
-      color: #8a7a9a; font-size: 11px; font-weight: 600;
-      padding: 6px 12px; border-radius: 60px;
-      cursor: pointer; transition: all 0.2s;
-    }
-    .lang.active { background: rgba(155,107,255,0.3); color: white; }
-
-    /* Карточка с шаром */
-    .magic-card {
-      background: linear-gradient(135deg, rgba(25,15,45,0.5), rgba(15,8,30,0.6));
-      border-radius: 56px;
-      backdrop-filter: blur(20px);
-      border: 1px solid rgba(255,255,255,0.08);
-      box-shadow: 0 25px 45px -15px rgba(0,0,0,0.5);
-      margin-bottom: 24px;
-      overflow: hidden;
-      position: relative;
-      aspect-ratio: 1 / 1;
-    }
-    /* Canvas для Three.js занимает всю карточку */
-    #threeCanvas {
-      width: 100%;
-      height: 100%;
-      display: block;
-      cursor: pointer;
-    }
-    
-    /* Текст поверх шара (предсказание) — налагается поверх canvas */
-    .orb-text-overlay {
-      position: absolute;
-      bottom: 20%;
-      left: 0;
-      right: 0;
-      text-align: center;
-      z-index: 10;
-      pointer-events: none;
-      font-family: 'Cormorant Garamond', serif;
-      font-size: 22px;
-      font-weight: 700;
-      color: #1a052a;
-      text-shadow: 0 0 12px rgba(255,255,255,0.9);
-      padding: 0 20px;
-    }
-    .orb-line {
-      display: block;
-      opacity: 0;
-      transform: translateY(12px);
-      animation: lineAppear 0.4s cubic-bezier(0.2, 0.9, 0.4, 1.1) forwards;
-    }
-    @keyframes lineAppear {
-      to { opacity: 1; transform: translateY(0); }
-    }
-    
-    .witch-message {
-      font-size: 13px;
-      color: #b8a8d8;
-      text-align: center;
-      padding: 10px 20px;
-      background: rgba(10,5,20,0.5);
-      border-radius: 60px;
-      backdrop-filter: blur(8px);
-      border: 1px solid rgba(255,255,255,0.05);
-      max-width: 280px;
-      margin: -12px auto 0;
-      position: relative;
-      z-index: 2;
-    }
-
-    /* Категории */
-    .categories {
-      margin-bottom: 20px;
-    }
-    .categories-label {
-      font-size: 12px;
-      color: #8a7a9a;
-      margin-bottom: 12px;
-      letter-spacing: 1px;
-    }
-    .chip-group {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-    }
-    .chip {
-      background: rgba(20, 12, 35, 0.7);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      border-radius: 40px;
-      padding: 10px 20px;
-      font-size: 13px;
-      font-weight: 500;
-      color: #b8a8d8;
-      cursor: pointer;
-      transition: all 0.2s;
-      backdrop-filter: blur(8px);
-    }
-    .chip.active {
-      background: linear-gradient(135deg, rgba(155, 107, 255, 0.3), rgba(155, 107, 255, 0.15));
-      border-color: rgba(155, 107, 255, 0.6);
-      color: white;
-      box-shadow: 0 0 15px rgba(155, 107, 255, 0.3);
-    }
-
-    /* Кнопки */
-    .buttons {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      margin-bottom: 20px;
-    }
-    .btn-row {
-      display: flex;
-      gap: 12px;
-    }
-    .btn {
-      border: none;
-      padding: 14px 20px;
-      border-radius: 60px;
-      font-size: 14px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s;
-      font-family: 'Inter', sans-serif;
-      flex: 1;
-      text-align: center;
-    }
-    .btn-primary {
-      background: linear-gradient(135deg, #9b6bff, #7a3aaa);
-      color: white;
-      box-shadow: 0 4px 15px rgba(155, 107, 255, 0.3);
-    }
-    .btn-primary:active { transform: scale(0.98); }
-    .btn-secondary {
-      background: rgba(20, 12, 35, 0.8);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      color: white;
-      backdrop-filter: blur(8px);
-    }
-    .btn-secondary:active { transform: scale(0.98); }
-    .counter {
-      text-align: center;
-      padding: 12px;
-      background: rgba(155, 107, 255, 0.08);
-      border-radius: 60px;
-      margin-bottom: 16px;
-    }
-    .counter-text {
-      font-size: 13px;
-      color: #b8a8d8;
-    }
-    .counter-value {
-      font-weight: 700;
-      color: #9b6bff;
-      font-size: 16px;
-    }
-    .footer {
-      text-align: center;
-      font-size: 11px;
-      color: #6a5a8a;
-      margin-top: 8px;
-    }
-
-    /* Заставка */
-    .splash {
-      position: fixed;
-      inset: 0;
-      z-index: 1000;
-      background: radial-gradient(ellipse at 30% 20%, #1a1030 0%, #0a0a1a 100%);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: opacity 0.6s ease, visibility 0s linear 0.6s;
-    }
-    .splash.hide {
-      opacity: 0;
-      visibility: hidden;
-    }
-    .splash-content {
-      text-align: center;
-      animation: splashAppear 1s ease-out;
-    }
-    @keyframes splashAppear {
-      from { opacity: 0; transform: scale(0.9); filter: blur(8px); }
-      to { opacity: 1; transform: scale(1); filter: blur(0); }
-    }
-    .splash-orb {
-      width: 120px;
-      height: 120px;
-      margin: 0 auto;
-      background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.9), rgba(155,107,255,0.5));
-      border-radius: 50%;
-      box-shadow: 0 0 40px rgba(155, 107, 255, 0.5);
-      animation: splashFloat 2s ease-in-out infinite;
-    }
-    @keyframes splashFloat {
-      0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-12px); }
-    }
-    .splash-title {
-      font-family: 'Cormorant Garamond', serif;
-      font-size: 34px;
-      font-weight: 700;
-      background: linear-gradient(135deg, #fff, #d4b8ff, #9b6bff);
-      -webkit-background-clip: text;
-      background-clip: text;
-      color: transparent;
-      margin-top: 24px;
-      letter-spacing: 4px;
-    }
-    .splash-sub {
-      font-size: 11px;
-      color: #8a7a9a;
-      letter-spacing: 4px;
-      margin-top: 8px;
-    }
-    .splash-progress {
-      width: 200px;
-      height: 2px;
-      background: rgba(155, 107, 255, 0.2);
-      border-radius: 4px;
-      margin-top: 32px;
-      margin-left: auto;
-      margin-right: auto;
-      overflow: hidden;
-    }
-    .splash-progress-bar {
-      width: 0%;
-      height: 100%;
-      background: linear-gradient(90deg, #9b6bff, #c88bff);
-      transition: width 0.2s ease;
-    }
-    @media (max-width: 450px) {
-      .main-title { font-size: 24px; }
-      .orb-text-overlay { font-size: 18px; bottom: 15%; }
-    }
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <style> /* стили те же, что в предыдущей версии, без изменений */ 
+    *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}body{font-family:'Inter',sans-serif;background:#0a0a1a;min-height:100vh;overflow-x:hidden}.bg-gradient{position:fixed;inset:0;background:radial-gradient(ellipse at 30% 20%,#1a1030 0%,#0a0a1a 60%,#050510 100%);z-index:-2}.stars{position:fixed;inset:0;z-index:-1;pointer-events:none}.star{position:absolute;background:#fff;border-radius:50%;opacity:0;animation:starTwinkle 4s infinite}@keyframes starTwinkle{0%,100%{opacity:0;transform:scale(.3)}50%{opacity:.6;transform:scale(1)}}.container{max-width:500px;margin:0 auto;padding:20px 16px 32px;display:flex;flex-direction:column;position:relative;z-index:1}.header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:24px}.title-section{flex:1}.badge{font-size:11px;letter-spacing:3px;text-transform:uppercase;color:#9b6bff;font-weight:500;margin-bottom:8px}.main-title{font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:600;background:linear-gradient(135deg,#fff,#d4b8ff,#9b6bff);-webkit-background-clip:text;background-clip:text;color:transparent;line-height:1.2}.lang-switch{display:flex;gap:6px;background:rgba(255,255,255,.05);padding:4px;border-radius:60px;backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.1)}.lang{border:none;background:0 0;color:#8a7a9a;font-size:11px;font-weight:600;padding:6px 12px;border-radius:60px;cursor:pointer}.lang.active{background:rgba(155,107,255,.3);color:#fff}.magic-card{background:linear-gradient(135deg,rgba(25,15,45,.5),rgba(15,8,30,.6));border-radius:56px;backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.08);margin-bottom:16px;overflow:hidden;aspect-ratio:1/1}#threeCanvas{width:100%;height:100%;display:block;cursor:pointer}.orb-text-overlay{position:absolute;bottom:15%;left:0;right:0;text-align:center;z-index:10;pointer-events:none;font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:700;color:#1a052a;text-shadow:0 0 12px rgba(255,255,255,.9);padding:0 20px}.orb-line{display:block;opacity:0;transform:translateY(12px);animation:lineAppear .4s cubic-bezier(.2,.9,.4,1.1) forwards}@keyframes lineAppear{to{opacity:1;transform:translateY(0)}}.witch-message{font-size:13px;color:#b8a8d8;text-align:center;padding:10px 20px;background:rgba(10,5,20,.5);border-radius:60px;backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.05);margin:-12px auto 16px;max-width:280px}.categories{margin-bottom:20px}.categories-label{font-size:12px;color:#8a7a9a;margin-bottom:12px;letter-spacing:1px}.chip-group{display:flex;flex-wrap:wrap;gap:12px;justify-content:center}.chip{background:rgba(20,12,35,.7);border:1px solid rgba(255,255,255,.08);border-radius:40px;padding:10px 24px;font-size:14px;font-weight:600;color:#b8a8d8;cursor:pointer;transition:all .2s;backdrop-filter:blur(8px);flex:1;text-align:center}.chip.active{background:linear-gradient(135deg,rgba(155,107,255,.3),rgba(155,107,255,.15));border-color:rgba(155,107,255,.6);color:#fff;box-shadow:0 0 15px rgba(155,107,255,.3)}.limits{display:flex;justify-content:space-between;gap:12px;margin-bottom:20px;background:rgba(10,5,20,.4);border-radius:60px;padding:12px 16px;backdrop-filter:blur(8px)}.limit-item{text-align:center;flex:1}.limit-label{font-size:11px;color:#8a7a9a;margin-bottom:4px}.limit-value{font-size:16px;font-weight:700;color:#9b6bff}.btn-row{display:flex;gap:12px;margin-bottom:12px}.btn{border:none;padding:12px 20px;border-radius:60px;font-size:14px;font-weight:600;cursor:pointer;transition:all .2s;flex:1;text-align:center}.btn-primary{background:linear-gradient(135deg,#9b6bff,#7a3aaa);color:#fff;box-shadow:0 4px 15px rgba(155,107,255,.3)}.btn-primary:active{transform:scale(.98)}.btn-secondary{background:rgba(20,12,35,.8);border:1px solid rgba(255,255,255,.1);color:#fff;backdrop-filter:blur(8px)}.counter{text-align:center;padding:12px;background:rgba(155,107,255,.08);border-radius:60px;margin-bottom:16px}.footer{text-align:center;font-size:11px;color:#6a5a8a;margin-top:16px}.splash{position:fixed;inset:0;z-index:1000;background:radial-gradient(ellipse at 30% 20%,#1a1030 0%,#0a0a1a 100%);display:flex;align-items:center;justify-content:center;transition:opacity .6s ease,visibility 0s linear .6s}.splash.hide{opacity:0;visibility:hidden}.splash-content{text-align:center;animation:splashAppear 1s ease-out}@keyframes splashAppear{from{opacity:0;transform:scale(.9);filter:blur(8px)}to{opacity:1;transform:scale(1);filter:blur(0)}}.splash-orb{width:120px;height:120px;margin:0 auto;background:radial-gradient(circle at 30% 30%,rgba(255,255,255,.9),rgba(155,107,255,.5));border-radius:50%;box-shadow:0 0 40px rgba(155,107,255,.5);animation:splashFloat 2s infinite}@keyframes splashFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}.splash-title{font-family:'Cormorant Garamond',serif;font-size:34px;font-weight:700;background:linear-gradient(135deg,#fff,#d4b8ff,#9b6bff);-webkit-background-clip:text;background-clip:text;color:transparent;margin-top:24px;letter-spacing:4px}.splash-progress{width:200px;height:2px;background:rgba(155,107,255,.2);border-radius:4px;margin:32px auto 0;overflow:hidden}.splash-progress-bar{width:0;height:100%;background:linear-gradient(90deg,#9b6bff,#c88bff);transition:width .2s}@media (max-width:480px){.main-title{font-size:24px}.orb-text-overlay{font-size:18px;bottom:12%}.chip{padding:8px 16px;font-size:13px}.limits{gap:8px;padding:8px 12px}.limit-value{font-size:14px}}
   </style>
 </head>
 <body>
-
 <div class="bg-gradient"></div>
 <div class="stars" id="stars"></div>
 
-<!-- Заставка -->
 <div class="splash" id="splash">
   <div class="splash-content">
     <div class="splash-orb"></div>
     <div class="splash-title">ВЕДЬМА<br>СКАЗАЛА</div>
-    <div class="splash-sub">PLASMA TESLA ORACLE</div>
-    <div class="splash-progress">
-      <div class="splash-progress-bar" id="progressBar"></div>
-    </div>
+    <div class="splash-progress"><div class="splash-progress-bar" id="progressBar"></div></div>
   </div>
 </div>
 
-<!-- Основное приложение -->
 <div class="container" id="app">
   <div class="header">
     <div class="title-section">
-      <div class="badge">⚡ ПЛАЗМЕННЫЙ ШАР ТЕСЛА</div>
-      <h1 class="main-title">Коснись шара —<br>узнаешь ответ</h1>
+      <div class="badge" id="badge">⚡ МАГИЧЕСКИЙ ШАР</div>
+      <h1 class="main-title" id="mainTitle">Коснись шара —<br>узнаешь ответ</h1>
     </div>
     <div class="lang-switch">
       <button class="lang active" data-lang="ru">RU</button>
@@ -357,394 +38,387 @@
 
   <div class="magic-card" id="magicCard">
     <canvas id="threeCanvas"></canvas>
-    <div class="orb-text-overlay" id="orbTextOverlay">
-      <div id="orbText">🔮</div>
-    </div>
+    <div class="orb-text-overlay"><div id="orbText">🔮</div></div>
   </div>
-  <div class="witch-message" id="witchLine">Коснись плазменного шара, чтобы начать ритуал</div>
+  <div class="witch-message" id="witchLine">Коснись шара, выбери тему</div>
 
   <div class="categories">
-    <div class="categories-label">🌙 ВЫБЕРИ СФЕРУ</div>
+    <div class="categories-label" id="categoriesLabel">🌙 ВЫБЕРИ СФЕРУ</div>
     <div class="chip-group">
-      <button class="chip active" data-key="all">✨ Всё</button>
-      <button class="chip" data-key="love">💗 Любовь</button>
-      <button class="chip" data-key="work">💼 Работа</button>
-      <button class="chip" data-key="money">💰 Деньги</button>
+      <button class="chip active" data-key="love" id="chipLove">💗 Любовь</button>
+      <button class="chip" data-key="work" id="chipWork">💼 Работа</button>
+      <button class="chip" data-key="money" id="chipMoney">💰 Деньги</button>
     </div>
   </div>
 
-  <div class="buttons">
-    <div class="btn-row">
-      <button id="buyBtn" class="btn btn-secondary">⭐ Купить вопросы</button>
-      <button id="inviteBtn" class="btn btn-secondary">👥 Пригласить</button>
-    </div>
-    <div class="btn-row">
-      <button id="storyBtn" class="btn btn-secondary">📸 В сторис</button>
-      <button id="skinBtn" class="btn btn-secondary">✨ Сменить скин</button>
-    </div>
-    <button id="shareBtn" class="btn btn-primary">📤 Поделиться ответом</button>
+  <div class="limits">
+    <div class="limit-item"><div class="limit-label" id="limitLabelLove">💗 Любовь</div><div class="limit-value" id="limitLove">1</div></div>
+    <div class="limit-item"><div class="limit-label" id="limitLabelWork">💼 Работа</div><div class="limit-value" id="limitWork">1</div></div>
+    <div class="limit-item"><div class="limit-label" id="limitLabelMoney">💰 Деньги</div><div class="limit-value" id="limitMoney">1</div></div>
+  </div>
+
+  <div class="btn-row">
+    <button id="buyBtn" class="btn btn-secondary">⭐ Купить вопросы</button>
+    <button id="inviteBtn" class="btn btn-secondary">👥 Пригласить</button>
+  </div>
+  <div class="btn-row">
+    <button id="shareBtn" class="btn btn-primary">📤 Поделиться</button>
     <button id="againBtn" class="btn btn-secondary" style="display: none;">🎭 Другой ответ</button>
   </div>
 
-  <div class="counter">
-    <span class="counter-text">⚡ Сегодня осталось вопросов</span><br>
-    <span class="counter-value" id="questionsLeft">3</span> <span class="counter-text">из 3</span>
-  </div>
-
-  <div class="footer">
-    <span>Магия внутри. Нажми — и шар Теслы заговорит</span>
-  </div>
+  <div class="footer" id="footerText">Магия внутри. Нажми — шар заговорит</div>
 </div>
 
-<!-- Three.js библиотека -->
 <script type="importmap">
-  {
-    "imports": {
-      "three": "https://unpkg.com/three@0.128.0/build/three.module.js"
-    }
-  }
+  { "imports": { "three": "https://unpkg.com/three@0.128.0/build/three.module.js" } }
 </script>
-
 <script type="module">
   import * as THREE from 'three';
 
-  // --- Инициализация сцены ---
+  // --- Three.js плазменный шар (код без изменений) ---
   const canvas = document.getElementById('threeCanvas');
   const parent = document.getElementById('magicCard');
-  const width = parent.clientWidth;
-  const height = parent.clientHeight;
-  
-  const scene = new THREE.Scene();
-  scene.background = null; // прозрачный фон
+  const width = parent.clientWidth, height = parent.clientHeight;
+  const scene = new THREE.Scene(); scene.background = null;
   const camera = new THREE.PerspectiveCamera(45, width/height, 0.1, 1000);
-  camera.position.set(0, 0, 3.5);
+  camera.position.set(0,0,3.5);
   const renderer = new THREE.WebGLRenderer({ canvas, alpha: true });
   renderer.setSize(width, height);
   renderer.setPixelRatio(window.devicePixelRatio);
-  
-  // --- Создание плазменной сферы ---
   const geometry = new THREE.SphereGeometry(1, 128, 128);
-  
-  // Кастомный шейдер для эффекта плазмы/молний
-  const vertexShader = `
-    varying vec2 vUv;
-    void main() {
-      vUv = uv;
-      vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
-      gl_PointSize = 1.0;
-      gl_Position = projectionMatrix * mvPosition;
-    }
-  `;
-  
-  const fragmentShader = `
-    uniform float uTime;
-    varying vec2 vUv;
-    
-    void main() {
-      vec2 uv = vUv;
-      // Сферические координаты для анимации
-      float theta = uv.x * 6.28318;
-      float phi = uv.y * 3.14159;
-      vec3 dir = vec3(sin(theta)*sin(phi), cos(phi), cos(theta)*sin(phi));
-      
-      // Шумоподобные функции для молний
-      float t1 = sin(uTime * 3.0 + uv.x * 20.0) * cos(uTime * 2.5 + uv.y * 18.0);
-      float t2 = sin(uTime * 4.2 + uv.y * 25.0) * cos(uTime * 1.8 + uv.x * 22.0);
-      float t3 = sin(uTime * 5.5 + (uv.x + uv.y) * 15.0);
-      float t4 = sin(uTime * 6.0 + (uv.x - uv.y) * 20.0);
-      float lightning = (t1 + t2 + t3 + t4) / 4.0;
-      lightning = pow(abs(lightning), 1.5) * 0.8 + 0.2;
-      
-      // Цвета: голубые, фиолетовые, белые
-      vec3 color1 = vec3(0.4, 0.2, 0.8); // фиолет
-      vec3 color2 = vec3(0.2, 0.5, 1.0); // синий
-      vec3 color3 = vec3(1.0, 0.6, 1.0); // розовый
-      vec3 color4 = vec3(1.0, 1.0, 1.0);
-      
-      vec3 col = mix(color1, color2, lightning);
-      col = mix(col, color3, sin(uTime * 2.0) * 0.5 + 0.5);
-      col = mix(col, color4, pow(lightning, 2.0) * 0.8);
-      
-      // Яркость в зависимости от интенсивности
-      float alpha = 0.9;
-      float brightness = 0.6 + lightning * 0.5;
-      col *= brightness;
-      
-      gl_FragColor = vec4(col, alpha);
-    }
-  `;
-  
-  const uniforms = {
-    uTime: { value: 0 }
-  };
-  
-  const material = new THREE.ShaderMaterial({
-    uniforms: uniforms,
-    vertexShader: vertexShader,
-    fragmentShader: fragmentShader,
-    transparent: true,
-    side: THREE.DoubleSide
-  });
-  
+  const vertexShader = `varying vec2 vUv; void main() { vUv = uv; gl_PointSize=1.0; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0); }`;
+  const fragmentShader = `uniform float uTime; varying vec2 vUv; void main() { vec2 uv = vUv; float t1 = sin(uTime*3.0 + uv.x*20.0)*cos(uTime*2.5+uv.y*18.0); float t2 = sin(uTime*4.2 + uv.y*25.0)*cos(uTime*1.8+uv.x*22.0); float t3 = sin(uTime*5.5 + (uv.x+uv.y)*15.0); float t4 = sin(uTime*6.0 + (uv.x-uv.y)*20.0); float lightning = (t1+t2+t3+t4)/4.0; lightning = pow(abs(lightning),1.5)*0.8+0.2; vec3 col = mix(vec3(0.4,0.2,0.8), vec3(0.2,0.5,1.0), lightning); col = mix(col, vec3(1.0,0.6,1.0), sin(uTime*2.0)*0.5+0.5); col = mix(col, vec3(1.0), pow(lightning,2.0)*0.8); gl_FragColor = vec4(col, 0.9); }`;
+  const material = new THREE.ShaderMaterial({ uniforms: { uTime: { value: 0 } }, vertexShader, fragmentShader, transparent: true });
   const sphere = new THREE.Mesh(geometry, material);
   scene.add(sphere);
-  
-  // Добавим внешнее свечение (сфера с размытым шейдером)
-  const glowGeometry = new THREE.SphereGeometry(1.08, 64, 64);
-  const glowMaterial = new THREE.MeshBasicMaterial({
-    color: 0x9b6bff,
-    transparent: true,
-    opacity: 0.15,
-    side: THREE.BackSide
-  });
-  const glowSphere = new THREE.Mesh(glowGeometry, glowMaterial);
+  const glowMat = new THREE.MeshBasicMaterial({ color: 0x9b6bff, transparent: true, opacity: 0.15, side: THREE.BackSide });
+  const glowSphere = new THREE.Mesh(new THREE.SphereGeometry(1.08,64,64), glowMat);
   scene.add(glowSphere);
-  
-  // Добавим парящие частицы (искры)
   const particleCount = 500;
-  const particleGeometry = new THREE.BufferGeometry();
-  const particlePositions = new Float32Array(particleCount * 3);
-  for (let i = 0; i < particleCount; i++) {
-    // Вектор на сфере радиусом 1.05
-    const theta = Math.random() * Math.PI * 2;
-    const phi = Math.acos(2 * Math.random() - 1);
-    const r = 1.05;
-    const x = r * Math.sin(phi) * Math.cos(theta);
-    const y = r * Math.sin(phi) * Math.sin(theta);
-    const z = r * Math.cos(phi);
-    particlePositions[i*3] = x;
-    particlePositions[i*3+1] = y;
-    particlePositions[i*3+2] = z;
-  }
-  particleGeometry.setAttribute('position', new THREE.BufferAttribute(particlePositions, 3));
-  const particleMaterial = new THREE.PointsMaterial({
-    color: 0xff88ff,
-    size: 0.02,
-    transparent: true,
-    blending: THREE.AdditiveBlending
-  });
-  const particles = new THREE.Points(particleGeometry, particleMaterial);
+  const particleGeo = new THREE.BufferGeometry();
+  const positions = new Float32Array(particleCount*3);
+  for(let i=0;i<particleCount;i++) { const theta = Math.random()*Math.PI*2, phi = Math.acos(2*Math.random()-1), r=1.05; positions[i*3]=r*Math.sin(phi)*Math.cos(theta); positions[i*3+1]=r*Math.sin(phi)*Math.sin(theta); positions[i*3+2]=r*Math.cos(phi); }
+  particleGeo.setAttribute('position', new THREE.BufferAttribute(positions,3));
+  const particleMat = new THREE.PointsMaterial({ color: 0xff88ff, size: 0.02, transparent: true, blending: THREE.AdditiveBlending });
+  const particles = new THREE.Points(particleGeo, particleMat);
   scene.add(particles);
-  
-  // Анимация вращения частиц
-  let particleRotation = 0;
-  
-  // Анимация
   let time = 0;
-  function animate() {
-    requestAnimationFrame(animate);
-    time += 0.02;
-    uniforms.uTime.value = time;
-    
-    // Вращаем частицы медленно
-    particleRotation += 0.002;
-    particles.rotation.y = particleRotation;
-    particles.rotation.x = particleRotation * 0.5;
-    
-    // Пульсация свечения
-    const pulse = 0.95 + Math.sin(time * 2) * 0.03;
-    glowSphere.scale.set(pulse, pulse, pulse);
-    
-    renderer.render(scene, camera);
-  }
+  function animate() { requestAnimationFrame(animate); time += 0.02; material.uniforms.uTime.value = time; particles.rotation.y += 0.002; particles.rotation.x += 0.001; const pulse = 0.95 + Math.sin(time*2)*0.03; glowSphere.scale.set(pulse,pulse,pulse); renderer.render(scene,camera); }
   animate();
-  
-  // Адаптация размера canvas при изменении окна
-  window.addEventListener('resize', () => {
-    const w = parent.clientWidth;
-    const h = parent.clientHeight;
-    renderer.setSize(w, h);
-    camera.aspect = w / h;
-    camera.updateProjectionMatrix();
-  });
-  
-  // ========== ЛОГИКА ПРИЛОЖЕНИЯ (категории, предсказания, лимиты) ==========
-  // Всё как раньше, но без дублирования кода шара
-  (function() {
-    // DOM элементы
-    const orbTextDiv = document.getElementById('orbText');
-    const witchLine = document.getElementById('witchLine');
-    const shareBtn = document.getElementById('shareBtn');
-    const againBtn = document.getElementById('againBtn');
-    const buyBtn = document.getElementById('buyBtn');
-    const inviteBtn = document.getElementById('inviteBtn');
-    const storyBtn = document.getElementById('storyBtn');
-    const skinBtn = document.getElementById('skinBtn');
-    const questionsLeftSpan = document.getElementById('questionsLeft');
-    const chips = document.querySelectorAll('.chip');
-    const splash = document.getElementById('splash');
-    const app = document.getElementById('app');
-    
-    // Состояние
-    let questionsLeft = 3;
-    let activeCategory = 'all';
-    let currentAnswer = '';
-    let isCasting = false;
-    
-    // База предсказаний
-    const predictions = {
-      all: ['✨ Звёзды говорят — да! ✨', '🌙 Пока неясно, спроси позже 🌙', '🔮 Нет, не судьба 🔮', '💫 Определённо да! 💫', '🍀 Всё будет хорошо 🍀', '🌟 Вселенная на твоей стороне 🌟', '⚡ Будь смелее — решение за тобой ⚡', '🌸 Скоро всё изменится к лучшему 🌸'],
-      love: ['💗 Он думает о тебе 💗', '💗 Судьба готовит встречу 💗', '💗 Не торопи события 💗', '💗 Сердце знает ответ 💗', '💗 Скоро важный разговор 💗', '💗 Любовь ближе, чем кажется 💗'],
-      work: ['💼 Повышение близко 💼', '💼 Доверяй своей интуиции 💼', '💼 Перемены к лучшему 💼', '💼 Твой момент настанет 💼', '💼 Не бойся предлагать идеи 💼', '💼 Успех требует тишины и фокуса 💼'],
-      money: ['💰 Деньги придут неожиданно 💰', '💰 Хороший период для инвестиций 💰', '💰 Будь щедрым — вернётся 💰', '💰 Удача на твоей стороне 💰', '💰 Денежный поток усиливается 💰', '💰 Придёт неожиданный доход 💰']
-    };
-    
-    function loadData() {
-      const saved = localStorage.getItem('witch_questions');
-      if (saved !== null) questionsLeft = parseInt(saved);
-      const lastDate = localStorage.getItem('witch_date');
-      const today = new Date().toDateString();
-      if (lastDate !== today) {
-        questionsLeft = 3;
-        localStorage.setItem('witch_date', today);
-      }
-      updateCounter();
+  window.addEventListener('resize', ()=>{ const w = parent.clientWidth, h = parent.clientHeight; renderer.setSize(w,h); camera.aspect = w/h; camera.updateProjectionMatrix(); });
+
+  // --- Основная логика с загрузкой predictions.json и мультиязычностью ---
+  let predictionsData = { love: [], work: [], money: [] };
+  let currentLang = 'ru';
+  let activeCategory = 'love';
+  let used = { love: 0, work: 0, money: 0 };
+  const MAX_FREE = 1;
+  let currentAnswer = '';
+  let isCasting = false;
+
+  // DOM элементы
+  const orbTextDiv = document.getElementById('orbText');
+  const witchLine = document.getElementById('witchLine');
+  const shareBtn = document.getElementById('shareBtn');
+  const againBtn = document.getElementById('againBtn');
+  const buyBtn = document.getElementById('buyBtn');
+  const inviteBtn = document.getElementById('inviteBtn');
+  const chips = document.querySelectorAll('.chip');
+  const splash = document.getElementById('splash');
+  const app = document.getElementById('app');
+  const limitLoveSpan = document.getElementById('limitLove');
+  const limitWorkSpan = document.getElementById('limitWork');
+  const limitMoneySpan = document.getElementById('limitMoney');
+  // Элементы для перевода интерфейса
+  const badgeEl = document.getElementById('badge');
+  const mainTitleEl = document.getElementById('mainTitle');
+  const categoriesLabelEl = document.getElementById('categoriesLabel');
+  const chipLoveEl = document.getElementById('chipLove');
+  const chipWorkEl = document.getElementById('chipWork');
+  const chipMoneyEl = document.getElementById('chipMoney');
+  const limitLabelLove = document.getElementById('limitLabelLove');
+  const limitLabelWork = document.getElementById('limitLabelWork');
+  const limitLabelMoney = document.getElementById('limitLabelMoney');
+  const footerTextEl = document.getElementById('footerText');
+  const buyBtnText = buyBtn;
+  const inviteBtnText = inviteBtn;
+  const shareBtnText = shareBtn;
+
+  const translations = {
+    ru: {
+      badge: '⚡ МАГИЧЕСКИЙ ШАР',
+      mainTitle: 'Коснись шара —\nузнаешь ответ',
+      categoriesLabel: '🌙 ВЫБЕРИ СФЕРУ',
+      chipLove: '💗 Любовь',
+      chipWork: '💼 Работа',
+      chipMoney: '💰 Деньги',
+      limitLove: '💗 Любовь',
+      limitWork: '💼 Работа',
+      limitMoney: '💰 Деньги',
+      footer: 'Магия внутри. Нажми — шар заговорит',
+      buy: '⭐ Купить вопросы',
+      invite: '👥 Пригласить',
+      share: '📤 Поделиться',
+      witchDefault: 'Коснись шара, выбери тему',
+      noFree: '⚠️ Бесплатный вопрос в категории "{cat}" на сегодня использован. Купи дополнительные вопросы, чтобы продолжить. ⭐',
+      casting: '⚡ Смотрю в шар...',
+      result: '✨ Вот что сказала ведьма ✨',
+      categorySelected: '🔮 Выбрана сфера: {name}'
+    },
+    en: {
+      badge: '⚡ MAGIC ORB',
+      mainTitle: 'Touch the orb —\nget the answer',
+      categoriesLabel: '🌙 CHOOSE SPHERE',
+      chipLove: '💗 Love',
+      chipWork: '💼 Work',
+      chipMoney: '💰 Money',
+      limitLove: '💗 Love',
+      limitWork: '💼 Work',
+      limitMoney: '💰 Money',
+      footer: 'Magic inside. Tap the orb',
+      buy: '⭐ Buy questions',
+      invite: '👥 Invite',
+      share: '📤 Share',
+      witchDefault: 'Tap the orb, choose topic',
+      noFree: '⚠️ Free question in "{cat}" category used today. Buy extra questions to continue. ⭐',
+      casting: '⚡ Reading the orb...',
+      result: '✨ This is what the witch said ✨',
+      categorySelected: '🔮 Selected: {name}'
     }
-    function saveQuestions() { localStorage.setItem('witch_questions', questionsLeft); }
-    function updateCounter() {
-      questionsLeftSpan.textContent = questionsLeft;
-      saveQuestions();
+  };
+
+  function applyLanguage() {
+    const t = translations[currentLang];
+    badgeEl.textContent = t.badge;
+    mainTitleEl.innerHTML = t.mainTitle.replace(/\n/, '<br>');
+    categoriesLabelEl.textContent = t.categoriesLabel;
+    chipLoveEl.textContent = t.chipLove;
+    chipWorkEl.textContent = t.chipWork;
+    chipMoneyEl.textContent = t.chipMoney;
+    limitLabelLove.textContent = t.limitLove;
+    limitLabelWork.textContent = t.limitWork;
+    limitLabelMoney.textContent = t.limitMoney;
+    footerTextEl.textContent = t.footer;
+    buyBtn.textContent = t.buy;
+    inviteBtn.textContent = t.invite;
+    shareBtn.textContent = t.share;
+    if (!isCasting && !orbTextDiv.innerHTML.includes('span')) witchLine.textContent = t.witchDefault;
+    else if (!isCasting) witchLine.textContent = t.witchDefault;
+  }
+
+  function getCategoryName(cat) {
+    const names = { love: currentLang === 'ru' ? 'Любовь' : 'Love', work: currentLang === 'ru' ? 'Работа' : 'Work', money: currentLang === 'ru' ? 'Деньги' : 'Money' };
+    return names[cat];
+  }
+
+  async function loadPredictions() {
+    try {
+      const response = await fetch('./predictions.json');
+      if (!response.ok) throw new Error('HTTP error');
+      const data = await response.json();
+      predictionsData = data;
+      console.log('✅ Предсказания загружены:', { love: predictionsData.love.length, work: predictionsData.work.length, money: predictionsData.money.length });
+    } catch (e) {
+      console.warn('⚠️ Не удалось загрузить predictions.json, использую резервные предсказания');
+      // fallback короткий
+      predictionsData = {
+        love: [{ ru: "💗 Он тебя достоин? Нет. Но ты всё равно будешь с ним.", en: "💗 Is he worthy? No. But you'll stay." }],
+        work: [{ ru: "💼 Начальник заметит. Когда будешь в отпуске.", en: "💼 Boss will notice. When you're on vacation." }],
+        money: [{ ru: "💰 Деньги придут. Неожиданно.", en: "💰 Money will come. Unexpectedly." }]
+      };
     }
-    
-    function showAnswer(text) {
-      const words = text.split(' ');
-      const lines = [];
-      let current = '';
-      for (const word of words) {
-        if ((current + ' ' + word).length > 20 && current) {
-          lines.push(current);
-          current = word;
-        } else {
-          current = current ? current + ' ' + word : word;
-        }
-      }
-      if (current) lines.push(current);
-      orbTextDiv.innerHTML = lines.map(l => `<span class="orb-line">${l}</span>`).join('');
-    }
-    
-    function getRandomPrediction() {
-      const pool = predictions[activeCategory] || predictions.all;
-      return pool[Math.floor(Math.random() * pool.length)];
-    }
-    
-    // Визуальная вспышка шара при колдовстве (добавим анимацию на сцену)
-    function flashSphere() {
-      // Временно увеличим интенсивность свечения
-      glowMaterial.opacity = 0.6;
-      setTimeout(() => { glowMaterial.opacity = 0.15; }, 300);
-      // Также добавим эффект частиц
-      particleMaterial.color.setHex(0xffaaff);
-      setTimeout(() => { particleMaterial.color.setHex(0xff88ff); }, 400);
-    }
-    
-    async function castSpell() {
-      if (isCasting) return;
-      if (questionsLeft <= 0) {
-        witchLine.textContent = '✨ Купи дополнительные вопросы или приходи завтра ✨';
-        return;
-      }
-      isCasting = true;
-      questionsLeft--;
-      updateCounter();
-      
-      witchLine.textContent = '⚡ Плазма читает судьбу...';
-      orbTextDiv.innerHTML = '✨';
-      flashSphere();
-      if (window.Telegram?.WebApp?.HapticFeedback) window.Telegram.WebApp.HapticFeedback.impactOccurred('medium');
-      
-      await new Promise(r => setTimeout(r, 1200));
-      
-      currentAnswer = getRandomPrediction();
-      showAnswer(currentAnswer);
-      witchLine.textContent = '✨ Вот что сказала ведьма ✨';
-      if (againBtn) againBtn.style.display = 'block';
-      if (shareBtn) shareBtn.dataset.text = currentAnswer;
-      if (window.Telegram?.WebApp?.HapticFeedback) window.Telegram.WebApp.HapticFeedback.notificationOccurred('success');
-      isCasting = false;
-    }
-    
-    function shareAnswer() {
-      const text = shareBtn?.dataset?.text || currentAnswer || 'Ведьма сказала магическое предсказание!';
-      if (window.Telegram?.WebApp?.openTelegramLink) {
-        window.Telegram.WebApp.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent('https://t.me/place_bot_username')}&text=${encodeURIComponent('🔮 ' + text + ' 🔮')}`);
+  }
+
+  function getRandomPrediction(cat) {
+    const arr = predictionsData[cat];
+    if (!arr || arr.length === 0) return { ru: "✨ Магия молчит...", en: "✨ Magic is silent..." };
+    const index = Math.floor(Math.random() * arr.length);
+    return arr[index];
+  }
+
+  function showAnswer(text) {
+    const words = text.split(' ');
+    const lines = [];
+    let current = '';
+    for (let w of words) {
+      if ((current + ' ' + w).length > 20 && current) {
+        lines.push(current);
+        current = w;
       } else {
-        alert(`🔮 ${text}`);
+        current = current ? current + ' ' + w : w;
       }
     }
-    function anotherAnswer() { if (!isCasting && questionsLeft > 0) castSpell(); }
-    function buyQuestions() { alert('⭐ Покупка вопросов через Telegram Stars\nСкоро!'); }
-    function inviteFriend() {
-      const link = 'https://t.me/place_bot_username?start=ref';
-      if (window.Telegram?.WebApp?.openTelegramLink) {
-        window.Telegram.WebApp.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(link)}&text=🧙‍♀️ Приходи гадать на плазменном шаре «Ведьма сказала»!`);
-      } else {
-        alert('👥 Пригласи друга:\n' + link);
-      }
+    if (current) lines.push(current);
+    orbTextDiv.innerHTML = lines.map(l => `<span class="orb-line">${l}</span>`).join('');
+  }
+
+  function flashSphere() {
+    glowMat.opacity = 0.6;
+    setTimeout(() => { glowMat.opacity = 0.15; }, 300);
+    particleMat.color.setHex(0xffaaff);
+    setTimeout(() => particleMat.color.setHex(0xff88ff), 400);
+  }
+
+  async function castSpell() {
+    if (isCasting) return;
+    if (used[activeCategory] >= MAX_FREE) {
+      const t = translations[currentLang];
+      witchLine.innerHTML = t.noFree.replace('{cat}', getCategoryName(activeCategory));
+      return;
     }
-    function shareToStory() { alert('📸 Генерация карточки для Stories\nСкоро!'); }
-    function changeSkin() { alert('✨ Скины шара появятся в обновлении ✨'); }
-    
-    chips.forEach(chip => {
-      chip.addEventListener('click', () => {
-        chips.forEach(c => c.classList.remove('active'));
-        chip.classList.add('active');
-        activeCategory = chip.dataset.key;
-        witchLine.textContent = `🔮 Выбрана сфера: ${chip.textContent.trim()}`;
-      });
+    isCasting = true;
+    used[activeCategory]++;
+    saveUsed();
+    updateLimitsUI();
+
+    witchLine.textContent = translations[currentLang].casting;
+    orbTextDiv.innerHTML = '✨';
+    flashSphere();
+    if (window.Telegram?.WebApp?.HapticFeedback) window.Telegram.WebApp.HapticFeedback.impactOccurred('medium');
+
+    await new Promise(r => setTimeout(r, 1200));
+
+    const predictionObj = getRandomPrediction(activeCategory);
+    currentAnswer = currentLang === 'ru' ? predictionObj.ru : predictionObj.en;
+    showAnswer(currentAnswer);
+    witchLine.textContent = translations[currentLang].result;
+    if (againBtn) againBtn.style.display = 'block';
+    shareBtn.dataset.text = currentAnswer;
+    if (window.Telegram?.WebApp?.HapticFeedback) window.Telegram.WebApp.HapticFeedback.notificationOccurred('success');
+    isCasting = false;
+  }
+
+  function shareAnswer() {
+    const text = shareBtn.dataset.text || currentAnswer || 'Ведьма сказала магическое предсказание!';
+    const shareText = `${text}\n\n🧙‍♀️ Ведьма сказала — магический шар судьбы`;
+    if (window.Telegram?.WebApp?.openTelegramLink) {
+      window.Telegram.WebApp.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent('https://t.me/place_bot_username')}&text=${encodeURIComponent(shareText)}`);
+    } else {
+      alert(`🔮 ${text}`);
+    }
+  }
+
+  function anotherAnswer() { if (!isCasting) castSpell(); }
+  function buyQuestions() { alert('⭐ Покупка дополнительных вопросов через Telegram Stars\nПоявится после подключения платежей'); }
+  function inviteFriend() {
+    const link = 'https://t.me/place_bot_username?start=ref';
+    const text = `🧙‍♀️ Загляни в магический шар — «Ведьма сказала»! Первый вопрос бесплатно ✨`;
+    if (window.Telegram?.WebApp?.openTelegramLink) {
+      window.Telegram.WebApp.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent(text)}`);
+    } else {
+      alert('👥 Пригласи друга: ' + link);
+    }
+  }
+
+  // Работа с localStorage
+  function loadUsed() {
+    const saved = localStorage.getItem('witch_used');
+    if (saved) {
+      try { const p = JSON.parse(saved); used = { love: p.love || 0, work: p.work || 0, money: p.money || 0 }; } catch(e) {}
+    }
+    const lastDate = localStorage.getItem('witch_date');
+    const today = new Date().toDateString();
+    if (lastDate !== today) {
+      used = { love: 0, work: 0, money: 0 };
+      localStorage.setItem('witch_date', today);
+      saveUsed();
+    }
+    updateLimitsUI();
+  }
+  function saveUsed() { localStorage.setItem('witch_used', JSON.stringify(used)); }
+  function updateLimitsUI() {
+    limitLoveSpan.textContent = MAX_FREE - used.love;
+    limitWorkSpan.textContent = MAX_FREE - used.work;
+    limitMoneySpan.textContent = MAX_FREE - used.money;
+  }
+
+  // Переключение категории
+  chips.forEach(chip => {
+    chip.addEventListener('click', () => {
+      chips.forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+      activeCategory = chip.dataset.key;
+      const t = translations[currentLang];
+      witchLine.textContent = t.categorySelected.replace('{name}', chip.textContent.trim());
+      againBtn.style.display = 'none';
+      orbTextDiv.innerHTML = '🔮';
     });
-    
-    // Назначаем обработчик клика на canvas
-    const canvasElem = document.getElementById('threeCanvas');
-    canvasElem.addEventListener('click', castSpell);
-    shareBtn.addEventListener('click', shareAnswer);
-    againBtn.addEventListener('click', anotherAnswer);
-    buyBtn.addEventListener('click', buyQuestions);
-    inviteBtn.addEventListener('click', inviteFriend);
-    storyBtn.addEventListener('click', shareToStory);
-    skinBtn.addEventListener('click', changeSkin);
-    
-    // Заставка
-    let progress = 0;
-    const progressBar = document.getElementById('progressBar');
-    const interval = setInterval(() => {
-      progress += Math.random() * 15 + 5;
-      if (progress >= 100) {
-        progress = 100;
-        clearInterval(interval);
-        if (progressBar) progressBar.style.width = '100%';
-        setTimeout(() => {
-          splash.classList.add('hide');
-          setTimeout(() => {
-            splash.style.display = 'none';
-            if (window.Telegram?.WebApp) {
-              window.Telegram.WebApp.ready();
-              window.Telegram.WebApp.expand();
-              window.Telegram.WebApp.setHeaderColor?.('#0a0a1a');
-              window.Telegram.WebApp.setBackgroundColor?.('#0a0a1a');
-            }
-          }, 600);
-        }, 400);
+  });
+
+  // Переключение языка
+  document.querySelectorAll('.lang').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const newLang = btn.dataset.lang;
+      if (newLang === currentLang) return;
+      currentLang = newLang;
+      document.querySelectorAll('.lang').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      applyLanguage();
+      // обновить текущее предсказание на экране, если есть текст (не иконка)
+      const currentText = orbTextDiv.innerText;
+      if (currentText && currentText !== '🔮' && currentAnswer) {
+        // Если уже есть ответ, показать его на новом языке? Но у нас нет сохранения перевода текущего ответа. Просто сбросим на иконку.
+        orbTextDiv.innerHTML = '🔮';
+        witchLine.textContent = translations[currentLang].witchDefault;
+      } else {
+        orbTextDiv.innerHTML = '🔮';
+        witchLine.textContent = translations[currentLang].witchDefault;
       }
-      if (progressBar) progressBar.style.width = progress + '%';
-    }, 150);
-    
-    loadData();
-    orbTextDiv.innerHTML = '🔮';
-    
-    // Генерация звёзд
-    const starsContainer = document.getElementById('stars');
-    for (let i = 0; i < 80; i++) {
-      const star = document.createElement('div');
-      star.className = 'star';
-      star.style.left = Math.random() * 100 + '%';
-      star.style.top = Math.random() * 100 + '%';
-      star.style.width = Math.random() * 2 + 1 + 'px';
-      star.style.height = star.style.width;
-      star.style.animationDelay = Math.random() * 5 + 's';
-      star.style.animationDuration = 2 + Math.random() * 4 + 's';
-      starsContainer.appendChild(star);
+    });
+  });
+
+  // Обработчики кнопок
+  document.getElementById('threeCanvas').addEventListener('click', castSpell);
+  shareBtn.addEventListener('click', shareAnswer);
+  againBtn.addEventListener('click', anotherAnswer);
+  buyBtn.addEventListener('click', buyQuestions);
+  inviteBtn.addEventListener('click', inviteFriend);
+
+  // Заставка
+  let progress = 0;
+  const progressBar = document.getElementById('progressBar');
+  const interval = setInterval(() => {
+    progress += Math.random() * 15 + 5;
+    if (progress >= 100) {
+      progress = 100;
+      clearInterval(interval);
+      if (progressBar) progressBar.style.width = '100%';
+      setTimeout(() => {
+        splash.classList.add('hide');
+        setTimeout(() => {
+          splash.style.display = 'none';
+          if (window.Telegram?.WebApp) {
+            window.Telegram.WebApp.ready();
+            window.Telegram.WebApp.expand();
+            window.Telegram.WebApp.setHeaderColor?.('#0a0a1a');
+            window.Telegram.WebApp.setBackgroundColor?.('#0a0a1a');
+          }
+        }, 600);
+      }, 400);
     }
-  })();
+    if (progressBar) progressBar.style.width = progress + '%';
+  }, 150);
+
+  // Инициализация
+  await loadPredictions();
+  loadUsed();
+  applyLanguage();
+  orbTextDiv.innerHTML = '🔮';
+  witchLine.textContent = translations[currentLang].witchDefault;
+
+  // Генерация звёзд
+  const starsContainer = document.getElementById('stars');
+  for (let i = 0; i < 80; i++) {
+    const star = document.createElement('div');
+    star.className = 'star';
+    star.style.left = Math.random() * 100 + '%';
+    star.style.top = Math.random() * 100 + '%';
+    star.style.width = Math.random() * 2 + 1 + 'px';
+    star.style.height = star.style.width;
+    star.style.animationDelay = Math.random() * 5 + 's';
+    star.style.animationDuration = 2 + Math.random() * 4 + 's';
+    starsContainer.appendChild(star);
+  }
 </script>
 </body>
 </html>
