@@ -1,511 +1,187 @@
-// ============================================
-// ВЕДЬМА СКАЗАЛА — PREMIUM VERSION 2.0
-// Telegram Mini App с монетизацией и виралкой
-// ============================================
-
-// ---------- TELEGRAM ----------
-const tg = (() => {
-  if (typeof window !== 'undefined' && window.Telegram?.WebApp) {
-    return window.Telegram.WebApp;
-  }
-  console.warn('⚠️ Браузерный режим');
-  return {
-    ready: () => {}, expand: () => {}, setHeaderColor: () => {},
-    HapticFeedback: { impactOccurred: () => {}, notificationOccurred: () => {} },
-    openTelegramLink: (url) => window.open(url, '_blank'),
-    showPopup: (params) => alert(params.message)
-  };
-})();
-
-tg.ready();
-tg.expand();
-tg.setHeaderColor?.('#120f1d');
-tg.setBackgroundColor?.('#120f1d');
-
-// ---------- DOM ЭЛЕМЕНТЫ ----------
-const shareBtn = document.getElementById('shareBtn');
-const againBtn = document.getElementById('againBtn');
-const witchLineEl = document.getElementById('witchLine');
-const orbTextEl = document.getElementById('orbText');
-const orbStage = document.getElementById('orbStage');
-const orb = document.getElementById('orb');
-const stageEl = document.getElementById('stage');
-const chips = [...document.querySelectorAll('.chip')];
-const questionsLeftSpan = document.getElementById('questionsLeft');
-const buyQuestionsBtn = document.getElementById('buyQuestionsBtn');
-const referBtn = document.getElementById('referBtn');
-const shareStoryBtn = document.getElementById('shareStoryBtn');
-const skinSelector = document.getElementById('skinSelector');
-const historySection = document.getElementById('historySection');
-const historyList = document.getElementById('historyList');
-const clearHistoryBtn = document.getElementById('clearHistory');
-
-// ---------- КОНФИГ ----------
-let allPredictions = [];
-let activeCategory = 'all';
-let casting = false;
-let currentPredictionText = '';
-let currentFullPrediction = '';
-let lang = 'ru';
-let history = [];
-
-// СИСТЕМА ЛИМИТОВ
-let questionsUsedToday = 0;
-let maxFreeQuestions = 3;
-let referrerId = null;
-let myReferralCode = null;
-
-// СКИНЫ
-const skins = {
-  default: {
-    name: 'Магический',
-    bg: 'radial-gradient(circle at 30% 30%, #fff, #f3e0ff, #c88bff, #5a2a8a, #1a0a2a)',
-    glow: '#b26bff'
-  },
-  gold: {
-    name: 'Золотой',
-    bg: 'radial-gradient(circle at 30% 30%, #fff8e0, #ffebaa, #ffd700, #b8860b, #5a3a00)',
-    glow: '#ffd700'
-  },
-  moon: {
-    name: 'Лунный',
-    bg: 'radial-gradient(circle at 30% 30%, #f0f0ff, #c8d8ff, #8aadd9, #4a6a9a, #1a2a4a)',
-    glow: '#c8d8ff'
-  }
-};
-let currentSkin = 'default';
-
-// ---------- ЗАГРУЗКА/СОХРАНЕНИЕ ----------
-function loadData() {
-  try {
-    const saved = localStorage.getItem('witch_data');
-    if (saved) {
-      const data = JSON.parse(saved);
-      questionsUsedToday = data.questionsUsedToday || 0;
-      myReferralCode = data.myReferralCode;
-      history = data.history || [];
-      currentSkin = data.currentSkin || 'default';
-    }
-  } catch(e) {}
-  
-  if (!myReferralCode) {
-    myReferralCode = generateReferralCode();
-    saveData();
-  }
-  
-  // Из Telegram WebApp получаем referrer
-  if (tg.initDataUnsafe?.start_param) {
-    referrerId = tg.initDataUnsafe.start_param;
-    if (referrerId && referrerId !== myReferralCode) {
-      addReferralBonus();
-    }
-  }
-  
-  checkAndResetDaily();
-  renderHistory();
-  applySkin(currentSkin);
-}
-
-function saveData() {
-  try {
-    localStorage.setItem('witch_data', JSON.stringify({
-      questionsUsedToday,
-      myReferralCode,
-      history: history.slice(0, 10),
-      currentSkin
-    }));
-  } catch(e) {}
-}
-
-function generateReferralCode() {
-  return 'witch_' + Math.random().toString(36).substr(2, 8);
-}
-
-function checkAndResetDaily() {
-  const lastDate = localStorage.getItem('witch_last_date');
-  const today = new Date().toDateString();
-  if (lastDate !== today) {
-    questionsUsedToday = 0;
-    localStorage.setItem('witch_last_date', today);
-    saveData();
-    updateQuestionsUI();
-  }
-}
-
-function addReferralBonus() {
-  // Бонус +1 вопрос за реферала
-  questionsUsedToday = Math.max(0, questionsUsedToday - 1);
-  saveData();
-  updateQuestionsUI();
-  if (witchLineEl) witchLineEl.textContent = '✨ Кто-то пришёл по твоей ссылке! +1 вопрос ✨';
-}
-
-function updateQuestionsUI() {
-  const left = Math.max(0, maxFreeQuestions - questionsUsedToday);
-  if (questionsLeftSpan) {
-    questionsLeftSpan.textContent = `${left}/${maxFreeQuestions}`;
-  }
-  // Если вопросы закончились, блокируем шар
-  if (left <= 0 && orbStage) {
-    orbStage.style.opacity = '0.6';
-  } else if (orbStage) {
-    orbStage.style.opacity = '1';
-  }
-}
-
-function hasFreeQuestion() {
-  return questionsUsedToday < maxFreeQuestions;
-}
-
-function useFreeQuestion() {
-  if (hasFreeQuestion()) {
-    questionsUsedToday++;
-    saveData();
-    updateQuestionsUI();
-    return true;
-  }
-  return false;
-}
-
-// ---------- ПОКУПКА ЧЕРЕЗ TELEGRAM STARS ----------
-async function buyQuestions() {
-  try {
-    const invoice = {
-      id: 'buy_questions_' + Date.now(),
-      title: 'Дополнительные вопросы',
-      description: '10 дополнительных вопросов для магического шара',
-      photo_url: 'https://your-domain.com/logo.png',
-      prices: [{ label: '10 вопросов', amount: 500 }] // 5 звезд = 500 копеек
-    };
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Ведьма сказала</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #05030b; font-family: system-ui; min-height: 100vh; }
     
-    tg.showPopup({
-      title: '💫 Магазин ведьмы',
-      message: 'Купить 10 дополнительных вопросов за 5 Telegram Stars?',
-      buttons: [
-        { id: 'buy', type: 'default', text: '✨ Купить' },
-        { id: 'cancel', type: 'cancel', text: 'Отмена' }
-      ]
-    }, (buttonId) => {
-      if (buttonId === 'buy') {
-        // Здесь будет вызов Telegram Stars API
-        tg.HapticFeedback?.notificationOccurred('success');
-        questionsUsedToday = Math.max(0, questionsUsedToday - 10);
-        saveData();
-        updateQuestionsUI();
-        witchLineEl.textContent = '🌟 Магия усилилась! +10 вопросов доступны 🌟';
-      }
-    });
-  } catch(e) {
-    console.error('Purchase error:', e);
-  }
-}
-
-// ---------- РЕФЕРАЛЬНАЯ ССЫЛКА ----------
-function getReferralLink() {
-  const botUsername = tg.initDataUnsafe?.user?.username || 'witch_said_bot';
-  return `https://t.me/${botUsername}?startapp=${myReferralCode}`;
-}
-
-function shareReferral() {
-  const link = getReferralLink();
-  const text = `🧙‍♀️ Ведьма сказала мне правду! А что скажет тебе?\n\nПрисоединяйся, получи +1 бонусный вопрос: ${link}`;
-  
-  tg.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent(text)}`);
-}
-
-// ---------- ГЕНЕРАТОР КАРТОЧЕК ДЛЯ STORIES ----------
-async function shareToStory() {
-  if (!currentFullPrediction) {
-    witchLineEl.textContent = 'Сначала получи предсказание! Нажми на шар.';
-    return;
-  }
-  
-  const canvas = document.createElement('canvas');
-  canvas.width = 1080;
-  canvas.height = 1920;
-  const ctx = canvas.getContext('2d');
-  
-  // Фон
-  const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
-  gradient.addColorStop(0, '#1a0f2e');
-  gradient.addColorStop(1, '#05030b');
-  ctx.fillStyle = gradient;
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-  
-  // Декоративные звёзды
-  ctx.fillStyle = '#d4a5ff';
-  for (let i = 0; i < 50; i++) {
-    ctx.beginPath();
-    ctx.arc(Math.random() * canvas.width, Math.random() * canvas.height, Math.random() * 3, 0, Math.PI * 2);
-    ctx.fill();
-  }
-  
-  // Шар
-  const centerX = canvas.width / 2;
-  const centerY = canvas.height / 2 - 100;
-  const radius = 280;
-  
-  const orbGrad = ctx.createRadialGradient(centerX - 80, centerY - 80, 20, centerX, centerY, radius);
-  orbGrad.addColorStop(0, '#ffffff');
-  orbGrad.addColorStop(0.3, '#d4a5ff');
-  orbGrad.addColorStop(0.7, '#9b59b6');
-  orbGrad.addColorStop(1, '#4a2a6a');
-  ctx.fillStyle = orbGrad;
-  ctx.beginPath();
-  ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
-  ctx.fill();
-  
-  ctx.shadowBlur = 0;
-  
-  // Текст внутри шара
-  ctx.font = 'bold 42px "Cormorant Garamond", serif';
-  ctx.fillStyle = '#1a052a';
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  
-  const lines = wrapText(ctx, currentFullPrediction, centerX, 600);
-  let y = centerY - (lines.length - 1) * 40;
-  lines.forEach(line => {
-    ctx.fillText(line, centerX, y);
-    y += 80;
-  });
-  
-  // Надпись
-  ctx.font = '28px Georgia, serif';
-  ctx.fillStyle = '#d4a5ff';
-  ctx.fillText('🧙‍♀️ Ведьма сказала...', centerX, canvas.height - 280);
-  
-  ctx.font = '20px Georgia, serif';
-  ctx.fillStyle = '#a590c2';
-  ctx.fillText('Попробуй и ты — нажми на шар', centerX, canvas.height - 200);
-  
-  // Копия в буфер
-  canvas.toBlob((blob) => {
-    const file = new File([blob], 'prediction.png', { type: 'image/png' });
-    tg.shareToStory?.(file.url, {
-      text: `Ведьма сказала: ${currentFullPrediction.slice(0, 60)}...`,
-      widget_link: { url: 'https://t.me/your_bot' }
-    });
-  });
-}
-
-function wrapText(ctx, text, maxWidth = 800) {
-  const words = text.split(' ');
-  const lines = [];
-  let currentLine = words[0];
-  
-  for (let i = 1; i < words.length; i++) {
-    const testLine = currentLine + ' ' + words[i];
-    const metrics = ctx.measureText(testLine);
-    if (metrics.width > maxWidth) {
-      lines.push(currentLine);
-      currentLine = words[i];
-    } else {
-      currentLine = testLine;
+    .splash-screen {
+      position: fixed;
+      inset: 0;
+      z-index: 1000;
+      background: radial-gradient(ellipse at 30% 20%, #1a0f2e 0%, #05030b 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: opacity 0.6s ease;
     }
-  }
-  lines.push(currentLine);
-  return lines;
-}
-
-// ---------- СКИНЫ ----------
-function applySkin(skinName) {
-  const skin = skins[skinName];
-  if (!skin) return;
-  if (orb) orb.style.background = skin.bg;
-  currentSkin = skinName;
-  saveData();
-}
-
-function showSkinSelector() {
-  const buttons = Object.entries(skins).map(([key, val]) => ({
-    id: key,
-    type: 'default',
-    text: `${key === 'default' ? '🔮' : key === 'gold' ? '✨' : '🌙'} ${val.name}`
-  }));
-  
-  tg.showPopup({
-    title: '✨ Скины шара ✨',
-    message: 'Выбери внешность магического шара:',
-    buttons: [...buttons, { id: 'cancel', type: 'cancel', text: 'Отмена' }]
-  }, (id) => {
-    if (id !== 'cancel' && skins[id]) {
-      applySkin(id);
-      tg.HapticFeedback?.notificationOccurred('success');
+    .splash-screen.hide { opacity: 0; visibility: hidden; }
+    .splash-content { text-align: center; }
+    .splash-title {
+      font-family: serif;
+      font-size: 32px;
+      background: linear-gradient(135deg, #fff, #b26bff);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
     }
-  });
-}
+    .splash-progress {
+      width: 200px;
+      height: 2px;
+      background: rgba(178,107,255,0.2);
+      margin-top: 24px;
+    }
+    .splash-progress-bar {
+      width: 0%;
+      height: 100%;
+      background: linear-gradient(90deg, #b26bff, #ff7ac2);
+      transition: width 0.2s;
+    }
+    
+    .app {
+      opacity: 0;
+      transition: opacity 0.5s;
+      max-width: 500px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    .app.visible { opacity: 1; }
+    
+    .orb-card {
+      background: rgba(20,12,36,0.7);
+      border-radius: 48px;
+      padding: 30px;
+      text-align: center;
+    }
+    .orb-stage {
+      width: 220px;
+      height: 220px;
+      margin: 0 auto;
+      background: radial-gradient(circle at 30% 30%, #fff, #c88bff, #5a2a8a);
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 30px rgba(178,107,255,0.5);
+    }
+    .orb-text {
+      font-family: serif;
+      font-size: 24px;
+      font-weight: bold;
+      color: #1a052a;
+      text-align: center;
+    }
+    .orb-line {
+      display: block;
+      animation: fadeIn 0.3s forwards;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .witch-line {
+      color: #b9a9d9;
+      margin-top: 16px;
+      font-size: 13px;
+    }
+    
+    .chips {
+      display: flex;
+      gap: 10px;
+      margin: 20px 0;
+      flex-wrap: wrap;
+    }
+    .chip {
+      background: rgba(18,12,32,0.7);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 40px;
+      padding: 8px 16px;
+      color: #a590c2;
+      cursor: pointer;
+    }
+    .chip.active {
+      background: rgba(178,107,255,0.25);
+      border-color: #b26bff;
+      color: white;
+    }
+    
+    .btn {
+      padding: 12px 20px;
+      border-radius: 60px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      margin: 5px;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, #b26bff, #8b3fdf);
+      color: white;
+    }
+    .btn-secondary {
+      background: rgba(18,12,32,0.8);
+      color: white;
+      border: 1px solid rgba(255,255,255,0.12);
+    }
+    
+    .questions-counter {
+      text-align: center;
+      margin-top: 16px;
+      font-size: 12px;
+      color: #a590c2;
+    }
+    
+    .footer-note {
+      text-align: center;
+      font-size: 11px;
+      color: #7a6a99;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
 
-// ---------- ОСТАЛЬНАЯ ЛОГИКА (ИСТОРИЯ, ТЕКСТЫ, ШАР) ----------
-function addToHistory(text, category) {
-  history.unshift({ text: text.slice(0, 60), fullText: text, category, timestamp: Date.now() });
-  if (history.length > 10) history.pop();
-  saveData();
-  renderHistory();
-}
+<div class="splash-screen" id="splash">
+  <div class="splash-content">
+    <div class="splash-title">ВЕДЬМА СКАЗАЛА</div>
+    <div class="splash-progress">
+      <div class="splash-progress-bar" id="progressBar"></div>
+    </div>
+  </div>
+</div>
 
-function renderHistory() {
-  if (!history.length) { if (historySection) historySection.style.display = 'none'; return; }
-  if (historySection) historySection.style.display = 'block';
-  if (historyList) {
-    historyList.innerHTML = history.map(item => `
-      <div class="history-item" data-full="${escapeHtml(item.fullText)}">
-        <span>📜 ${escapeHtml(item.text)}</span>
-        <span>${item.category === 'love' ? '💗' : item.category === 'work' ? '💼' : '💰'}</span>
-      </div>
-    `).join('');
-    document.querySelectorAll('.history-item').forEach(el => {
-      el.addEventListener('click', () => showPredictionFromHistory(el.dataset.full));
-    });
-  }
-}
+<div class="app" id="app">
+  <div class="orb-card">
+    <div class="orb-stage" id="orbStage">
+      <div class="orb-text" id="orbText">🔮</div>
+    </div>
+    <div class="witch-line" id="witchLine">Нажми на шар</div>
+  </div>
 
-function showPredictionFromHistory(text) {
-  if (casting) return;
-  currentFullPrediction = text;
-  currentPredictionText = `Ведьма сказала: ${text}`;
-  setOrbText(text, 'reveal');
-  witchLineEl.textContent = '📜 Из свитка пророчеств...';
-  shareBtn.dataset.text = currentPredictionText;
-  if (againBtn) againBtn.style.display = 'block';
-}
+  <div class="chips">
+    <button class="chip active" data-key="all">✨ Всё</button>
+    <button class="chip" data-key="love">💗 Любовь</button>
+    <button class="chip" data-key="work">💼 Работа</button>
+    <button class="chip" data-key="money">💰 Деньги</button>
+  </div>
 
-// ---------- ФУНКЦИИ ДЛЯ ТЕКСТА ----------
-function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
-function escapeHtml(v) { return v.replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[m])); }
+  <div>
+    <button id="shareBtn" class="btn btn-primary">📤 Поделиться</button>
+    <button id="againBtn" class="btn btn-secondary" style="display:none">🎭 Другой ответ</button>
+  </div>
 
-function smartSplit(text, maxLen = 32) {
-  const words = text.split(' ');
-  const lines = [];
-  let current = '';
-  for (const word of words) {
-    const test = current ? current + ' ' + word : word;
-    if (test.length <= maxLen) current = test;
-    else { if (current) lines.push(current); current = word; }
-  }
-  if (current) lines.push(current);
-  return lines.length ? lines : [text];
-}
+  <div class="questions-counter">
+    🔮 Сегодня осталось вопросов: <span id="questionsLeft">3/3</span>
+  </div>
 
-function setOrbText(text, mode = 'reveal') {
-  const lines = smartSplit(text, text.length > 70 ? 28 : 34);
-  orbTextEl.innerHTML = lines.map(l => `<span class="${mode === 'reveal' ? 'orb-line' : ''}">${escapeHtml(l)}</span>`).join('');
-}
+  <div class="footer-note">Магия внутри. Нажми — и шар заговорит</div>
+</div>
 
-// ---------- ПРЕДСКАЗАНИЯ ----------
-async function loadPredictions() {
-  const urls = ['./predictions.json', './data/predictions.json'];
-  for (const url of urls) {
-    try {
-      const res = await fetch(url);
-      if (res.ok) { allPredictions = await res.json(); return; }
-    } catch(e) {}
-  }
-  allPredictions = [{ category: 'all', text: 'Шар задумался. Попробуй ещё раз.', text_en: 'Try again.' }];
-}
-
-function getPool() {
-  if (activeCategory === 'all') return allPredictions;
-  const f = allPredictions.filter(i => i.category === activeCategory);
-  return f.length ? f : allPredictions;
-}
-
-function nextPrediction() {
-  const pool = getPool();
-  if (!pool.length) return 'Шар молчит...';
-  const item = pick(pool);
-  return (lang === 'en' && item.text_en) ? item.text_en : item.text;
-}
-
-// ---------- ОСНОВНОЙ РИТУАЛ ----------
-async function askWitch() {
-  if (casting) return;
-  
-  if (!hasFreeQuestion()) {
-    tg.showPopup({
-      title: '🔮 Лимит вопросов',
-      message: `У тебя закончились бесплатные вопросы на сегодня. Купи дополнительные или приходи завтра!`,
-      buttons: [{ id: 'buy', type: 'default', text: '✨ Купить вопросы' }, { id: 'ok', type: 'cancel', text: 'OK' }]
-    }, (id) => {
-      if (id === 'buy') buyQuestions();
-    });
-    return;
-  }
-  
-  casting = true;
-  shareBtn.disabled = true;
-  if (againBtn) againBtn.style.display = 'none';
-  
-  stageEl.classList.remove('casting');
-  void stageEl.offsetWidth;
-  orbTextEl.innerHTML = '';
-  
-  stageEl.classList.add('casting');
-  witchLineEl.textContent = '🔮 Смотрю в шар...';
-  
-  tg.HapticFeedback?.impactOccurred('medium');
-  
-  await new Promise(r => setTimeout(r, 1200));
-  
-  const value = nextPrediction();
-  currentFullPrediction = value;
-  currentPredictionText = `Ведьма сказала: ${value}`;
-  setOrbText(value, 'reveal');
-  
-  useFreeQuestion();
-  
-  witchLineEl.textContent = '✨ Вот что сказала ведьма ✨';
-  shareBtn.dataset.text = currentPredictionText;
-  
-  addToHistory(value, activeCategory);
-  
-  stageEl.classList.remove('casting');
-  
-  tg.HapticFeedback?.notificationOccurred('success');
-  
-  shareBtn.disabled = false;
-  if (againBtn) againBtn.style.display = 'block';
-  casting = false;
-}
-
-function sharePrediction() {
-  const text = shareBtn.dataset.text || currentPredictionText;
-  const shareText = `${text}\n\n🧙‍♀️ Ведьма сказала — магический шар судьбы`;
-  const link = getReferralLink();
-  tg.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent(shareText)}`);
-}
-
-// ---------- ОБРАБОТЧИКИ ----------
-chips.forEach(chip => {
-  chip.addEventListener('click', () => {
-    if (casting) return;
-    chips.forEach(c => c.classList.remove('active'));
-    chip.classList.add('active');
-    activeCategory = chip.dataset.key;
-  });
-});
-
-if (shareBtn) shareBtn.addEventListener('click', sharePrediction);
-if (orbStage) orbStage.addEventListener('click', () => { if (!casting) askWitch(); });
-if (againBtn) againBtn.addEventListener('click', () => { if (!casting) askWitch(); });
-if (clearHistoryBtn) clearHistoryBtn.addEventListener('click', () => { history = []; saveData(); renderHistory(); });
-if (buyQuestionsBtn) buyQuestionsBtn.addEventListener('click', buyQuestions);
-if (referBtn) referBtn.addEventListener('click', shareReferral);
-if (shareStoryBtn) shareStoryBtn.addEventListener('click', shareToStory);
-if (skinSelector) skinSelector.addEventListener('click', showSkinSelector);
-
-document.querySelectorAll('.lang').forEach(btn => {
-  btn.addEventListener('click', () => {
-    const val = btn.dataset.lang;
-    if (!val || val === lang || casting) return;
-    lang = val;
-    document.querySelectorAll('.lang').forEach(b => b.classList.toggle('active', b === btn));
-  });
-});
-
-// ---------- ЗАПУСК ----------
-loadData();
-loadPredictions().then(() => {
-  updateQuestionsUI();
-  if (!orbTextEl.innerHTML) setOrbText('🔮 Нажми на шар', 'static');
-});
+<script src="app.js"></script>
+</body>
+</html>
