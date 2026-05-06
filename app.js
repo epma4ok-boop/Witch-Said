@@ -1,25 +1,16 @@
-// Telegram WebApp с fallback для браузера
+// Telegram WebApp с fallback
 const tg = (() => {
   if (typeof window !== 'undefined' && window.Telegram?.WebApp) {
     return window.Telegram.WebApp;
   }
-  console.warn('⚠️ Telegram WebApp not found, using fallback mode');
+  console.warn('⚠️ Режим браузера');
   return {
-    ready: () => console.log('📱 Fallback: ready'),
-    expand: () => console.log('📱 Fallback: expand'),
-    setHeaderColor: () => {},
-    setBackgroundColor: () => {},
-    HapticFeedback: {
-      impactOccurred: () => {},
-      notificationOccurred: () => {}
-    },
-    openTelegramLink: (url) => {
-      window.open(url, '_blank', 'noopener,noreferrer');
-    }
+    ready: () => {}, expand: () => {}, setHeaderColor: () => {}, setBackgroundColor: () => {},
+    HapticFeedback: { impactOccurred: () => {}, notificationOccurred: () => {} },
+    openTelegramLink: (url) => window.open(url, '_blank')
   };
 })();
 
-// Инициализация Telegram App
 tg.ready();
 tg.expand();
 tg.setHeaderColor?.('#120f1d');
@@ -32,213 +23,257 @@ const hintEl = document.getElementById('hint');
 const witchLineEl = document.getElementById('witchLine');
 const orbTextEl = document.getElementById('orbText');
 const orbStage = document.getElementById('orbStage');
+const orb = document.getElementById('orb');
 const stageEl = document.getElementById('stage');
 const overlayEl = document.getElementById('overlay');
 const chips = [...document.querySelectorAll('.chip')];
+const historySection = document.getElementById('historySection');
+const historyList = document.getElementById('historyList');
+const clearHistoryBtn = document.getElementById('clearHistory');
 
-// Тексты ведьмы
-const witchLines = {
-  idle: [
-    'Шар ждёт твоего вопроса. Коснись и узнаешь.',
-    'Я здесь. Спрашивай, но без пафоса.',
-    'Ритуал прост: нажми на шар — и магия сделает своё.',
-    'Магия любит смелых. Ну или просто любопытных.'
-  ],
-  cast: [
-    'Смотрю в шар... Уже вижу ответ.',
-    'Магия закручивается. Сейчас узнаешь.',
-    'Шар начинает светиться. Ещё секунда.',
-    'Колдую... Ответ уже на подходе.'
-  ],
-  after: [
-    'Вот что сказал шар. Не стреляй в вестника.',
-    'Магия не врёт. Иногда просто шутит.',
-    'Запомни этот ответ. Или забудь — как хочешь.',
-    'Ведьма подтверждает: это твоё предсказание.'
-  ]
-};
-
-const categoryHints = {
-  all: 'Полный расклад: любовь, хаос, деньги и лёгкое унижение.',
-  love: 'Любовь, привязанность и сообщения, о которых жалеют утром.',
-  work: 'Работа, дедлайны и усталость с характером.',
-  money: 'Деньги, траты и финансовые фокусы без аплодисментов.'
-};
-
+// Конфиг
+const MAX_HISTORY = 7;
 let allPredictions = [];
 let activeCategory = 'all';
 let casting = false;
-let currentPredictionText = 'Нажми на шар и спроси о чём угодно';
+let currentPredictionText = '';
+let currentFullPrediction = '';
 let lang = 'ru';
+let history = [];
 
-// Тексты интерфейса
-const uiCopy = {
-  ru: {
-    heroKicker: 'Ответ шара',
-    heroText: 'Нажми на шар — и смотри, что он скажет.',
-    sectionHint: 'Что хочешь узнать?',
-    footerNote: 'Весь ритуал — одно касание шара',
-    chips: { all: 'Все', love: 'Любовь', work: 'Работа', money: 'Деньги' },
-    buttons: { share: 'Поделиться ответом', again: '✨ Другой ответ ✨' },
-    orbIdle: 'Спроси ведьму'
-  },
-  en: {
-    heroKicker: "Orb's answer",
-    heroText: 'Tap the orb and see what it says.',
-    sectionHint: 'What do you want to know?',
-    footerNote: 'Now the whole ritual is just one tap on the orb',
-    chips: { all: 'All', love: 'Love', work: 'Work', money: 'Money' },
-    buttons: { share: 'Share the answer', again: '✨ Another answer ✨' },
-    orbIdle: 'Ask the witch'
+// Загрузка истории
+function loadHistory() {
+  try {
+    const saved = localStorage.getItem('witch_history');
+    if (saved) {
+      history = JSON.parse(saved);
+      if (history.length > MAX_HISTORY) history = history.slice(0, MAX_HISTORY);
+    }
+  } catch(e) { history = []; }
+  renderHistory();
+}
+
+function saveHistory() {
+  try {
+    localStorage.setItem('witch_history', JSON.stringify(history.slice(0, MAX_HISTORY)));
+  } catch(e) {}
+}
+
+function addToHistory(text, category) {
+  const shortText = text.length > 60 ? text.slice(0, 57) + '...' : text;
+  history.unshift({
+    text: shortText,
+    fullText: text,
+    category: category,
+    timestamp: Date.now()
+  });
+  if (history.length > MAX_HISTORY) history.pop();
+  saveHistory();
+  renderHistory();
+}
+
+function renderHistory() {
+  if (history.length === 0) {
+    historySection.style.display = 'none';
+    return;
   }
+  historySection.style.display = 'block';
+  historyList.innerHTML = history.map(item => `
+    <div class="history-item" data-fulltext="${escapeHtml(item.fullText)}" data-category="${item.category}">
+      <span class="history-text">📿 ${escapeHtml(item.text)}</span>
+      <span class="history-category">${getCategoryEmoji(item.category)}</span>
+    </div>
+  `).join('');
+  
+  document.querySelectorAll('.history-item').forEach(el => {
+    el.addEventListener('click', () => {
+      const fullText = el.dataset.fulltext;
+      const category = el.dataset.category;
+      if (!casting && fullText) {
+        showPredictionFromHistory(fullText, category);
+      }
+    });
+  });
+}
+
+function getCategoryEmoji(cat) {
+  const map = { love: '💗', work: '💼', money: '💰', all: '✨' };
+  return map[cat] || '✨';
+}
+
+function showPredictionFromHistory(text, category) {
+  currentFullPrediction = text;
+  currentPredictionText = `Ведьма сказала: ${text}`;
+  setOrbText(text, 'reveal');
+  witchLineEl.textContent = pick(witchLines.after);
+  shareBtn.dataset.text = currentPredictionText;
+  orbStage.classList.add('revealed');
+  if (againBtn) againBtn.style.display = 'block';
+  playMagicSound();
+}
+
+// Звуки (Web Audio API)
+let audioContext = null;
+function initAudio() {
+  if (!audioContext && typeof AudioContext !== 'undefined') {
+    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+  }
+}
+function playMagicSound() {
+  try {
+    initAudio();
+    if (!audioContext) return;
+    const now = audioContext.currentTime;
+    const osc = audioContext.createOscillator();
+    const gain = audioContext.createGain();
+    osc.connect(gain);
+    gain.connect(audioContext.destination);
+    osc.frequency.value = 880;
+    gain.gain.value = 0.15;
+    osc.start();
+    gain.gain.exponentialRampToValueAtTime(0.00001, now + 0.8);
+    osc.stop(now + 0.8);
+  } catch(e) { console.log('🔇 Sound not supported'); }
+}
+
+// Тексты ведьмы
+const witchLines = {
+  idle: ['Шар ждёт твоего вопроса', 'Коснись — получишь ответ', 'Магия готова', 'Спроси о чём угодно'],
+  cast: ['Смотрю в шар...', 'Магия закручивается', 'Ответ уже близко', 'Колдую...'],
+  after: ['Вот что сказал шар', 'Запомни этот ответ', 'Магия не врёт', 'Такова судьба']
 };
 
-// Вспомогательные функции
-function pick(arr) {
-  return arr[Math.floor(Math.random() * arr.length)];
-}
+const categoryHints = {
+  all: 'Полный расклад: любовь, работа, деньги',
+  love: 'Любовь, чувства и романтика',
+  work: 'Карьера, успех и амбиции',
+  money: 'Финансы, удача и доходы'
+};
 
-function escapeHtml(value) {
-  return value
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
-}
+const categoryColors = {
+  all: { bg: 'radial-gradient(circle at 30% 30%, #fff 0%, #f3e0ff 15%, #c88bff 45%, #5a2a8a 75%, #1a0a2a 100%)', glow: '#b26bff' },
+  love: { bg: 'radial-gradient(circle at 30% 30%, #fff 0%, #ffe0f0 15%, #ff88bb 45%, #aa3366 75%, #4a1530 100%)', glow: '#ff6b9d' },
+  work: { bg: 'radial-gradient(circle at 30% 30%, #fff 0%, #e0f8ff 15%, #55ccff 45%, #2277aa 75%, #0a2a44 100%)', glow: '#4dc9f6' },
+  money: { bg: 'radial-gradient(circle at 30% 30%, #fff 0%, #fff8e0 15%, #ffcc44 45%, #cc8800 75%, #442a00 100%)', glow: '#ffd166' }
+};
 
-function splitPrediction(text) {
-  const normalized = text.replace(/\s+/g, ' ').trim();
-  const sentenceChunks = normalized.split(/(?<=[.!?])\s+/).map(p => p.trim()).filter(Boolean);
-  
-  if (sentenceChunks.length >= 2 && sentenceChunks.every(s => s.length <= 52)) {
-    return sentenceChunks.slice(0, 4);
+function applyCategoryColor(category) {
+  const color = categoryColors[category] || categoryColors.all;
+  if (orb) {
+    orb.style.background = color.bg;
+    orb.style.boxShadow = `0 0 0 3px rgba(255,255,255,0.15), 0 30px 50px rgba(0,0,0,0.6), 0 0 20px ${color.glow}40`;
   }
-  
-  const words = normalized.split(' ');
+}
+
+function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+function escapeHtml(v) { return v.replace(/[&<>]/g, function(m) { return {'&':'&amp;','<':'&lt;','>':'&gt;'}[m]; }); }
+
+// Идеальный перенос текста без разрыва слов
+function smartSplit(text, maxLen = 32) {
+  const words = text.split(' ');
   const lines = [];
   let current = '';
-  const target = normalized.length > 90 ? 18 : normalized.length > 60 ? 20 : 22;
   
   for (const word of words) {
-    const next = current ? `${current} ${word}` : word;
-    if (next.length > target && current) {
-      lines.push(current);
-      current = word;
+    const testLine = current ? current + ' ' + word : word;
+    if (testLine.length <= maxLen) {
+      current = testLine;
     } else {
-      current = next;
+      if (current) lines.push(current);
+      current = word;
     }
   }
   if (current) lines.push(current);
-  return lines.slice(0, 4);
-}
-
-function applyOrbSizing(text, lines) {
-  const length = text.length;
-  let fontSize = 'clamp(23px, 6vw, 42px)';
-  let maxWidth = '9ch';
-  let lineHeight = '0.96';
-  let letterSpacing = '-0.03em';
   
-  if (lines.length >= 4 || length > 80) {
-    fontSize = 'clamp(14px, 3.2vw, 22px)';
-    maxWidth = '15ch';
-    lineHeight = '1.05';
-    letterSpacing = '-0.015em';
-  } else if (lines.length === 3 || length > 60) {
-    fontSize = 'clamp(16px, 4vw, 28px)';
-    maxWidth = '12ch';
-    lineHeight = '1.06';
-    letterSpacing = '-0.02em';
-  } else if (lines.length === 2) {
-    fontSize = 'clamp(19px, 4.8vw, 32px)';
-    maxWidth = '11ch';
-    lineHeight = '1.08';
-    letterSpacing = '-0.02em';
-  } else if (length < 28) {
-    fontSize = 'clamp(26px, 6.5vw, 44px)';
-    maxWidth = '8ch';
+  if (lines.length === 1 && lines[0].length > maxLen + 10) {
+    return smartSplit(text, maxLen - 4);
   }
-  
-  document.documentElement.style.setProperty('--orb-font-size', fontSize);
-  document.documentElement.style.setProperty('--orb-max-width', maxWidth);
-  document.documentElement.style.setProperty('--orb-line-height', lineHeight);
-  document.documentElement.style.setProperty('--orb-letter-spacing', letterSpacing);
+  return lines;
 }
 
 function setOrbText(text, mode = 'reveal') {
-  const lines = splitPrediction(text);
-  applyOrbSizing(text, lines);
-  orbTextEl.innerHTML = lines.map(line => 
-    `<span class="${mode === 'reveal' ? 'orb-line' : ''}">${escapeHtml(line)}</span>`
-  ).join('');
+  const maxLen = text.length > 70 ? 28 : text.length > 45 ? 32 : 36;
+  const lines = smartSplit(text, maxLen);
+  const fontSize = lines.length > 3 ? 'clamp(14px, 4vw, 26px)' : lines.length === 3 ? 'clamp(16px, 4.5vw, 30px)' : 'clamp(18px, 5vw, 36px)';
+  orbTextEl.style.fontSize = fontSize;
+  orbTextEl.innerHTML = lines.map(line => `<span class="${mode === 'reveal' ? 'orb-line' : ''}">${escapeHtml(line)}</span>`).join('');
 }
 
-function clearOrbText() {
-  orbTextEl.innerHTML = '';
-}
+function clearOrbText() { orbTextEl.innerHTML = ''; }
+
+const uiCopy = {
+  ru: { heroKicker: 'Шар судьбы', heroText: 'Коснись — узнаешь ответ', sectionHint: 'Выбери сферу', footerNote: 'Магия внутри. Нажми — и шар заговорит', chips: { all: '✨ Всё', love: '💗 Любовь', work: '💼 Работа', money: '💰 Деньги' }, buttons: { share: '📤 Поделиться', again: '🎭 Другой ответ' }, orbIdle: 'Нажми на шар' },
+  en: { heroKicker: 'Destiny Orb', heroText: 'Touch — get answer', sectionHint: 'Choose sphere', footerNote: 'Magic inside. Tap the orb', chips: { all: '✨ All', love: '💗 Love', work: '💼 Work', money: '💰 Money' }, buttons: { share: '📤 Share', again: '🎭 Another answer' }, orbIdle: 'Tap the orb' }
+};
 
 function applyLangTexts() {
   const dict = uiCopy[lang];
-  document.querySelector('[data-i18n="heroKicker"]') && 
-    (document.querySelector('[data-i18n="heroKicker"]').textContent = dict.heroKicker);
-  document.querySelector('[data-i18n="heroText"]') && 
-    (document.querySelector('[data-i18n="heroText"]').textContent = dict.heroText);
-  document.querySelector('[data-i18n="footerNote"]') && 
-    (document.querySelector('[data-i18n="footerNote"]').textContent = dict.footerNote);
-  
-  const chipLabels = { all: 'chipAll', love: 'chipLove', work: 'chipWork', money: 'chipMoney' };
-  chips.forEach(chip => {
-    const key = chip.dataset.key;
-    if (key && dict.chips[key]) chip.textContent = dict.chips[key];
-  });
-  
+  document.querySelector('[data-i18n="heroKicker"]') && (document.querySelector('[data-i18n="heroKicker"]').textContent = dict.heroKicker);
+  document.querySelector('[data-i18n="heroText"]') && (document.querySelector('[data-i18n="heroText"]').textContent = dict.heroText);
+  document.querySelector('[data-i18n="footerNote"]') && (document.querySelector('[data-i18n="footerNote"]').textContent = dict.footerNote);
+  chips.forEach(chip => { const key = chip.dataset.key; if (key && dict.chips[key]) chip.innerHTML = dict.chips[key]; });
   hintEl.textContent = categoryHints[activeCategory];
   shareBtn.textContent = dict.buttons.share;
   if (againBtn) againBtn.textContent = dict.buttons.again;
-  if (!casting) setOrbText(dict.orbIdle, 'static');
+  if (!casting && !orbTextEl.innerHTML) setOrbText(dict.orbIdle, 'static');
 }
 
-// Загрузка предсказаний
 async function loadPredictions() {
   const urls = ['./predictions.json', './data/predictions.json'];
   for (const url of urls) {
     try {
       const res = await fetch(url, { cache: 'no-store' });
-      if (res.ok) {
-        allPredictions = await res.json();
-        console.log(`✅ Загружено ${allPredictions.length} предсказаний`);
-        return true;
-      }
-    } catch (e) {
-      console.warn(`⚠️ Не удалось загрузить ${url}`);
-    }
+      if (res.ok) { allPredictions = await res.json(); console.log(`✅ Загружено ${allPredictions.length} предсказаний`); return; }
+    } catch(e) {}
   }
-  
-  // Fallback предсказания
-  allPredictions = [
-    { category: 'all', text: 'Шар задумался. Попробуй ещё раз.', text_en: 'The orb is thinking. Try again.' },
-    { category: 'all', text: 'Магия временно недоступна. Приходи позже.', text_en: 'Magic is temporarily unavailable. Come back later.' }
-  ];
-  witchLineEl.textContent = '⚠️ Предсказания загружены из резервной копии';
-  return false;
+  allPredictions = [{ category: 'all', text: 'Шар задумался. Попробуй ещё раз.', text_en: 'The orb is thinking. Try again.' }];
+  witchLineEl.textContent = '⚠️ Резервный режим';
 }
 
 function getPool() {
   if (activeCategory === 'all') return allPredictions;
-  const filtered = allPredictions.filter(item => item.category === activeCategory);
+  const filtered = allPredictions.filter(i => i.category === activeCategory);
   return filtered.length ? filtered : allPredictions;
 }
 
 function nextPrediction() {
   const pool = getPool();
-  if (!pool.length) return 'Шар молчит. Странно.';
+  if (!pool.length) return 'Шар молчит...';
   const item = pick(pool);
-  const text = (lang === 'en' && item.text_en) ? item.text_en : item.text;
-  return text || 'Шар задумался. Нажми ещё раз.';
+  return (lang === 'en' && item.text_en) ? item.text_en : item.text;
 }
 
-// Основной ритуал
+// Партиклы
+function createParticles() {
+  const container = document.getElementById('particles');
+  if (!container) return;
+  container.innerHTML = '';
+  for (let i = 0; i < 16; i++) {
+    const p = document.createElement('div');
+    p.style.position = 'absolute';
+    p.style.width = '4px';
+    p.style.height = '4px';
+    p.style.background = 'radial-gradient(circle, #fff, #b26bff)';
+    p.style.borderRadius = '50%';
+    p.style.left = '50%';
+    p.style.top = '50%';
+    const angle = Math.random() * Math.PI * 2;
+    const dist = 35 + Math.random() * 55;
+    const tx = Math.cos(angle) * dist;
+    const ty = Math.sin(angle) * dist;
+    p.style.setProperty('--tx', tx + 'px');
+    p.style.setProperty('--ty', ty + 'px');
+    p.style.animation = `particleBurst 0.5s ease-out forwards`;
+    p.style.opacity = '1';
+    container.appendChild(p);
+  }
+  setTimeout(() => { if (container) container.innerHTML = ''; }, 600);
+}
+
+const styleSheet = document.createElement("style");
+styleSheet.textContent = `@keyframes particleBurst { 0% { opacity: 1; transform: translate(0, 0) scale(1); } 100% { opacity: 0; transform: translate(var(--tx), var(--ty)) scale(0); } }`;
+document.head.appendChild(styleSheet);
+
 async function askWitch() {
   if (casting) return;
   casting = true;
@@ -252,18 +287,23 @@ async function askWitch() {
   
   stageEl.classList.add('casting');
   overlayEl.classList.add('show');
-  hintEl.textContent = categoryHints[activeCategory];
   witchLineEl.textContent = pick(witchLines.cast);
   
   tg.HapticFeedback?.impactOccurred('medium');
   
-  await new Promise(resolve => setTimeout(resolve, 1380));
+  await new Promise(r => setTimeout(r, 1200));
   
   const value = nextPrediction();
+  currentFullPrediction = value;
   currentPredictionText = `Ведьма сказала: ${value}`;
   setOrbText(value, 'reveal');
   witchLineEl.textContent = pick(witchLines.after);
   shareBtn.dataset.text = currentPredictionText;
+  
+  addToHistory(value, activeCategory);
+  applyCategoryColor(activeCategory);
+  playMagicSound();
+  createParticles();
   
   stageEl.classList.remove('casting');
   overlayEl.classList.remove('show');
@@ -280,24 +320,18 @@ function sharePrediction() {
   const text = shareBtn.dataset.text || currentPredictionText;
   const shareText = `${text}\n\n✨ Предсказано магическим шаром ✨`;
   const url = `https://t.me/share/url?url=${encodeURIComponent('https://t.me/your_bot')}&text=${encodeURIComponent(shareText)}`;
-  
-  if (tg.openTelegramLink) {
-    tg.openTelegramLink(url);
-  } else {
-    window.open(url, '_blank', 'noopener,noreferrer');
-  }
+  tg.openTelegramLink ? tg.openTelegramLink(url) : window.open(url, '_blank');
 }
 
 function resetToIdle() {
-  if (!casting) {
+  if (!casting && !orbTextEl.innerHTML) {
     setOrbText(uiCopy[lang].orbIdle, 'static');
     witchLineEl.textContent = pick(witchLines.idle);
-    hintEl.textContent = categoryHints[activeCategory];
     if (againBtn) againBtn.style.display = 'none';
   }
 }
 
-// Обработчики событий
+// Обработчики
 chips.forEach(chip => {
   chip.addEventListener('click', () => {
     if (casting) return;
@@ -306,32 +340,21 @@ chips.forEach(chip => {
     activeCategory = chip.dataset.key;
     hintEl.textContent = categoryHints[activeCategory];
     witchLineEl.textContent = pick(witchLines.idle);
+    applyCategoryColor(activeCategory);
     resetToIdle();
   });
 });
 
 shareBtn.addEventListener('click', sharePrediction);
-orbStage.addEventListener('click', askWitch);
+orbStage.addEventListener('click', () => { if (!casting) { askWitch(); } });
+if (againBtn) againBtn.addEventListener('click', () => { if (!casting) askWitch(); });
+if (clearHistoryBtn) clearHistoryBtn.addEventListener('click', () => { history = []; saveHistory(); renderHistory(); });
 
-if (againBtn) {
-  againBtn.addEventListener('click', () => {
-    if (!casting) askWitch();
-  });
-}
-
-orbStage.addEventListener('keydown', (event) => {
-  if ((event.key === 'Enter' || event.key === ' ') && !casting) {
-    event.preventDefault();
-    askWitch();
-  }
-});
-
-// Переключение языка
 document.querySelectorAll('.lang').forEach(btn => {
   btn.addEventListener('click', () => {
-    const value = btn.dataset.lang;
-    if (!value || value === lang || casting) return;
-    lang = value;
+    const val = btn.dataset.lang;
+    if (!val || val === lang || casting) return;
+    lang = val;
     document.querySelectorAll('.lang').forEach(b => b.classList.toggle('active', b === btn));
     applyLangTexts();
     resetToIdle();
@@ -339,10 +362,12 @@ document.querySelectorAll('.lang').forEach(btn => {
 });
 
 // Инициализация
+loadHistory();
 loadPredictions().then(() => {
   hintEl.textContent = categoryHints[activeCategory];
   witchLineEl.textContent = pick(witchLines.idle);
   applyLangTexts();
+  applyCategoryColor(activeCategory);
 });
 
-console.log('🧙‍♀️ Ведьма проснулась. Шар готов отвечать.');
+console.log('🧙‍♀️ Ведьма проснулась. Шар готов.');
