@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#0a0515" />
+  <title>Ведьма сказала | Магический шар судьбы</title>
+  
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, 'Inter', sans-serif;
+      background: #05030b;
+      min-height: 100vh;
+    }
+
+    /* ЗАСТАВКА */
+    .splash-screen {
+      position: fixed;
+      inset: 0;
+      z-index: 1000;
+      background: radial-gradient(ellipse at 30% 20%, #1a0f2e 0%, #05030b 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: opacity 0.6s ease, visibility 0s linear 0.6s;
+    }
+    .splash-screen.hide {
+      opacity: 0;
+      visibility: hidden;
+    }
+    .splash-content {
+      text-align: center;
+      animation: fadeInScale 1s ease-out;
+    }
+    @keyframes fadeInScale {
+      0% { opacity: 0; transform: scale(0.9); }
+      100% { opacity: 1; transform: scale(1); }
+    }
+    .splash-logo svg {
+      width: 120px;
+      height: 120px;
+      animation: floatLogo 3s ease-in-out infinite;
+    }
+    @keyframes floatLogo {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+    .splash-title {
+      font-family: 'Georgia', serif;
+      font-size: 32px;
+      font-weight: 700;
+      background: linear-gradient(135deg, #fff, #d4b8ff, #b26bff);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      margin-top: 16px;
+      letter-spacing: 4px;
+    }
+    .splash-sub {
+      font-size: 11px;
+      color: #a590c2;
+      letter-spacing: 4px;
+      margin-top: 8px;
+    }
+    .splash-progress {
+      width: 200px;
+      height: 2px;
+      background: rgba(178, 107, 255, 0.2);
+      border-radius: 4px;
+      margin-top: 32px;
+      margin-left: auto;
+      margin-right: auto;
+      overflow: hidden;
+    }
+    .splash-progress-bar {
+      width: 0%;
+      height: 100%;
+      background: linear-gradient(90deg, #b26bff, #ff7ac2);
+      transition: width 0.2s ease;
+    }
+
+    /* ОСНОВНОЕ ПРИЛОЖЕНИЕ */
+    .app {
+      opacity: 0;
+      transition: opacity 0.5s ease;
+      max-width: 500px;
+      margin: 0 auto;
+      padding: 20px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    .app.visible {
+      opacity: 1;
+    }
+
+    /* Шар */
+    .orb-card {
+      background: linear-gradient(135deg, rgba(20, 12, 36, 0.7), rgba(10, 5, 20, 0.8));
+      border-radius: 48px;
+      padding: 28px 20px;
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255,255,255,0.08);
+      text-align: center;
+    }
+    .orb-stage {
+      width: 220px;
+      height: 220px;
+      margin: 0 auto;
+      background: radial-gradient(circle at 30% 30%, #fff, #f3e0ff, #c88bff, #5a2a8a, #1a0a2a);
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 0 3px rgba(255,255,255,0.15), 0 30px 50px rgba(0,0,0,0.6);
+      transition: transform 0.2s;
+    }
+    .orb-stage:active {
+      transform: scale(0.96);
+    }
+    .orb-text {
+      font-family: 'Georgia', serif;
+      font-size: 22px;
+      font-weight: bold;
+      color: #1a052a;
+      text-shadow: 0 0 8px rgba(255,255,255,0.9);
+      text-align: center;
+      padding: 20px;
+    }
+    .orb-line {
+      display: block;
+      opacity: 0;
+      transform: translateY(10px);
+      animation: lineReveal 0.35s forwards;
+    }
+    @keyframes lineReveal {
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .witch-line {
+      font-size: 13px;
+      color: #b9a9d9;
+      text-align: center;
+      padding: 12px;
+      background: rgba(10,5,20,0.6);
+      border-radius: 60px;
+      margin-top: 16px;
+    }
+
+    /* Кнопки категорий */
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+    }
+    .chip {
+      background: rgba(18, 12, 32, 0.7);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 40px;
+      padding: 8px 18px;
+      font-size: 13px;
+      color: #a590c2;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .chip.active {
+      background: rgba(178, 107, 255, 0.25);
+      border-color: #b26bff;
+      color: white;
+      box-shadow: 0 0 15px rgba(178,107,255,0.3);
+    }
+
+    /* Кнопки действий */
+    .actions {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .btn {
+      border: none;
+      padding: 12px 20px;
+      border-radius: 60px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, #b26bff, #8b3fdf);
+      color: white;
+    }
+    .btn-secondary {
+      background: rgba(18, 12, 32, 0.8);
+      border: 1px solid rgba(255,255,255,0.12);
+      color: white;
+    }
+    .row-buttons {
+      display: flex;
+      gap: 10px;
+    }
+    .row-buttons .btn {
+      flex: 1;
+    }
+
+    .questions-counter {
+      text-align: center;
+      font-size: 12px;
+      color: #a590c2;
+      padding: 8px;
+    }
+    .footer-note {
+      text-align: center;
+      font-size: 11px;
+      color: #7a6a99;
+    }
+  </style>
+</head>
+<body>
+
+<!-- ЗАСТАВКА -->
+<div class="splash-screen" id="splash">
+  <div class="splash-content">
+    <div class="splash-logo">
+      <svg width="100" height="100" viewBox="0 0 100 100" fill="none">
+        <circle cx="50" cy="50" r="45" stroke="#b26bff" stroke-width="1.5" fill="none" stroke-dasharray="4 4"/>
+        <path d="M50 20 L58 40 L80 42 L63 56 L68 78 L50 66 L32 78 L37 56 L20 42 L42 40 L50 20Z" fill="#b26bff" opacity="0.8"/>
+        <text x="50" y="88" text-anchor="middle" fill="white" font-size="8">✦</text>
+      </svg>
+    </div>
+    <div class="splash-title">ВЕДЬМА СКАЗАЛА</div>
+    <div class="splash-sub">MAGIC ORACLE</div>
+    <div class="splash-progress">
+      <div class="splash-progress-bar" id="progressBar"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ОСНОВНОЕ ПРИЛОЖЕНИЕ -->
+<div class="app" id="app">
+  <div class="orb-card">
+    <div class="orb-stage" id="orbStage">
+      <div class="orb-text" id="orbText">🔮</div>
+    </div>
+    <div class="witch-line" id="witchLine">Нажми на магический шар</div>
+  </div>
+
+  <div class="chips">
+    <button class="chip active" data-key="all">✨ Всё</button>
+    <button class="chip" data-key="love">💗 Любовь</button>
+    <button class="chip" data-key="work">💼 Работа</button>
+    <button class="chip" data-key="money">💰 Деньги</button>
+  </div>
+
+  <div class="actions">
+    <div class="row-buttons">
+      <button id="buyQuestionsBtn" class="btn btn-secondary">⭐ Купить</button>
+      <button id="referBtn" class="btn btn-secondary">👥 Пригласить</button>
+    </div>
+    <div class="row-buttons">
+      <button id="shareStoryBtn" class="btn btn-secondary">📸 В сторис</button>
+      <button id="skinSelector" class="btn btn-secondary">✨ Скины</button>
+    </div>
+    <button id="shareBtn" class="btn btn-primary">📤 Поделиться</button>
+    <button id="againBtn" class="btn btn-secondary" style="display: none;">🎭 Другой ответ</button>
+  </div>
+
+  <div class="questions-counter">
+    🔮 Сегодня осталось вопросов: <span id="questionsLeft">3/3</span>
+  </div>
+
+  <div class="footer-note">Магия внутри. Нажми — и шар заговорит</div>
+</div>
+
+<script>
+  // ВСЯ ЛОГИКА В ОДНОМ ФАЙЛЕ
+  (function() {
+    console.log('✅ Приложение запущено');
+    
+    // Эмуляция Telegram WebApp
+    window.Telegram = window.Telegram || { WebApp: null };
+    
+    // DOM элементы
+    const splash = document.getElementById('splash');
+    const app = document.getElementById('app');
+    const orbStage = document.getElementById('orbStage');
+    const orbText = document.getElementById('orbText');
+    const witchLine = document.getElementById('witchLine');
+    const shareBtn = document.getElementById('shareBtn');
+    const againBtn = document.getElementById('againBtn');
+    const buyBtn = document.getElementById('buyQuestionsBtn');
+    const referBtn = document.getElementById('referBtn');
+    const storyBtn = document.getElementById('shareStoryBtn');
+    const skinBtn = document.getElementById('skinSelector');
+    const questionsLeftSpan = document.getElementById('questionsLeft');
+    const chips = document.querySelectorAll('.chip');
+    
+    // Состояние
+    let questionsLeft = 3;
+    let activeCategory = 'all';
+    let currentAnswer = '';
+    let casting = false;
+    
+    // База предсказаний
+    const predictions = {
+      all: ['✨ Звёзды говорят — да! ✨', '🌙 Пока неясно, спроси позже 🌙', '🔮 Нет, не судьба 🔮', '💫 Определённо да! 💫', '🍀 Всё будет хорошо 🍀'],
+      love: ['💗 Он думает о тебе 💗', '💗 Судьба готовит встречу 💗', '💗 Не торопи события 💗', '💗 Сердце знает ответ 💗'],
+      work: ['💼 Повышение близко 💼', '💼 Доверяй своей интуиции 💼', '💼 Перемены к лучшему 💼', '💼 Твой момент настанет 💼'],
+      money: ['💰 Деньги придут неожиданно 💰', '💰 Хороший период для инвестиций 💰', '💰 Будь щедрым — вернётся 💰', '💰 Удача на твоей стороне 💰']
+    };
+    
+    // Обновление счётчика
+    function updateCounter() {
+      if (questionsLeftSpan) {
+        questionsLeftSpan.textContent = `${questionsLeft}/3`;
+      }
+      if (questionsLeft <= 0 && orbStage) {
+        orbStage.style.opacity = '0.5';
+      } else if (orbStage) {
+        orbStage.style.opacity = '1';
+      }
+    }
+    
+    // Получить предсказание
+    function getPrediction() {
+      const pool = predictions[activeCategory] || predictions.all;
+      return pool[Math.floor(Math.random() * pool.length)];
+    }
+    
+    // Показать ответ построчно
+    function showAnswer(text) {
+      if (!orbText) return;
+      const lines = text.split(' ');
+      const chunks = [];
+      let current = '';
+      for (const word of lines) {
+        if ((current + ' ' + word).length > 20 && current) {
+          chunks.push(current);
+          current = word;
+        } else {
+          current = current ? current + ' ' + word : word;
+        }
+      }
+      if (current) chunks.push(current);
+      
+      orbText.innerHTML = chunks.map(line => `<span class="orb-line">${line}</span>`).join('');
+    }
+    
+    // Анимация колдовства
+    async function castSpell() {
+      if (casting) return;
+      if (questionsLeft <= 0) {
+        witchLine.textContent = '✨ Купи дополнительные вопросы или приходи завтра ✨';
+        return;
+      }
+      
+      casting = true;
+      questionsLeft--;
+      updateCounter();
+      
+      // Анимация
+      orbText.innerHTML = '🔮';
+      witchLine.textContent = '🔮 Смотрю в шар...';
+      
+      // Вибрация
+      if (window.Telegram?.WebApp?.HapticFeedback) {
+        window.Telegram.WebApp.HapticFeedback.impactOccurred('medium');
+      }
+      
+      await new Promise(r => setTimeout(r, 1000));
+      
+      // Ответ
+      currentAnswer = getPrediction();
+      showAnswer(currentAnswer);
+      witchLine.textContent = '✨ Вот что сказала ведьма ✨';
+      
+      if (againBtn) againBtn.style.display = 'block';
+      if (shareBtn) shareBtn.dataset.text = currentAnswer;
+      
+      if (window.Telegram?.WebApp?.HapticFeedback) {
+        window.Telegram.WebApp.HapticFeedback.notificationOccurred('success');
+      }
+      
+      casting = false;
+    }
+    
+    // Поделиться
+    function shareAnswer() {
+      const text = shareBtn?.dataset?.text || currentAnswer || 'Ведьма сказала магическое предсказание!';
+      if (window.Telegram?.WebApp?.openTelegramLink) {
+        window.Telegram.WebApp.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent('https://t.me/your_bot')}&text=${encodeURIComponent(text)}`);
+      } else {
+        alert(`🔮 ${text}`);
+      }
+    }
+    
+    // Другой ответ
+    function anotherAnswer() {
+      if (!casting && questionsLeft > 0) {
+        castSpell();
+      }
+    }
+    
+    // Купить вопросы
+    function buyQuestions() {
+      alert('⭐ Покупка вопросов через Telegram Stars\nБудет доступно после подключения платежей');
+    }
+    
+    // Пригласить друга
+    function inviteFriend() {
+      const link = 'https://t.me/your_bot?start=ref';
+      if (window.Telegram?.WebApp?.openTelegramLink) {
+        window.Telegram.WebApp.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(link)}&text=🧙‍♀️ Приходи гадать на магическом шаре!`);
+      } else {
+        alert('👥 Пригласи друга: ' + link);
+      }
+    }
+    
+    // Поделиться в сторис
+    function shareToStory() {
+      alert('📸 Генерация карточки для Stories\nБудет доступно в следующем обновлении');
+    }
+    
+    // Смена скина
+    function changeSkin() {
+      alert('✨ Скины шара будут доступны скоро ✨');
+    }
+    
+    // Смена категории
+    chips.forEach(chip => {
+      chip.addEventListener('click', () => {
+        chips.forEach(c => c.classList.remove('active'));
+        chip.classList.add('active');
+        activeCategory = chip.dataset.key;
+        witchLine.textContent = `🔮 Выбрано: ${chip.textContent.trim()}`;
+      });
+    });
+    
+    // Обработчики
+    if (orbStage) orbStage.addEventListener('click', castSpell);
+    if (shareBtn) shareBtn.addEventListener('click', shareAnswer);
+    if (againBtn) againBtn.addEventListener('click', anotherAnswer);
+    if (buyBtn) buyBtn.addEventListener('click', buyQuestions);
+    if (referBtn) referBtn.addEventListener('click', inviteFriend);
+    if (storyBtn) storyBtn.addEventListener('click', shareToStory);
+    if (skinBtn) skinBtn.addEventListener('click', changeSkin);
+    
+    // ЗАСТАВКА
+    let progress = 0;
+    const progressBar = document.getElementById('progressBar');
+    const interval = setInterval(() => {
+      progress += Math.random() * 20;
+      if (progress >= 100) {
+        progress = 100;
+        clearInterval(interval);
+        if (progressBar) progressBar.style.width = '100%';
+        setTimeout(() => {
+          if (splash) {
+            splash.classList.add('hide');
+            setTimeout(() => {
+              splash.style.display = 'none';
+              if (app) app.classList.add('visible');
+              if (window.Telegram?.WebApp) {
+                window.Telegram.WebApp.ready();
+                window.Telegram.WebApp.expand();
+              }
+            }, 800);
+          }
+        }, 500);
+      }
+      if (progressBar) progressBar.style.width = progress + '%';
+    }, 200);
+    
+    // Инициализация
+    updateCounter();
+    if (orbText) orbText.innerHTML = '🔮';
+    console.log('✅ Ведьма проснулась!');
+  })();
+</script>
+</body>
+</html>
