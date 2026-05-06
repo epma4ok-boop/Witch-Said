@@ -11,15 +11,9 @@ const tg = (() => {
   };
 })();
 
-tg.ready();
-tg.expand();
-tg.setHeaderColor?.('#120f1d');
-tg.setBackgroundColor?.('#120f1d');
-
 // DOM элементы
 const shareBtn = document.getElementById('shareBtn');
 const againBtn = document.getElementById('againBtn');
-const hintEl = document.getElementById('hint');
 const witchLineEl = document.getElementById('witchLine');
 const orbTextEl = document.getElementById('orbText');
 const orbStage = document.getElementById('orbStage');
@@ -30,6 +24,8 @@ const chips = [...document.querySelectorAll('.chip')];
 const historySection = document.getElementById('historySection');
 const historyList = document.getElementById('historyList');
 const clearHistoryBtn = document.getElementById('clearHistory');
+const splash = document.getElementById('splash');
+const app = document.getElementById('app');
 
 // Конфиг
 const MAX_HISTORY = 7;
@@ -40,107 +36,104 @@ let currentPredictionText = '';
 let currentFullPrediction = '';
 let lang = 'ru';
 let history = [];
-
-// Загрузка истории
-function loadHistory() {
-  try {
-    const saved = localStorage.getItem('witch_history');
-    if (saved) {
-      history = JSON.parse(saved);
-      if (history.length > MAX_HISTORY) history = history.slice(0, MAX_HISTORY);
-    }
-  } catch(e) { history = []; }
-  renderHistory();
-}
-
-function saveHistory() {
-  try {
-    localStorage.setItem('witch_history', JSON.stringify(history.slice(0, MAX_HISTORY)));
-  } catch(e) {}
-}
-
-function addToHistory(text, category) {
-  const shortText = text.length > 60 ? text.slice(0, 57) + '...' : text;
-  history.unshift({
-    text: shortText,
-    fullText: text,
-    category: category,
-    timestamp: Date.now()
-  });
-  if (history.length > MAX_HISTORY) history.pop();
-  saveHistory();
-  renderHistory();
-}
-
-function renderHistory() {
-  if (history.length === 0) {
-    historySection.style.display = 'none';
-    return;
-  }
-  historySection.style.display = 'block';
-  historyList.innerHTML = history.map(item => `
-    <div class="history-item" data-fulltext="${escapeHtml(item.fullText)}" data-category="${item.category}">
-      <span class="history-text">📿 ${escapeHtml(item.text)}</span>
-      <span class="history-category">${getCategoryEmoji(item.category)}</span>
-    </div>
-  `).join('');
-  
-  document.querySelectorAll('.history-item').forEach(el => {
-    el.addEventListener('click', () => {
-      const fullText = el.dataset.fulltext;
-      const category = el.dataset.category;
-      if (!casting && fullText) {
-        showPredictionFromHistory(fullText, category);
-      }
-    });
-  });
-}
-
-function getCategoryEmoji(cat) {
-  const map = { love: '💗', work: '💼', money: '💰', all: '✨' };
-  return map[cat] || '✨';
-}
-
-function showPredictionFromHistory(text, category) {
-  currentFullPrediction = text;
-  currentPredictionText = `Ведьма сказала: ${text}`;
-  setOrbText(text, 'reveal');
-  witchLineEl.textContent = pick(witchLines.after);
-  shareBtn.dataset.text = currentPredictionText;
-  orbStage.classList.add('revealed');
-  if (againBtn) againBtn.style.display = 'block';
-  playMagicSound();
-}
-
-// Звуки (Web Audio API)
 let audioContext = null;
+
+// ===== ВЕДЬМИН СМЕХ (синтезированный через Web Audio) =====
 function initAudio() {
   if (!audioContext && typeof AudioContext !== 'undefined') {
     audioContext = new (window.AudioContext || window.webkitAudioContext)();
   }
 }
-function playMagicSound() {
+
+function playWitchLaugh() {
   try {
     initAudio();
     if (!audioContext) return;
+    
     const now = audioContext.currentTime;
-    const osc = audioContext.createOscillator();
-    const gain = audioContext.createGain();
-    osc.connect(gain);
-    gain.connect(audioContext.destination);
-    osc.frequency.value = 880;
-    gain.gain.value = 0.15;
-    osc.start();
-    gain.gain.exponentialRampToValueAtTime(0.00001, now + 0.8);
-    osc.stop(now + 0.8);
-  } catch(e) { console.log('🔇 Sound not supported'); }
+    
+    // Первый смешок "хе-хе"
+    const osc1 = audioContext.createOscillator();
+    const gain1 = audioContext.createGain();
+    osc1.connect(gain1);
+    gain1.connect(audioContext.destination);
+    osc1.frequency.value = 440;
+    gain1.gain.value = 0.08;
+    osc1.start();
+    gain1.gain.exponentialRampToValueAtTime(0.0001, now + 0.4);
+    osc1.stop(now + 0.4);
+    
+    // Второй смешок "хи-хи" выше
+    setTimeout(() => {
+      const osc2 = audioContext.createOscillator();
+      const gain2 = audioContext.createGain();
+      osc2.connect(gain2);
+      gain2.connect(audioContext.destination);
+      osc2.frequency.value = 660;
+      gain2.gain.value = 0.07;
+      osc2.start();
+      gain2.gain.exponentialRampToValueAtTime(0.0001, now + 0.85);
+      osc2.stop(now + 0.85);
+    }, 200);
+    
+    // Третий — низкий "ха-ха"
+    setTimeout(() => {
+      const osc3 = audioContext.createOscillator();
+      const gain3 = audioContext.createGain();
+      osc3.connect(gain3);
+      gain3.connect(audioContext.destination);
+      osc3.frequency.value = 330;
+      gain3.gain.value = 0.09;
+      osc3.start();
+      gain3.gain.exponentialRampToValueAtTime(0.0001, now + 1.2);
+      osc3.stop(now + 1.2);
+    }, 450);
+    
+    // Добавляем "шипение" для атмосферности
+    const noiseBuffer = audioContext.createBuffer(1, audioContext.sampleRate * 0.3, audioContext.sampleRate);
+    const data = noiseBuffer.getChannelData(0);
+    for (let i = 0; i < data.length; i++) data[i] = (Math.random() - 0.5) * 0.03;
+    const noise = audioContext.createBufferSource();
+    const noiseGain = audioContext.createGain();
+    noise.buffer = noiseBuffer;
+    noise.connect(noiseGain);
+    noiseGain.connect(audioContext.destination);
+    noiseGain.gain.value = 0.04;
+    noise.start();
+    noiseGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.4);
+    
+  } catch(e) { console.log('🔇 Audio error'); }
 }
 
-// Тексты ведьмы
+// ===== ЗАСТАВКА С ПРОГРЕССОМ =====
+async function showSplash() {
+  const progressBar = document.getElementById('progressBar');
+  const steps = [20, 40, 60, 80, 100];
+  for (let p of steps) {
+    await new Promise(r => setTimeout(r, 300));
+    if (progressBar) progressBar.style.width = p + '%';
+  }
+  await new Promise(r => setTimeout(r, 800));
+  if (splash) {
+    splash.classList.add('hide');
+    setTimeout(() => {
+      splash.style.display = 'none';
+      if (app) app.classList.add('visible');
+    }, 800);
+  }
+}
+
+// ===== ИНИЦИАЛИЗАЦИЯ TELEGRAM =====
+tg.ready();
+tg.expand();
+tg.setHeaderColor?.('#120f1d');
+tg.setBackgroundColor?.('#120f1d');
+
+// ===== ТЕКСТЫ =====
 const witchLines = {
-  idle: ['Шар ждёт твоего вопроса', 'Коснись — получишь ответ', 'Магия готова', 'Спроси о чём угодно'],
-  cast: ['Смотрю в шар...', 'Магия закручивается', 'Ответ уже близко', 'Колдую...'],
-  after: ['Вот что сказал шар', 'Запомни этот ответ', 'Магия не врёт', 'Такова судьба']
+  idle: ['Шар ждёт твоего вопроса', 'Коснись — получишь ответ', 'Ведьма рядом...'],
+  cast: ['Смотрю в шар...', 'Магия закручивается...', 'Вижу ответ...'],
+  after: ['Ведьма сказала!', 'Такова судьба', 'Запомни этот ответ']
 };
 
 const categoryHints = {
@@ -151,91 +144,99 @@ const categoryHints = {
 };
 
 const categoryColors = {
-  all: { bg: 'radial-gradient(circle at 30% 30%, #fff 0%, #f3e0ff 15%, #c88bff 45%, #5a2a8a 75%, #1a0a2a 100%)', glow: '#b26bff' },
-  love: { bg: 'radial-gradient(circle at 30% 30%, #fff 0%, #ffe0f0 15%, #ff88bb 45%, #aa3366 75%, #4a1530 100%)', glow: '#ff6b9d' },
-  work: { bg: 'radial-gradient(circle at 30% 30%, #fff 0%, #e0f8ff 15%, #55ccff 45%, #2277aa 75%, #0a2a44 100%)', glow: '#4dc9f6' },
-  money: { bg: 'radial-gradient(circle at 30% 30%, #fff 0%, #fff8e0 15%, #ffcc44 45%, #cc8800 75%, #442a00 100%)', glow: '#ffd166' }
+  all: 'radial-gradient(circle at 30% 30%, #fff, #f3e0ff, #c88bff, #5a2a8a, #1a0a2a)',
+  love: 'radial-gradient(circle at 30% 30%, #fff, #ffe0f0, #ff88bb, #aa3366, #4a1530)',
+  work: 'radial-gradient(circle at 30% 30%, #fff, #e0f8ff, #55ccff, #2277aa, #0a2a44)',
+  money: 'radial-gradient(circle at 30% 30%, #fff, #fff8e0, #ffcc44, #cc8800, #442a00)'
 };
 
-function applyCategoryColor(category) {
-  const color = categoryColors[category] || categoryColors.all;
-  if (orb) {
-    orb.style.background = color.bg;
-    orb.style.boxShadow = `0 0 0 3px rgba(255,255,255,0.15), 0 30px 50px rgba(0,0,0,0.6), 0 0 20px ${color.glow}40`;
-  }
-}
-
+function applyCategoryColor(cat) { if (orb) orb.style.background = categoryColors[cat] || categoryColors.all; }
 function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
-function escapeHtml(v) { return v.replace(/[&<>]/g, function(m) { return {'&':'&amp;','<':'&lt;','>':'&gt;'}[m]; }); }
+function escapeHtml(v) { return v.replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[m])); }
 
-// Идеальный перенос текста без разрыва слов
 function smartSplit(text, maxLen = 32) {
   const words = text.split(' ');
   const lines = [];
   let current = '';
-  
   for (const word of words) {
-    const testLine = current ? current + ' ' + word : word;
-    if (testLine.length <= maxLen) {
-      current = testLine;
-    } else {
-      if (current) lines.push(current);
-      current = word;
-    }
+    const test = current ? current + ' ' + word : word;
+    if (test.length <= maxLen) current = test;
+    else { if (current) lines.push(current); current = word; }
   }
   if (current) lines.push(current);
-  
-  if (lines.length === 1 && lines[0].length > maxLen + 10) {
-    return smartSplit(text, maxLen - 4);
-  }
-  return lines;
+  return lines.length ? lines : [text];
 }
 
 function setOrbText(text, mode = 'reveal') {
-  const maxLen = text.length > 70 ? 28 : text.length > 45 ? 32 : 36;
-  const lines = smartSplit(text, maxLen);
-  const fontSize = lines.length > 3 ? 'clamp(14px, 4vw, 26px)' : lines.length === 3 ? 'clamp(16px, 4.5vw, 30px)' : 'clamp(18px, 5vw, 36px)';
-  orbTextEl.style.fontSize = fontSize;
-  orbTextEl.innerHTML = lines.map(line => `<span class="${mode === 'reveal' ? 'orb-line' : ''}">${escapeHtml(line)}</span>`).join('');
+  const lines = smartSplit(text, text.length > 70 ? 28 : 34);
+  orbTextEl.style.fontSize = lines.length > 3 ? 'clamp(14px,4vw,26px)' : 'clamp(16px,5vw,34px)';
+  orbTextEl.innerHTML = lines.map(l => `<span class="${mode === 'reveal' ? 'orb-line' : ''}">${escapeHtml(l)}</span>`).join('');
 }
 
-function clearOrbText() { orbTextEl.innerHTML = ''; }
-
 const uiCopy = {
-  ru: { heroKicker: 'Шар судьбы', heroText: 'Коснись — узнаешь ответ', sectionHint: 'Выбери сферу', footerNote: 'Магия внутри. Нажми — и шар заговорит', chips: { all: '✨ Всё', love: '💗 Любовь', work: '💼 Работа', money: '💰 Деньги' }, buttons: { share: '📤 Поделиться', again: '🎭 Другой ответ' }, orbIdle: 'Нажми на шар' },
-  en: { heroKicker: 'Destiny Orb', heroText: 'Touch — get answer', sectionHint: 'Choose sphere', footerNote: 'Magic inside. Tap the orb', chips: { all: '✨ All', love: '💗 Love', work: '💼 Work', money: '💰 Money' }, buttons: { share: '📤 Share', again: '🎭 Another answer' }, orbIdle: 'Tap the orb' }
+  ru: { heroKicker: 'Шар судьбы', heroText: 'Коснись — узнаешь ответ', footerNote: 'Магия внутри', chips: { all: '✨ Всё', love: '💗 Любовь', work: '💼 Работа', money: '💰 Деньги' }, buttons: { share: '📤 Поделиться', again: '🎭 Другой ответ' }, orbIdle: 'Нажми на шар' },
+  en: { heroKicker: 'Destiny Orb', heroText: 'Touch — get answer', footerNote: 'Magic inside', chips: { all: '✨ All', love: '💗 Love', work: '💼 Work', money: '💰 Money' }, buttons: { share: '📤 Share', again: '🎭 Another' }, orbIdle: 'Tap the orb' }
 };
 
 function applyLangTexts() {
-  const dict = uiCopy[lang];
-  document.querySelector('[data-i18n="heroKicker"]') && (document.querySelector('[data-i18n="heroKicker"]').textContent = dict.heroKicker);
-  document.querySelector('[data-i18n="heroText"]') && (document.querySelector('[data-i18n="heroText"]').textContent = dict.heroText);
-  document.querySelector('[data-i18n="footerNote"]') && (document.querySelector('[data-i18n="footerNote"]').textContent = dict.footerNote);
-  chips.forEach(chip => { const key = chip.dataset.key; if (key && dict.chips[key]) chip.innerHTML = dict.chips[key]; });
-  hintEl.textContent = categoryHints[activeCategory];
-  shareBtn.textContent = dict.buttons.share;
-  if (againBtn) againBtn.textContent = dict.buttons.again;
-  if (!casting && !orbTextEl.innerHTML) setOrbText(dict.orbIdle, 'static');
+  const d = uiCopy[lang];
+  document.querySelector('[data-i18n="heroKicker"]') && (document.querySelector('[data-i18n="heroKicker"]').textContent = d.heroKicker);
+  document.querySelector('[data-i18n="heroText"]') && (document.querySelector('[data-i18n="heroText"]').textContent = d.heroText);
+  document.querySelector('[data-i18n="footerNote"]') && (document.querySelector('[data-i18n="footerNote"]').textContent = d.footerNote);
+  chips.forEach(c => { if (d.chips[c.dataset.key]) c.innerHTML = d.chips[c.dataset.key]; });
+  shareBtn.textContent = d.buttons.share;
+  if (againBtn) againBtn.textContent = d.buttons.again;
+  if (!casting && !orbTextEl.innerHTML) setOrbText(d.orbIdle, 'static');
 }
 
+// ===== ИСТОРИЯ =====
+function loadHistory() {
+  try { const saved = localStorage.getItem('witch_history'); if (saved) history = JSON.parse(saved).slice(0, MAX_HISTORY); } catch(e) {}
+  renderHistory();
+}
+function saveHistory() { try { localStorage.setItem('witch_history', JSON.stringify(history.slice(0, MAX_HISTORY))); } catch(e) {} }
+function addToHistory(text, cat) {
+  history.unshift({ text: text.slice(0, 60), fullText: text, category: cat, timestamp: Date.now() });
+  if (history.length > MAX_HISTORY) history.pop();
+  saveHistory();
+  renderHistory();
+}
+function renderHistory() {
+  if (!history.length) { if (historySection) historySection.style.display = 'none'; return; }
+  if (historySection) historySection.style.display = 'block';
+  if (historyList) {
+    historyList.innerHTML = history.map(item => `<div class="history-item" data-full="${escapeHtml(item.fullText)}" data-cat="${item.category}"><span>📜 ${escapeHtml(item.text)}</span><span>${item.category === 'love' ? '💗' : item.category === 'work' ? '💼' : item.category === 'money' ? '💰' : '✨'}</span></div>`).join('');
+    document.querySelectorAll('.history-item').forEach(el => {
+      el.addEventListener('click', () => { if (!casting) showPredictionFromHistory(el.dataset.full, el.dataset.cat); });
+    });
+  }
+}
+function showPredictionFromHistory(text, cat) {
+  currentFullPrediction = text;
+  currentPredictionText = `Ведьма сказала: ${text}`;
+  setOrbText(text, 'reveal');
+  witchLineEl.textContent = pick(witchLines.after);
+  shareBtn.dataset.text = currentPredictionText;
+  if (againBtn) againBtn.style.display = 'block';
+  playWitchLaugh();
+}
+
+// ===== ПРЕДСКАЗАНИЯ =====
 async function loadPredictions() {
   const urls = ['./predictions.json', './data/predictions.json'];
   for (const url of urls) {
     try {
       const res = await fetch(url, { cache: 'no-store' });
-      if (res.ok) { allPredictions = await res.json(); console.log(`✅ Загружено ${allPredictions.length} предсказаний`); return; }
+      if (res.ok) { allPredictions = await res.json(); console.log(`✅ ${allPredictions.length} предсказаний`); return; }
     } catch(e) {}
   }
-  allPredictions = [{ category: 'all', text: 'Шар задумался. Попробуй ещё раз.', text_en: 'The orb is thinking. Try again.' }];
-  witchLineEl.textContent = '⚠️ Резервный режим';
+  allPredictions = [{ category: 'all', text: 'Шар задумался. Попробуй ещё раз.', text_en: 'Try again.' }];
 }
-
 function getPool() {
   if (activeCategory === 'all') return allPredictions;
-  const filtered = allPredictions.filter(i => i.category === activeCategory);
-  return filtered.length ? filtered : allPredictions;
+  const f = allPredictions.filter(i => i.category === activeCategory);
+  return f.length ? f : allPredictions;
 }
-
 function nextPrediction() {
   const pool = getPool();
   if (!pool.length) return 'Шар молчит...';
@@ -243,37 +244,7 @@ function nextPrediction() {
   return (lang === 'en' && item.text_en) ? item.text_en : item.text;
 }
 
-// Партиклы
-function createParticles() {
-  const container = document.getElementById('particles');
-  if (!container) return;
-  container.innerHTML = '';
-  for (let i = 0; i < 16; i++) {
-    const p = document.createElement('div');
-    p.style.position = 'absolute';
-    p.style.width = '4px';
-    p.style.height = '4px';
-    p.style.background = 'radial-gradient(circle, #fff, #b26bff)';
-    p.style.borderRadius = '50%';
-    p.style.left = '50%';
-    p.style.top = '50%';
-    const angle = Math.random() * Math.PI * 2;
-    const dist = 35 + Math.random() * 55;
-    const tx = Math.cos(angle) * dist;
-    const ty = Math.sin(angle) * dist;
-    p.style.setProperty('--tx', tx + 'px');
-    p.style.setProperty('--ty', ty + 'px');
-    p.style.animation = `particleBurst 0.5s ease-out forwards`;
-    p.style.opacity = '1';
-    container.appendChild(p);
-  }
-  setTimeout(() => { if (container) container.innerHTML = ''; }, 600);
-}
-
-const styleSheet = document.createElement("style");
-styleSheet.textContent = `@keyframes particleBurst { 0% { opacity: 1; transform: translate(0, 0) scale(1); } 100% { opacity: 0; transform: translate(var(--tx), var(--ty)) scale(0); } }`;
-document.head.appendChild(styleSheet);
-
+// ===== ОСНОВНОЙ РИТУАЛ =====
 async function askWitch() {
   if (casting) return;
   casting = true;
@@ -281,9 +252,8 @@ async function askWitch() {
   if (againBtn) againBtn.style.display = 'none';
   
   stageEl.classList.remove('casting');
-  orbStage.classList.remove('revealed');
   void stageEl.offsetWidth;
-  clearOrbText();
+  orbTextEl.innerHTML = '';
   
   stageEl.classList.add('casting');
   overlayEl.classList.add('show');
@@ -302,12 +272,10 @@ async function askWitch() {
   
   addToHistory(value, activeCategory);
   applyCategoryColor(activeCategory);
-  playMagicSound();
-  createParticles();
+  playWitchLaugh(); // ← СМЕХ ВМЕСТО ДЗИНЬКА
   
   stageEl.classList.remove('casting');
   overlayEl.classList.remove('show');
-  orbStage.classList.add('revealed');
   
   tg.HapticFeedback?.notificationOccurred('success');
   
@@ -318,35 +286,26 @@ async function askWitch() {
 
 function sharePrediction() {
   const text = shareBtn.dataset.text || currentPredictionText;
-  const shareText = `${text}\n\n✨ Предсказано магическим шаром ✨`;
+  const shareText = `${text}\n\n🧙‍♀️ Ведьма сказала — магический шар судьбы`;
   const url = `https://t.me/share/url?url=${encodeURIComponent('https://t.me/your_bot')}&text=${encodeURIComponent(shareText)}`;
   tg.openTelegramLink ? tg.openTelegramLink(url) : window.open(url, '_blank');
 }
 
-function resetToIdle() {
-  if (!casting && !orbTextEl.innerHTML) {
-    setOrbText(uiCopy[lang].orbIdle, 'static');
-    witchLineEl.textContent = pick(witchLines.idle);
-    if (againBtn) againBtn.style.display = 'none';
-  }
-}
-
-// Обработчики
+// ===== ОБРАБОТЧИКИ =====
 chips.forEach(chip => {
   chip.addEventListener('click', () => {
     if (casting) return;
     chips.forEach(c => c.classList.remove('active'));
     chip.classList.add('active');
     activeCategory = chip.dataset.key;
-    hintEl.textContent = categoryHints[activeCategory];
     witchLineEl.textContent = pick(witchLines.idle);
     applyCategoryColor(activeCategory);
-    resetToIdle();
+    if (!orbTextEl.innerHTML) setOrbText(uiCopy[lang].orbIdle, 'static');
   });
 });
 
 shareBtn.addEventListener('click', sharePrediction);
-orbStage.addEventListener('click', () => { if (!casting) { askWitch(); } });
+orbStage.addEventListener('click', () => { if (!casting) askWitch(); });
 if (againBtn) againBtn.addEventListener('click', () => { if (!casting) askWitch(); });
 if (clearHistoryBtn) clearHistoryBtn.addEventListener('click', () => { history = []; saveHistory(); renderHistory(); });
 
@@ -357,17 +316,18 @@ document.querySelectorAll('.lang').forEach(btn => {
     lang = val;
     document.querySelectorAll('.lang').forEach(b => b.classList.toggle('active', b === btn));
     applyLangTexts();
-    resetToIdle();
+    if (!orbTextEl.innerHTML) setOrbText(uiCopy[lang].orbIdle, 'static');
   });
 });
 
-// Инициализация
-loadHistory();
-loadPredictions().then(() => {
-  hintEl.textContent = categoryHints[activeCategory];
-  witchLineEl.textContent = pick(witchLines.idle);
+// ===== ЗАПУСК =====
+(async () => {
+  await showSplash();
+  await loadPredictions();
+  loadHistory();
   applyLangTexts();
   applyCategoryColor(activeCategory);
-});
-
-console.log('🧙‍♀️ Ведьма проснулась. Шар готов.');
+  setOrbText(uiCopy[lang].orbIdle, 'static');
+  witchLineEl.textContent = pick(witchLines.idle);
+  console.log('🧙‍♀️ Ведьма проснулась с новым смехом!');
+})();
