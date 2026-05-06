@@ -4,13 +4,11 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no" />
   <meta name="theme-color" content="#0a0a1a" />
-  <title>Ведьма сказала | Магический шар судьбы</title>
-  <meta name="description" content="Магический шар с молниями. Предсказания ведьмы, которые попадают в самое сердце." />
-  
+  <title>Ведьма сказала | Шар Теслы Судьбы</title>
+  <meta name="description" content="Магический шар Теслы с молниями. Предсказания ведьмы." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
-  
   <style>
     * {
       margin: 0;
@@ -33,14 +31,14 @@
       z-index: -2;
       background: radial-gradient(ellipse at 30% 20%, #1a1030 0%, #0a0a1a 60%, #050510 100%);
     }
-    
+
     .stars {
       position: fixed;
       inset: 0;
       z-index: -1;
       pointer-events: none;
     }
-    
+
     .star {
       position: absolute;
       background: white;
@@ -48,23 +46,13 @@
       opacity: 0;
       animation: starTwinkle 4s ease-in-out infinite;
     }
-    
+
     @keyframes starTwinkle {
       0%, 100% { opacity: 0; transform: scale(0.3); }
       50% { opacity: 0.7; transform: scale(1); }
     }
-    
-    .aurora {
-      position: fixed;
-      inset: 0;
-      z-index: -1;
-      pointer-events: none;
-      background: radial-gradient(circle at 20% 50%, rgba(100, 50, 150, 0.15) 0%, transparent 50%),
-                  radial-gradient(circle at 80% 80%, rgba(50, 100, 150, 0.1) 0%, transparent 60%);
-      filter: blur(60px);
-    }
 
-    /* Контейнер */
+    /* Контейнер приложения */
     .container {
       max-width: 500px;
       margin: 0 auto;
@@ -83,64 +71,45 @@
       align-items: flex-start;
       margin-bottom: 24px;
     }
-    .title-section {
-      flex: 1;
-    }
+    .title-section { flex: 1; }
     .badge {
-      font-size: 11px;
-      letter-spacing: 3px;
-      text-transform: uppercase;
-      color: #9b6bff;
-      font-weight: 500;
-      margin-bottom: 8px;
+      font-size: 11px; letter-spacing: 3px;
+      text-transform: uppercase; color: #9b6bff;
+      font-weight: 500; margin-bottom: 8px;
     }
     .main-title {
       font-family: 'Cormorant Garamond', serif;
-      font-size: 28px;
-      font-weight: 600;
+      font-size: 28px; font-weight: 600;
       background: linear-gradient(135deg, #fff, #d4b8ff, #9b6bff);
-      -webkit-background-clip: text;
-      background-clip: text;
-      color: transparent;
-      line-height: 1.2;
+      -webkit-background-clip: text; background-clip: text;
+      color: transparent; line-height: 1.2;
     }
     .lang-switch {
-      display: flex;
-      gap: 6px;
-      background: rgba(255, 255, 255, 0.05);
-      padding: 4px;
-      border-radius: 60px;
+      display: flex; gap: 6px;
+      background: rgba(255,255,255,0.05);
+      padding: 4px; border-radius: 60px;
       backdrop-filter: blur(10px);
-      border: 1px solid rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255,255,255,0.1);
     }
     .lang {
-      border: none;
-      background: transparent;
-      color: #8a7a9a;
-      font-size: 11px;
-      font-weight: 600;
-      padding: 6px 12px;
-      border-radius: 60px;
-      cursor: pointer;
-      transition: all 0.2s;
+      border: none; background: transparent;
+      color: #8a7a9a; font-size: 11px; font-weight: 600;
+      padding: 6px 12px; border-radius: 60px;
+      cursor: pointer; transition: all 0.2s;
     }
-    .lang.active {
-      background: rgba(155, 107, 255, 0.3);
-      color: white;
-    }
+    .lang.active { background: rgba(155,107,255,0.3); color: white; }
 
     /* Карточка */
     .magic-card {
-      background: linear-gradient(135deg, rgba(25, 15, 45, 0.6), rgba(15, 8, 30, 0.7));
-      border-radius: 56px;
-      padding: 32px 24px;
+      background: linear-gradient(135deg, rgba(25,15,45,0.6), rgba(15,8,30,0.7));
+      border-radius: 56px; padding: 32px 24px;
       backdrop-filter: blur(20px);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      box-shadow: 0 25px 45px -15px rgba(0, 0, 0, 0.5);
+      border: 1px solid rgba(255,255,255,0.08);
+      box-shadow: 0 25px 45px -15px rgba(0,0,0,0.5);
       margin-bottom: 24px;
     }
 
-    /* Шар Теслы */
+    /* ----- Шар Теслы с Молниями (ОБНОВЛЁННЫЙ СТИЛЬ) ----- */
     .orb-wrapper {
       display: flex;
       flex-direction: column;
@@ -153,23 +122,25 @@
       height: 260px;
       margin-bottom: 20px;
     }
+    /* Эффект сияния вокруг шара */
     .orb-glow {
       position: absolute;
       inset: -20px;
       border-radius: 50%;
-      background: radial-gradient(circle, rgba(155, 107, 255, 0.3), transparent 70%);
+      background: radial-gradient(circle, rgba(155,107,255,0.3), transparent 70%);
       opacity: 0.5;
       transition: opacity 0.3s;
       pointer-events: none;
     }
+    /* Сам шар */
     .orb {
       position: relative;
       width: 100%;
       height: 100%;
       border-radius: 50%;
-      background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.25), rgba(100,70,150,0.2));
+      background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.2), rgba(80,60,120,0.3));
       backdrop-filter: blur(6px);
-      box-shadow: 0 0 0 2px rgba(255,255,255,0.4), 0 20px 40px rgba(0,0,0,0.6), inset 0 0 40px rgba(155,107,255,0.4);
+      box-shadow: 0 0 0 2px rgba(255,255,255,0.4), 0 20px 40px rgba(0,0,0,0.6), inset 0 0 40px rgba(155,107,255,0.3);
       cursor: pointer;
       transition: all 0.3s;
       overflow: hidden;
@@ -177,9 +148,7 @@
       align-items: center;
       justify-content: center;
     }
-    .orb:active {
-      transform: scale(0.96);
-    }
+    .orb:active { transform: scale(0.96); }
     /* Внутреннее свечение */
     .orb::before {
       content: '';
@@ -190,7 +159,7 @@
       pointer-events: none;
       z-index: 1;
     }
-    /* Молнии SVG */
+    /* SVG с молниями */
     .lightning-svg {
       position: absolute;
       inset: 0;
@@ -198,27 +167,31 @@
       height: 100%;
       pointer-events: none;
       z-index: 2;
-      opacity: 0.7;
+      opacity: 0.8;
       mix-blend-mode: screen;
     }
+    /* Стиль путей молний */
     .lightning-path {
       stroke: url(#lightningGrad);
       stroke-width: 2;
       fill: none;
       stroke-linecap: round;
+      stroke-linejoin: round;
       filter: drop-shadow(0 0 5px #b77eff);
       animation: idleLightning 2.5s infinite ease-in-out;
     }
+    /* Анимация случайного мерцания молний */
     @keyframes idleLightning {
       0%, 80%, 86%, 100% { opacity: 0.3; stroke-width: 1.5; }
       83%, 84% { opacity: 1; stroke-width: 3; filter: drop-shadow(0 0 12px #fff); }
     }
+    /* Реакция на колдовство */
     .orb.casting .lightning-path {
       animation: castLightning 0.5s cubic-bezier(0.2, 1, 0.3, 1) forwards;
     }
     @keyframes castLightning {
       0% { opacity: 0.2; stroke-width: 1; }
-      20% { opacity: 1; stroke-width: 4; filter: drop-shadow(0 0 20px #fff); }
+      20% { opacity: 1; stroke-width: 5; filter: drop-shadow(0 0 20px #fff); }
       50% { opacity: 0.8; stroke-width: 2; }
       100% { opacity: 0.4; stroke-width: 1.5; }
     }
@@ -256,10 +229,10 @@
       color: #b8a8d8;
       text-align: center;
       padding: 10px 20px;
-      background: rgba(10, 5, 20, 0.5);
+      background: rgba(10,5,20,0.5);
       border-radius: 60px;
       backdrop-filter: blur(8px);
-      border: 1px solid rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255,255,255,0.05);
       max-width: 280px;
       margin: 0 auto;
     }
@@ -326,18 +299,14 @@
       color: white;
       box-shadow: 0 4px 15px rgba(155, 107, 255, 0.3);
     }
-    .btn-primary:active {
-      transform: scale(0.98);
-    }
+    .btn-primary:active { transform: scale(0.98); }
     .btn-secondary {
       background: rgba(20, 12, 35, 0.8);
       border: 1px solid rgba(255, 255, 255, 0.1);
       color: white;
       backdrop-filter: blur(8px);
     }
-    .btn-secondary:active {
-      transform: scale(0.98);
-    }
+    .btn-secondary:active { transform: scale(0.98); }
     .counter {
       text-align: center;
       padding: 12px;
@@ -442,14 +411,13 @@
 
 <div class="bg-gradient"></div>
 <div class="stars" id="stars"></div>
-<div class="aurora"></div>
 
 <!-- Заставка -->
 <div class="splash" id="splash">
   <div class="splash-content">
     <div class="splash-orb"></div>
     <div class="splash-title">ВЕДЬМА<br>СКАЗАЛА</div>
-    <div class="splash-sub">MAGIC ORACLE</div>
+    <div class="splash-sub">TESLA SPHERE ORACLE</div>
     <div class="splash-progress">
       <div class="splash-progress-bar" id="progressBar"></div>
     </div>
@@ -487,10 +455,12 @@
             <path class="lightning-path" d="M72,18 L62,42 L76,48 L58,72 L72,78 L86,88" style="animation-delay: 0.8s;" />
             <path class="lightning-path" d="M18,62 L34,56 L28,74 L46,68" style="animation-delay: 1.5s;" />
             <path class="lightning-path" d="M82,52 L66,62 L76,78 L90,68" style="animation-delay: 2.2s;" />
+            <path class="lightning-path" d="M45,15 L52,30 L48,35 L60,45" style="animation-delay: 0.4s; stroke-width: 1.5;" />
+            <path class="lightning-path" d="M40,85 L50,75 L45,70 L55,62" style="animation-delay: 1.8s; stroke-width: 1.5;" />
           </svg>
         </div>
       </div>
-      <div class="witch-message" id="witchLine">Коснись магического шара, чтобы начать ритуал</div>
+      <div class="witch-message" id="witchLine">Коснись магического шара Тесла, чтобы начать ритуал</div>
     </div>
   </div>
 
@@ -523,7 +493,7 @@
   </div>
 
   <div class="footer">
-    <span>Магия внутри. Нажми — и шар заговорит</span>
+    <span>Магия внутри. Нажми — и шар Теслы заговорит</span>
   </div>
 </div>
 
@@ -557,7 +527,7 @@
     const predictions = {
       all: ['✨ Звёзды говорят — да! ✨', '🌙 Пока неясно, спроси позже 🌙', '🔮 Нет, не судьба 🔮', '💫 Определённо да! 💫', '🍀 Всё будет хорошо 🍀', '🌟 Вселенная на твоей стороне 🌟', '⚡ Будь смелее — решение за тобой ⚡', '🌸 Скоро всё изменится к лучшему 🌸'],
       love: ['💗 Он думает о тебе 💗', '💗 Судьба готовит встречу 💗', '💗 Не торопи события 💗', '💗 Сердце знает ответ 💗', '💗 Скоро важный разговор 💗', '💗 Любовь ближе, чем кажется 💗'],
-      work: ['💼 Повышение близко 💼', '💼 Доверяй своей интуиции 💼', '💼 Перемены к лучшему 💼', '💼 Твой момент настанет 💼', '💼 Не бойся предлагать идеи 💼', '💼 Успех требует тишины 💼'],
+      work: ['💼 Повышение близко 💼', '💼 Доверяй своей интуиции 💼', '💼 Перемены к лучшему 💼', '💼 Твой момент настанет 💼', '💼 Не бойся предлагать идеи 💼', '💼 Успех требует тишины и фокуса 💼'],
       money: ['💰 Деньги придут неожиданно 💰', '💰 Хороший период для инвестиций 💰', '💰 Будь щедрым — вернётся 💰', '💰 Удача на твоей стороне 💰', '💰 Денежный поток усиливается 💰', '💰 Придёт неожиданный доход 💰']
     };
     
