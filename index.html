@@ -4,12 +4,409 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no" />
   <meta name="theme-color" content="#0a0a1a" />
-  <title>Ведьма сказала | Шар судьбы</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <title>Ведьма сказала | Магический шар</title>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
-  <style> /* стили те же, что в предыдущей версии, без изменений */ 
-    *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}body{font-family:'Inter',sans-serif;background:#0a0a1a;min-height:100vh;overflow-x:hidden}.bg-gradient{position:fixed;inset:0;background:radial-gradient(ellipse at 30% 20%,#1a1030 0%,#0a0a1a 60%,#050510 100%);z-index:-2}.stars{position:fixed;inset:0;z-index:-1;pointer-events:none}.star{position:absolute;background:#fff;border-radius:50%;opacity:0;animation:starTwinkle 4s infinite}@keyframes starTwinkle{0%,100%{opacity:0;transform:scale(.3)}50%{opacity:.6;transform:scale(1)}}.container{max-width:500px;margin:0 auto;padding:20px 16px 32px;display:flex;flex-direction:column;position:relative;z-index:1}.header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:24px}.title-section{flex:1}.badge{font-size:11px;letter-spacing:3px;text-transform:uppercase;color:#9b6bff;font-weight:500;margin-bottom:8px}.main-title{font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:600;background:linear-gradient(135deg,#fff,#d4b8ff,#9b6bff);-webkit-background-clip:text;background-clip:text;color:transparent;line-height:1.2}.lang-switch{display:flex;gap:6px;background:rgba(255,255,255,.05);padding:4px;border-radius:60px;backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.1)}.lang{border:none;background:0 0;color:#8a7a9a;font-size:11px;font-weight:600;padding:6px 12px;border-radius:60px;cursor:pointer}.lang.active{background:rgba(155,107,255,.3);color:#fff}.magic-card{background:linear-gradient(135deg,rgba(25,15,45,.5),rgba(15,8,30,.6));border-radius:56px;backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.08);margin-bottom:16px;overflow:hidden;aspect-ratio:1/1}#threeCanvas{width:100%;height:100%;display:block;cursor:pointer}.orb-text-overlay{position:absolute;bottom:15%;left:0;right:0;text-align:center;z-index:10;pointer-events:none;font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:700;color:#1a052a;text-shadow:0 0 12px rgba(255,255,255,.9);padding:0 20px}.orb-line{display:block;opacity:0;transform:translateY(12px);animation:lineAppear .4s cubic-bezier(.2,.9,.4,1.1) forwards}@keyframes lineAppear{to{opacity:1;transform:translateY(0)}}.witch-message{font-size:13px;color:#b8a8d8;text-align:center;padding:10px 20px;background:rgba(10,5,20,.5);border-radius:60px;backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.05);margin:-12px auto 16px;max-width:280px}.categories{margin-bottom:20px}.categories-label{font-size:12px;color:#8a7a9a;margin-bottom:12px;letter-spacing:1px}.chip-group{display:flex;flex-wrap:wrap;gap:12px;justify-content:center}.chip{background:rgba(20,12,35,.7);border:1px solid rgba(255,255,255,.08);border-radius:40px;padding:10px 24px;font-size:14px;font-weight:600;color:#b8a8d8;cursor:pointer;transition:all .2s;backdrop-filter:blur(8px);flex:1;text-align:center}.chip.active{background:linear-gradient(135deg,rgba(155,107,255,.3),rgba(155,107,255,.15));border-color:rgba(155,107,255,.6);color:#fff;box-shadow:0 0 15px rgba(155,107,255,.3)}.limits{display:flex;justify-content:space-between;gap:12px;margin-bottom:20px;background:rgba(10,5,20,.4);border-radius:60px;padding:12px 16px;backdrop-filter:blur(8px)}.limit-item{text-align:center;flex:1}.limit-label{font-size:11px;color:#8a7a9a;margin-bottom:4px}.limit-value{font-size:16px;font-weight:700;color:#9b6bff}.btn-row{display:flex;gap:12px;margin-bottom:12px}.btn{border:none;padding:12px 20px;border-radius:60px;font-size:14px;font-weight:600;cursor:pointer;transition:all .2s;flex:1;text-align:center}.btn-primary{background:linear-gradient(135deg,#9b6bff,#7a3aaa);color:#fff;box-shadow:0 4px 15px rgba(155,107,255,.3)}.btn-primary:active{transform:scale(.98)}.btn-secondary{background:rgba(20,12,35,.8);border:1px solid rgba(255,255,255,.1);color:#fff;backdrop-filter:blur(8px)}.counter{text-align:center;padding:12px;background:rgba(155,107,255,.08);border-radius:60px;margin-bottom:16px}.footer{text-align:center;font-size:11px;color:#6a5a8a;margin-top:16px}.splash{position:fixed;inset:0;z-index:1000;background:radial-gradient(ellipse at 30% 20%,#1a1030 0%,#0a0a1a 100%);display:flex;align-items:center;justify-content:center;transition:opacity .6s ease,visibility 0s linear .6s}.splash.hide{opacity:0;visibility:hidden}.splash-content{text-align:center;animation:splashAppear 1s ease-out}@keyframes splashAppear{from{opacity:0;transform:scale(.9);filter:blur(8px)}to{opacity:1;transform:scale(1);filter:blur(0)}}.splash-orb{width:120px;height:120px;margin:0 auto;background:radial-gradient(circle at 30% 30%,rgba(255,255,255,.9),rgba(155,107,255,.5));border-radius:50%;box-shadow:0 0 40px rgba(155,107,255,.5);animation:splashFloat 2s infinite}@keyframes splashFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}.splash-title{font-family:'Cormorant Garamond',serif;font-size:34px;font-weight:700;background:linear-gradient(135deg,#fff,#d4b8ff,#9b6bff);-webkit-background-clip:text;background-clip:text;color:transparent;margin-top:24px;letter-spacing:4px}.splash-progress{width:200px;height:2px;background:rgba(155,107,255,.2);border-radius:4px;margin:32px auto 0;overflow:hidden}.splash-progress-bar{width:0;height:100%;background:linear-gradient(90deg,#9b6bff,#c88bff);transition:width .2s}@media (max-width:480px){.main-title{font-size:24px}.orb-text-overlay{font-size:18px;bottom:12%}.chip{padding:8px 16px;font-size:13px}.limits{gap:8px;padding:8px 12px}.limit-value{font-size:14px}}
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #0a0a1a;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Фон */
+    .bg-gradient {
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(ellipse at 30% 20%, #1a1030 0%, #0a0a1a 60%, #050510 100%);
+      z-index: -2;
+    }
+    .stars {
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      pointer-events: none;
+    }
+    .star {
+      position: absolute;
+      background: white;
+      border-radius: 50%;
+      opacity: 0;
+      animation: starTwinkle 4s ease-in-out infinite;
+    }
+    @keyframes starTwinkle {
+      0%, 100% { opacity: 0; transform: scale(0.3); }
+      50% { opacity: 0.6; transform: scale(1); }
+    }
+
+    .container {
+      max-width: 500px;
+      margin: 0 auto;
+      padding: 20px 16px 32px;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* Header */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 24px;
+    }
+    .title-section { flex: 1; }
+    .badge {
+      font-size: 11px; letter-spacing: 3px;
+      text-transform: uppercase; color: #9b6bff;
+      font-weight: 500; margin-bottom: 8px;
+    }
+    .main-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 28px; font-weight: 600;
+      background: linear-gradient(135deg, #fff, #d4b8ff, #9b6bff);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      line-height: 1.2;
+    }
+    .lang-switch {
+      display: flex; gap: 6px;
+      background: rgba(255,255,255,0.05);
+      padding: 4px; border-radius: 60px;
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    .lang {
+      border: none; background: transparent;
+      color: #8a7a9a; font-size: 11px; font-weight: 600;
+      padding: 6px 12px; border-radius: 60px;
+      cursor: pointer;
+    }
+    .lang.active { background: rgba(155,107,255,0.3); color: white; }
+
+    /* Карточка с шаром */
+    .magic-card {
+      background: linear-gradient(135deg, rgba(25,15,45,0.4), rgba(15,8,30,0.5));
+      border-radius: 56px;
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255,255,255,0.06);
+      margin-bottom: 20px;
+      padding: 24px 20px;
+    }
+
+    /* Шар */
+    .orb-container {
+      position: relative;
+      width: 260px;
+      height: 260px;
+      margin: 0 auto 16px;
+      cursor: pointer;
+    }
+
+    .orb-shape {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 35%, 
+        rgba(255,255,255,0.95) 0%, 
+        rgba(210,180,255,0.7) 20%,
+        rgba(155,107,255,0.5) 50%,
+        rgba(80,50,130,0.8) 80%,
+        rgba(40,20,70,0.95) 100%);
+      box-shadow: 
+        0 0 0 3px rgba(255,255,255,0.4),
+        0 0 0 6px rgba(155,107,255,0.2),
+        0 20px 40px rgba(0,0,0,0.5),
+        inset 0 -15px 30px rgba(0,0,0,0.3),
+        inset 0 15px 25px rgba(255,255,255,0.2);
+      transition: transform 0.2s, box-shadow 0.3s;
+      backdrop-filter: blur(2px);
+    }
+    .orb-shape:active { transform: scale(0.97); }
+
+    .orb-shape.casting {
+      animation: castPulse 0.6s ease-in-out;
+    }
+    @keyframes castPulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.05); box-shadow: 0 0 0 8px rgba(255,255,255,0.5), 0 0 40px #b77eff; }
+      100% { transform: scale(1); }
+    }
+
+    .orb-inner {
+      position: absolute;
+      inset: 10%;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(255,255,255,0.25), transparent 70%);
+      pointer-events: none;
+    }
+
+    .orb-glow-inner {
+      position: absolute;
+      inset: -15%;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(155,107,255,0.4), transparent 70%);
+      filter: blur(15px);
+      opacity: 0.5;
+      transition: opacity 0.3s;
+      pointer-events: none;
+    }
+
+    /* Текст внутри шара */
+    .orb-text {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 22px;
+      font-weight: 700;
+      color: #140a1f;
+      text-shadow: 0 0 15px rgba(255,255,255,0.9);
+      padding: 20px;
+      z-index: 5;
+      backdrop-filter: blur(2px);
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(255,255,255,0.1), transparent 70%);
+    }
+    .orb-line {
+      display: block;
+      opacity: 0;
+      transform: translateY(10px);
+      animation: lineAppear 0.35s forwards;
+      max-width: 85%;
+      margin: 2px auto;
+      font-size: clamp(14px, 5vw, 22px);
+      line-height: 1.3;
+    }
+    @keyframes lineAppear {
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Молнии */
+    .lightning {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 3;
+      opacity: 0.6;
+      mix-blend-mode: screen;
+    }
+    .bolt {
+      stroke: url(#boltGrad);
+      stroke-width: 2;
+      fill: none;
+      stroke-linecap: round;
+      filter: drop-shadow(0 0 4px #b77eff);
+      animation: flicker 2.5s infinite;
+    }
+    @keyframes flicker {
+      0%, 80%, 86%, 100% { opacity: 0.3; stroke-width: 1.5; }
+      83%, 84% { opacity: 1; stroke-width: 3.5; filter: drop-shadow(0 0 12px #fff); }
+    }
+    .bolt2 { animation-delay: 0.7s; }
+    .bolt3 { animation-delay: 1.4s; }
+    .bolt4 { animation-delay: 2.1s; }
+
+    .orb-shape.casting .lightning {
+      animation: flashLightning 0.4s ease-out;
+    }
+    @keyframes flashLightning {
+      0% { opacity: 0.3; }
+      30% { opacity: 1; filter: brightness(1.5); }
+      100% { opacity: 0.6; }
+    }
+
+    /* Искры */
+    .sparks {
+      position: absolute;
+      inset: -20%;
+      pointer-events: none;
+      z-index: 4;
+    }
+    .spark {
+      position: absolute;
+      width: 5px;
+      height: 5px;
+      background: #ffd966;
+      border-radius: 50%;
+      filter: blur(1px);
+      opacity: 0;
+    }
+    @keyframes sparkFly {
+      0% { opacity: 1; transform: scale(1) translate(0, 0); }
+      100% { opacity: 0; transform: scale(0) translate(var(--tx), var(--ty)); }
+    }
+
+    .witch-message {
+      font-size: 13px;
+      color: #b8a8d8;
+      text-align: center;
+      padding: 10px 20px;
+      background: rgba(10,5,20,0.5);
+      border-radius: 60px;
+      backdrop-filter: blur(8px);
+      max-width: 280px;
+      margin: 0 auto;
+    }
+
+    /* Категории */
+    .categories {
+      margin-bottom: 20px;
+    }
+    .categories-label {
+      font-size: 12px;
+      color: #8a7a9a;
+      margin-bottom: 12px;
+      letter-spacing: 1px;
+    }
+    .chip-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      justify-content: center;
+    }
+    .chip {
+      background: rgba(20,12,35,0.7);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 40px;
+      padding: 10px 24px;
+      font-size: 14px;
+      font-weight: 600;
+      color: #b8a8d8;
+      cursor: pointer;
+      transition: all 0.2s;
+      backdrop-filter: blur(8px);
+      flex: 1;
+      text-align: center;
+    }
+    .chip.active {
+      background: linear-gradient(135deg, rgba(155,107,255,0.3), rgba(155,107,255,0.15));
+      border-color: rgba(155,107,255,0.6);
+      color: white;
+      box-shadow: 0 0 15px rgba(155,107,255,0.3);
+    }
+
+    /* Лимиты и кнопки */
+    .limits {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 20px;
+      background: rgba(10,5,20,0.4);
+      border-radius: 60px;
+      padding: 12px 16px;
+    }
+    .limit-item {
+      text-align: center;
+      flex: 1;
+    }
+    .limit-label {
+      font-size: 11px;
+      color: #8a7a9a;
+    }
+    .limit-value {
+      font-size: 16px;
+      font-weight: 700;
+      color: #9b6bff;
+    }
+
+    .btn-row {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+    .btn {
+      border: none;
+      padding: 12px 20px;
+      border-radius: 60px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      flex: 1;
+      text-align: center;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, #9b6bff, #7a3aaa);
+      color: white;
+      box-shadow: 0 4px 15px rgba(155,107,255,0.3);
+    }
+    .btn-primary:active { transform: scale(0.98); }
+    .btn-secondary {
+      background: rgba(20,12,35,0.8);
+      border: 1px solid rgba(255,255,255,0.1);
+      color: white;
+    }
+
+    .footer {
+      text-align: center;
+      font-size: 11px;
+      color: #6a5a8a;
+      margin-top: 16px;
+    }
+
+    /* Заставка */
+    .splash {
+      position: fixed;
+      inset: 0;
+      z-index: 1000;
+      background: radial-gradient(ellipse at 30% 20%, #1a1030 0%, #0a0a1a 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: opacity 0.6s ease;
+    }
+    .splash.hide { opacity: 0; visibility: hidden; }
+    .splash-content { text-align: center; animation: fadeInScale 1s ease-out; }
+    @keyframes fadeInScale {
+      from { opacity: 0; transform: scale(0.9); filter: blur(8px); }
+      to { opacity: 1; transform: scale(1); filter: blur(0); }
+    }
+    .splash-orb {
+      width: 120px; height: 120px; margin: 0 auto;
+      background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.9), rgba(155,107,255,0.5));
+      border-radius: 50%;
+      animation: splashFloat 2s infinite;
+    }
+    @keyframes splashFloat {
+      0%,100% { transform: translateY(0); }
+      50% { transform: translateY(-12px); }
+    }
+    .splash-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 34px; font-weight: 700;
+      background: linear-gradient(135deg, #fff, #d4b8ff, #9b6bff);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      margin-top: 24px;
+      letter-spacing: 4px;
+    }
+    .splash-progress {
+      width: 200px; height: 2px;
+      background: rgba(155,107,255,0.2);
+      margin: 32px auto 0;
+    }
+    .splash-progress-bar {
+      width: 0%; height: 100%;
+      background: linear-gradient(90deg, #9b6bff, #c88bff);
+    }
   </style>
 </head>
 <body>
@@ -27,8 +424,8 @@
 <div class="container" id="app">
   <div class="header">
     <div class="title-section">
-      <div class="badge" id="badge">⚡ МАГИЧЕСКИЙ ШАР</div>
-      <h1 class="main-title" id="mainTitle">Коснись шара —<br>узнаешь ответ</h1>
+      <div class="badge">⚡ МАГИЧЕСКИЙ ШАР</div>
+      <h1 class="main-title">Коснись шара —<br>узнаешь ответ</h1>
     </div>
     <div class="lang-switch">
       <button class="lang active" data-lang="ru">RU</button>
@@ -36,25 +433,44 @@
     </div>
   </div>
 
-  <div class="magic-card" id="magicCard">
-    <canvas id="threeCanvas"></canvas>
-    <div class="orb-text-overlay"><div id="orbText">🔮</div></div>
+  <div class="magic-card">
+    <div class="orb-container" id="orbContainer">
+      <div class="orb-shape" id="orbShape">
+        <div class="orb-inner"></div>
+        <div class="orb-glow-inner"></div>
+        <div class="orb-text" id="orbText">🔮</div>
+      </div>
+      <svg class="lightning" viewBox="0 0 200 200" preserveAspectRatio="none">
+        <defs>
+          <linearGradient id="boltGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#fff" />
+            <stop offset="50%" stop-color="#c88bff" />
+            <stop offset="100%" stop-color="#9b6bff" />
+          </linearGradient>
+        </defs>
+        <path class="bolt" d="M60,30 L80,70 L55,75 L90,120 L70,125 L110,170" />
+        <path class="bolt bolt2" d="M140,40 L120,80 L145,85 L110,130 L130,135 L100,175" />
+        <path class="bolt bolt3" d="M30,120 L55,110 L45,130 L75,125" />
+        <path class="bolt bolt4" d="M170,110 L145,120 L155,140 L125,135" />
+      </svg>
+      <div class="sparks" id="sparks"></div>
+    </div>
+    <div class="witch-message" id="witchLine">Коснись шара, выбери тему</div>
   </div>
-  <div class="witch-message" id="witchLine">Коснись шара, выбери тему</div>
 
   <div class="categories">
-    <div class="categories-label" id="categoriesLabel">🌙 ВЫБЕРИ СФЕРУ</div>
+    <div class="categories-label">🌙 ВЫБЕРИ СФЕРУ</div>
     <div class="chip-group">
-      <button class="chip active" data-key="love" id="chipLove">💗 Любовь</button>
-      <button class="chip" data-key="work" id="chipWork">💼 Работа</button>
-      <button class="chip" data-key="money" id="chipMoney">💰 Деньги</button>
+      <button class="chip active" data-key="love">💗 Любовь</button>
+      <button class="chip" data-key="work">💼 Работа</button>
+      <button class="chip" data-key="money">💰 Деньги</button>
     </div>
   </div>
 
   <div class="limits">
-    <div class="limit-item"><div class="limit-label" id="limitLabelLove">💗 Любовь</div><div class="limit-value" id="limitLove">1</div></div>
-    <div class="limit-item"><div class="limit-label" id="limitLabelWork">💼 Работа</div><div class="limit-value" id="limitWork">1</div></div>
-    <div class="limit-item"><div class="limit-label" id="limitLabelMoney">💰 Деньги</div><div class="limit-value" id="limitMoney">1</div></div>
+    <div class="limit-item"><div class="limit-label">💗 Любовь</div><div class="limit-value" id="limitLove">1</div></div>
+    <div class="limit-item"><div class="limit-label">💼 Работа</div><div class="limit-value" id="limitWork">1</div></div>
+    <div class="limit-item"><div class="limit-label">💰 Деньги</div><div class="limit-value" id="limitMoney">1</div></div>
   </div>
 
   <div class="btn-row">
@@ -66,359 +482,263 @@
     <button id="againBtn" class="btn btn-secondary" style="display: none;">🎭 Другой ответ</button>
   </div>
 
-  <div class="footer" id="footerText">Магия внутри. Нажми — шар заговорит</div>
+  <div class="footer">Магия внутри. Нажми — шар заговорит</div>
 </div>
 
-<script type="importmap">
-  { "imports": { "three": "https://unpkg.com/three@0.128.0/build/three.module.js" } }
-</script>
-<script type="module">
-  import * as THREE from 'three';
+<script>
+  (function() {
+    // DOM элементы
+    const splash = document.getElementById('splash');
+    const app = document.getElementById('app');
+    const orbShape = document.getElementById('orbShape');
+    const orbText = document.getElementById('orbText');
+    const witchLine = document.getElementById('witchLine');
+    const shareBtn = document.getElementById('shareBtn');
+    const againBtn = document.getElementById('againBtn');
+    const buyBtn = document.getElementById('buyBtn');
+    const inviteBtn = document.getElementById('inviteBtn');
+    const chips = document.querySelectorAll('.chip');
+    const limitLove = document.getElementById('limitLove');
+    const limitWork = document.getElementById('limitWork');
+    const limitMoney = document.getElementById('limitMoney');
+    const progressBar = document.getElementById('progressBar');
 
-  // --- Three.js плазменный шар (код без изменений) ---
-  const canvas = document.getElementById('threeCanvas');
-  const parent = document.getElementById('magicCard');
-  const width = parent.clientWidth, height = parent.clientHeight;
-  const scene = new THREE.Scene(); scene.background = null;
-  const camera = new THREE.PerspectiveCamera(45, width/height, 0.1, 1000);
-  camera.position.set(0,0,3.5);
-  const renderer = new THREE.WebGLRenderer({ canvas, alpha: true });
-  renderer.setSize(width, height);
-  renderer.setPixelRatio(window.devicePixelRatio);
-  const geometry = new THREE.SphereGeometry(1, 128, 128);
-  const vertexShader = `varying vec2 vUv; void main() { vUv = uv; gl_PointSize=1.0; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0); }`;
-  const fragmentShader = `uniform float uTime; varying vec2 vUv; void main() { vec2 uv = vUv; float t1 = sin(uTime*3.0 + uv.x*20.0)*cos(uTime*2.5+uv.y*18.0); float t2 = sin(uTime*4.2 + uv.y*25.0)*cos(uTime*1.8+uv.x*22.0); float t3 = sin(uTime*5.5 + (uv.x+uv.y)*15.0); float t4 = sin(uTime*6.0 + (uv.x-uv.y)*20.0); float lightning = (t1+t2+t3+t4)/4.0; lightning = pow(abs(lightning),1.5)*0.8+0.2; vec3 col = mix(vec3(0.4,0.2,0.8), vec3(0.2,0.5,1.0), lightning); col = mix(col, vec3(1.0,0.6,1.0), sin(uTime*2.0)*0.5+0.5); col = mix(col, vec3(1.0), pow(lightning,2.0)*0.8); gl_FragColor = vec4(col, 0.9); }`;
-  const material = new THREE.ShaderMaterial({ uniforms: { uTime: { value: 0 } }, vertexShader, fragmentShader, transparent: true });
-  const sphere = new THREE.Mesh(geometry, material);
-  scene.add(sphere);
-  const glowMat = new THREE.MeshBasicMaterial({ color: 0x9b6bff, transparent: true, opacity: 0.15, side: THREE.BackSide });
-  const glowSphere = new THREE.Mesh(new THREE.SphereGeometry(1.08,64,64), glowMat);
-  scene.add(glowSphere);
-  const particleCount = 500;
-  const particleGeo = new THREE.BufferGeometry();
-  const positions = new Float32Array(particleCount*3);
-  for(let i=0;i<particleCount;i++) { const theta = Math.random()*Math.PI*2, phi = Math.acos(2*Math.random()-1), r=1.05; positions[i*3]=r*Math.sin(phi)*Math.cos(theta); positions[i*3+1]=r*Math.sin(phi)*Math.sin(theta); positions[i*3+2]=r*Math.cos(phi); }
-  particleGeo.setAttribute('position', new THREE.BufferAttribute(positions,3));
-  const particleMat = new THREE.PointsMaterial({ color: 0xff88ff, size: 0.02, transparent: true, blending: THREE.AdditiveBlending });
-  const particles = new THREE.Points(particleGeo, particleMat);
-  scene.add(particles);
-  let time = 0;
-  function animate() { requestAnimationFrame(animate); time += 0.02; material.uniforms.uTime.value = time; particles.rotation.y += 0.002; particles.rotation.x += 0.001; const pulse = 0.95 + Math.sin(time*2)*0.03; glowSphere.scale.set(pulse,pulse,pulse); renderer.render(scene,camera); }
-  animate();
-  window.addEventListener('resize', ()=>{ const w = parent.clientWidth, h = parent.clientHeight; renderer.setSize(w,h); camera.aspect = w/h; camera.updateProjectionMatrix(); });
+    // Состояние
+    let activeCategory = 'love';
+    let used = { love: 0, work: 0, money: 0 };
+    let currentAnswer = '';
+    let isCasting = false;
 
-  // --- Основная логика с загрузкой predictions.json и мультиязычностью ---
-  let predictionsData = { love: [], work: [], money: [] };
-  let currentLang = 'ru';
-  let activeCategory = 'love';
-  let used = { love: 0, work: 0, money: 0 };
-  const MAX_FREE = 1;
-  let currentAnswer = '';
-  let isCasting = false;
+    // Предсказания
+    const predictions = {
+      love: {
+        ru: [
+          "💗 Он напишет, когда закончится интернет. То есть никогда.",
+          "💗 Вы будете вместе, если научишься терпеть его музыку.",
+          "💗 Твоя любовь как криптовалюта: то взлетает, то обвал.",
+          "💗 Отправь ему «Привет, забыл меня?» и наблюдай за тишиной.",
+          "💗 Совместное будущее есть, но ты будешь мыть посуду.",
+          "💗 Он уже сохранил твой номер как «Осторожно, ведьма».",
+          "💗 Романтика начнётся с того, как он потеряет ключи.",
+          "💗 Если он не отвечает, значит у него сел телефон. В который раз."
+        ],
+        en: [
+          "💗 He'll text when the internet ends. That is, never.",
+          "💗 You'll be together if you learn to tolerate his music.",
+          "💗 Your love is like crypto: it either soars or crashes.",
+          "💗 Send him 'Hi, forgot me?' and watch the silence.",
+          "💗 A shared future exists, but you'll do the dishes.",
+          "💗 He already saved your number as 'Careful, witch'.",
+          "💗 Romance will start when he loses his keys.",
+          "💗 If he doesn't reply, his phone died. Again."
+        ]
+      },
+      work: {
+        ru: [
+          "💼 Начальник заметит твою работу. Когда ты будешь в отпуске.",
+          "💼 Повышение дадут тому, кто пьёт с ним кофе.",
+          "💼 Твоя идея гениальна. Украдут через неделю.",
+          "💼 Коллеги тайно завидуют. И явно тоже. Не расслабляйся.",
+          "💼 Зарплату поднимут, когда научишься спать с открытыми глазами.",
+          "💼 Проект выстрелит. Может быть, фейерверком.",
+          "💼 Успех близко. Но сперва допей этот отчёт.",
+          "💼 Ты — лучший в игре «Сапёр». Это не точно."
+        ],
+        en: [
+          "💼 The boss will notice your work. When you're on vacation.",
+          "💼 Promotion will go to whoever drinks coffee with him.",
+          "💼 Your idea is brilliant. It'll be stolen in a week.",
+          "💼 Colleagues secretly envy you. And openly too.",
+          "💼 Your salary will rise when you learn to sleep with eyes open.",
+          "💼 The project will take off. Perhaps as fireworks.",
+          "💼 Success is near. But first, finish that report.",
+          "💼 You're the best at Minesweeper. Not sure."
+        ]
+      },
+      money: {
+        ru: [
+          "💰 Деньги придут неожиданно. Как налоги, только приятнее.",
+          "💰 Твой бюджет худеет. Пора кормить его меньше.",
+          "💰 Крупная покупка опустошит кошелёк. Зато будет радость.",
+          "💰 Инвестируй в себя. Например, в этот шар — он окупится.",
+          "💰 Финансовая удача уже рядом. Но не прокути.",
+          "💰 Экономия — это тоже заработок, когда экономишь на кофе.",
+          "💰 Премию дадут в конверте. Не перепутай с приглашением на свадьбу.",
+          "💰 Курс валют предсказать нельзя. Держи деньги в разных карманах."
+        ],
+        en: [
+          "💰 Money will come unexpectedly. Like taxes, but nicer.",
+          "💰 Your budget is shrinking. Time to feed it less.",
+          "💰 A big purchase will empty your wallet. But joy will remain.",
+          "💰 Invest in yourself. For example, in this orb — it'll pay off.",
+          "💰 Financial luck is near. But don't splurge.",
+          "💰 Saving is also earning, when you save on coffee.",
+          "💰 The bonus will come in an envelope. Don't confuse it with a wedding invitation.",
+          "💰 Exchange rate can't be predicted. Keep money in different pockets."
+        ]
+      }
+    };
 
-  // DOM элементы
-  const orbTextDiv = document.getElementById('orbText');
-  const witchLine = document.getElementById('witchLine');
-  const shareBtn = document.getElementById('shareBtn');
-  const againBtn = document.getElementById('againBtn');
-  const buyBtn = document.getElementById('buyBtn');
-  const inviteBtn = document.getElementById('inviteBtn');
-  const chips = document.querySelectorAll('.chip');
-  const splash = document.getElementById('splash');
-  const app = document.getElementById('app');
-  const limitLoveSpan = document.getElementById('limitLove');
-  const limitWorkSpan = document.getElementById('limitWork');
-  const limitMoneySpan = document.getElementById('limitMoney');
-  // Элементы для перевода интерфейса
-  const badgeEl = document.getElementById('badge');
-  const mainTitleEl = document.getElementById('mainTitle');
-  const categoriesLabelEl = document.getElementById('categoriesLabel');
-  const chipLoveEl = document.getElementById('chipLove');
-  const chipWorkEl = document.getElementById('chipWork');
-  const chipMoneyEl = document.getElementById('chipMoney');
-  const limitLabelLove = document.getElementById('limitLabelLove');
-  const limitLabelWork = document.getElementById('limitLabelWork');
-  const limitLabelMoney = document.getElementById('limitLabelMoney');
-  const footerTextEl = document.getElementById('footerText');
-  const buyBtnText = buyBtn;
-  const inviteBtnText = inviteBtn;
-  const shareBtnText = shareBtn;
-
-  const translations = {
-    ru: {
-      badge: '⚡ МАГИЧЕСКИЙ ШАР',
-      mainTitle: 'Коснись шара —\nузнаешь ответ',
-      categoriesLabel: '🌙 ВЫБЕРИ СФЕРУ',
-      chipLove: '💗 Любовь',
-      chipWork: '💼 Работа',
-      chipMoney: '💰 Деньги',
-      limitLove: '💗 Любовь',
-      limitWork: '💼 Работа',
-      limitMoney: '💰 Деньги',
-      footer: 'Магия внутри. Нажми — шар заговорит',
-      buy: '⭐ Купить вопросы',
-      invite: '👥 Пригласить',
-      share: '📤 Поделиться',
-      witchDefault: 'Коснись шара, выбери тему',
-      noFree: '⚠️ Бесплатный вопрос в категории "{cat}" на сегодня использован. Купи дополнительные вопросы, чтобы продолжить. ⭐',
-      casting: '⚡ Смотрю в шар...',
-      result: '✨ Вот что сказала ведьма ✨',
-      categorySelected: '🔮 Выбрана сфера: {name}'
-    },
-    en: {
-      badge: '⚡ MAGIC ORB',
-      mainTitle: 'Touch the orb —\nget the answer',
-      categoriesLabel: '🌙 CHOOSE SPHERE',
-      chipLove: '💗 Love',
-      chipWork: '💼 Work',
-      chipMoney: '💰 Money',
-      limitLove: '💗 Love',
-      limitWork: '💼 Work',
-      limitMoney: '💰 Money',
-      footer: 'Magic inside. Tap the orb',
-      buy: '⭐ Buy questions',
-      invite: '👥 Invite',
-      share: '📤 Share',
-      witchDefault: 'Tap the orb, choose topic',
-      noFree: '⚠️ Free question in "{cat}" category used today. Buy extra questions to continue. ⭐',
-      casting: '⚡ Reading the orb...',
-      result: '✨ This is what the witch said ✨',
-      categorySelected: '🔮 Selected: {name}'
+    function getRandomPrediction(cat) {
+      const arr = predictions[cat][currentLang === 'ru' ? 'ru' : 'en'];
+      return arr[Math.floor(Math.random() * arr.length)];
     }
-  };
 
-  function applyLanguage() {
-    const t = translations[currentLang];
-    badgeEl.textContent = t.badge;
-    mainTitleEl.innerHTML = t.mainTitle.replace(/\n/, '<br>');
-    categoriesLabelEl.textContent = t.categoriesLabel;
-    chipLoveEl.textContent = t.chipLove;
-    chipWorkEl.textContent = t.chipWork;
-    chipMoneyEl.textContent = t.chipMoney;
-    limitLabelLove.textContent = t.limitLove;
-    limitLabelWork.textContent = t.limitWork;
-    limitLabelMoney.textContent = t.limitMoney;
-    footerTextEl.textContent = t.footer;
-    buyBtn.textContent = t.buy;
-    inviteBtn.textContent = t.invite;
-    shareBtn.textContent = t.share;
-    if (!isCasting && !orbTextDiv.innerHTML.includes('span')) witchLine.textContent = t.witchDefault;
-    else if (!isCasting) witchLine.textContent = t.witchDefault;
-  }
-
-  function getCategoryName(cat) {
-    const names = { love: currentLang === 'ru' ? 'Любовь' : 'Love', work: currentLang === 'ru' ? 'Работа' : 'Work', money: currentLang === 'ru' ? 'Деньги' : 'Money' };
-    return names[cat];
-  }
-
-  async function loadPredictions() {
-    try {
-      const response = await fetch('./predictions.json');
-      if (!response.ok) throw new Error('HTTP error');
-      const data = await response.json();
-      predictionsData = data;
-      console.log('✅ Предсказания загружены:', { love: predictionsData.love.length, work: predictionsData.work.length, money: predictionsData.money.length });
-    } catch (e) {
-      console.warn('⚠️ Не удалось загрузить predictions.json, использую резервные предсказания');
-      // fallback короткий
-      predictionsData = {
-        love: [{ ru: "💗 Он тебя достоин? Нет. Но ты всё равно будешь с ним.", en: "💗 Is he worthy? No. But you'll stay." }],
-        work: [{ ru: "💼 Начальник заметит. Когда будешь в отпуске.", en: "💼 Boss will notice. When you're on vacation." }],
-        money: [{ ru: "💰 Деньги придут. Неожиданно.", en: "💰 Money will come. Unexpectedly." }]
-      };
+    function showAnswer(text) {
+      const words = text.split(' ');
+      const lines = [];
+      let current = '';
+      for (let w of words) {
+        if ((current + ' ' + w).length > 20 && current) {
+          lines.push(current);
+          current = w;
+        } else {
+          current = current ? current + ' ' + w : w;
+        }
+      }
+      if (current) lines.push(current);
+      orbText.innerHTML = lines.map(l => `<span class="orb-line">${l}</span>`).join('');
     }
-  }
 
-  function getRandomPrediction(cat) {
-    const arr = predictionsData[cat];
-    if (!arr || arr.length === 0) return { ru: "✨ Магия молчит...", en: "✨ Magic is silent..." };
-    const index = Math.floor(Math.random() * arr.length);
-    return arr[index];
-  }
+    function createSparks() {
+      const container = document.getElementById('sparks');
+      if (!container) return;
+      container.innerHTML = '';
+      for (let i = 0; i < 20; i++) {
+        const s = document.createElement('div');
+        s.className = 'spark';
+        const angle = Math.random() * Math.PI * 2;
+        const dist = 70 + Math.random() * 90;
+        const tx = Math.cos(angle) * dist;
+        const ty = Math.sin(angle) * dist;
+        s.style.setProperty('--tx', tx + 'px');
+        s.style.setProperty('--ty', ty + 'px');
+        s.style.left = '50%';
+        s.style.top = '50%';
+        s.style.animation = `sparkFly 0.6s ease-out forwards`;
+        s.style.animationDelay = Math.random() * 0.1 + 's';
+        container.appendChild(s);
+      }
+      setTimeout(() => { if (container) container.innerHTML = ''; }, 700);
+    }
 
-  function showAnswer(text) {
-    const words = text.split(' ');
-    const lines = [];
-    let current = '';
-    for (let w of words) {
-      if ((current + ' ' + w).length > 20 && current) {
-        lines.push(current);
-        current = w;
+    async function castSpell() {
+      if (isCasting) return;
+      if (used[activeCategory] >= 1) {
+        witchLine.textContent = '⚠️ Бесплатный вопрос на сегодня использован. Купи дополнительные. ⭐';
+        return;
+      }
+      isCasting = true;
+      used[activeCategory]++;
+      localStorage.setItem('witch_used', JSON.stringify(used));
+      updateLimits();
+
+      orbShape.classList.add('casting');
+      witchLine.textContent = '⚡ Смотрю в шар...';
+      orbText.innerHTML = '✨';
+      createSparks();
+
+      await new Promise(r => setTimeout(r, 1200));
+
+      currentAnswer = getRandomPrediction(activeCategory);
+      showAnswer(currentAnswer);
+      witchLine.textContent = '✨ Вот что сказала ведьма ✨';
+      orbShape.classList.remove('casting');
+      againBtn.style.display = 'block';
+      shareBtn.dataset.text = currentAnswer;
+      isCasting = false;
+    }
+
+    function updateLimits() {
+      limitLove.textContent = 1 - used.love;
+      limitWork.textContent = 1 - used.work;
+      limitMoney.textContent = 1 - used.money;
+    }
+
+    function loadData() {
+      const saved = localStorage.getItem('witch_used');
+      if (saved) {
+        try { used = JSON.parse(saved); } catch(e) {}
+      }
+      const lastDate = localStorage.getItem('witch_date');
+      const today = new Date().toDateString();
+      if (lastDate !== today) {
+        used = { love: 0, work: 0, money: 0 };
+        localStorage.setItem('witch_date', today);
+      }
+      updateLimits();
+    }
+
+    function shareAnswer() {
+      const text = shareBtn.dataset.text || currentAnswer;
+      if (window.Telegram?.WebApp?.openTelegramLink) {
+        window.Telegram.WebApp.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent('https://t.me/place_bot')}&text=${encodeURIComponent('🔮 ' + text + ' 🔮')}`);
       } else {
-        current = current ? current + ' ' + w : w;
+        alert('🔮 ' + text);
       }
     }
-    if (current) lines.push(current);
-    orbTextDiv.innerHTML = lines.map(l => `<span class="orb-line">${l}</span>`).join('');
-  }
 
-  function flashSphere() {
-    glowMat.opacity = 0.6;
-    setTimeout(() => { glowMat.opacity = 0.15; }, 300);
-    particleMat.color.setHex(0xffaaff);
-    setTimeout(() => particleMat.color.setHex(0xff88ff), 400);
-  }
+    function anotherAnswer() { if (!isCasting && used[activeCategory] < 1) castSpell(); }
+    function buyQuestions() { alert('⭐ Покупка вопросов через Telegram Stars\nСкоро появится!'); }
+    function inviteFriend() { alert('👥 Пригласи друга:\nhttps://t.me/place_bot?start=ref'); }
 
-  async function castSpell() {
-    if (isCasting) return;
-    if (used[activeCategory] >= MAX_FREE) {
-      const t = translations[currentLang];
-      witchLine.innerHTML = t.noFree.replace('{cat}', getCategoryName(activeCategory));
-      return;
-    }
-    isCasting = true;
-    used[activeCategory]++;
-    saveUsed();
-    updateLimitsUI();
+    // Обработчики
+    document.getElementById('orbContainer').addEventListener('click', castSpell);
+    shareBtn.addEventListener('click', shareAnswer);
+    againBtn.addEventListener('click', anotherAnswer);
+    buyBtn.addEventListener('click', buyQuestions);
+    inviteBtn.addEventListener('click', inviteFriend);
 
-    witchLine.textContent = translations[currentLang].casting;
-    orbTextDiv.innerHTML = '✨';
-    flashSphere();
-    if (window.Telegram?.WebApp?.HapticFeedback) window.Telegram.WebApp.HapticFeedback.impactOccurred('medium');
-
-    await new Promise(r => setTimeout(r, 1200));
-
-    const predictionObj = getRandomPrediction(activeCategory);
-    currentAnswer = currentLang === 'ru' ? predictionObj.ru : predictionObj.en;
-    showAnswer(currentAnswer);
-    witchLine.textContent = translations[currentLang].result;
-    if (againBtn) againBtn.style.display = 'block';
-    shareBtn.dataset.text = currentAnswer;
-    if (window.Telegram?.WebApp?.HapticFeedback) window.Telegram.WebApp.HapticFeedback.notificationOccurred('success');
-    isCasting = false;
-  }
-
-  function shareAnswer() {
-    const text = shareBtn.dataset.text || currentAnswer || 'Ведьма сказала магическое предсказание!';
-    const shareText = `${text}\n\n🧙‍♀️ Ведьма сказала — магический шар судьбы`;
-    if (window.Telegram?.WebApp?.openTelegramLink) {
-      window.Telegram.WebApp.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent('https://t.me/place_bot_username')}&text=${encodeURIComponent(shareText)}`);
-    } else {
-      alert(`🔮 ${text}`);
-    }
-  }
-
-  function anotherAnswer() { if (!isCasting) castSpell(); }
-  function buyQuestions() { alert('⭐ Покупка дополнительных вопросов через Telegram Stars\nПоявится после подключения платежей'); }
-  function inviteFriend() {
-    const link = 'https://t.me/place_bot_username?start=ref';
-    const text = `🧙‍♀️ Загляни в магический шар — «Ведьма сказала»! Первый вопрос бесплатно ✨`;
-    if (window.Telegram?.WebApp?.openTelegramLink) {
-      window.Telegram.WebApp.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent(text)}`);
-    } else {
-      alert('👥 Пригласи друга: ' + link);
-    }
-  }
-
-  // Работа с localStorage
-  function loadUsed() {
-    const saved = localStorage.getItem('witch_used');
-    if (saved) {
-      try { const p = JSON.parse(saved); used = { love: p.love || 0, work: p.work || 0, money: p.money || 0 }; } catch(e) {}
-    }
-    const lastDate = localStorage.getItem('witch_date');
-    const today = new Date().toDateString();
-    if (lastDate !== today) {
-      used = { love: 0, work: 0, money: 0 };
-      localStorage.setItem('witch_date', today);
-      saveUsed();
-    }
-    updateLimitsUI();
-  }
-  function saveUsed() { localStorage.setItem('witch_used', JSON.stringify(used)); }
-  function updateLimitsUI() {
-    limitLoveSpan.textContent = MAX_FREE - used.love;
-    limitWorkSpan.textContent = MAX_FREE - used.work;
-    limitMoneySpan.textContent = MAX_FREE - used.money;
-  }
-
-  // Переключение категории
-  chips.forEach(chip => {
-    chip.addEventListener('click', () => {
-      chips.forEach(c => c.classList.remove('active'));
-      chip.classList.add('active');
-      activeCategory = chip.dataset.key;
-      const t = translations[currentLang];
-      witchLine.textContent = t.categorySelected.replace('{name}', chip.textContent.trim());
-      againBtn.style.display = 'none';
-      orbTextDiv.innerHTML = '🔮';
+    chips.forEach(chip => {
+      chip.addEventListener('click', () => {
+        chips.forEach(c => c.classList.remove('active'));
+        chip.classList.add('active');
+        activeCategory = chip.dataset.key;
+        witchLine.textContent = `🔮 Выбрана сфера: ${chip.textContent.trim()}`;
+        againBtn.style.display = 'none';
+        orbText.innerHTML = '🔮';
+      });
     });
-  });
 
-  // Переключение языка
-  document.querySelectorAll('.lang').forEach(btn => {
-    btn.addEventListener('click', async () => {
-      const newLang = btn.dataset.lang;
-      if (newLang === currentLang) return;
-      currentLang = newLang;
-      document.querySelectorAll('.lang').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      applyLanguage();
-      // обновить текущее предсказание на экране, если есть текст (не иконка)
-      const currentText = orbTextDiv.innerText;
-      if (currentText && currentText !== '🔮' && currentAnswer) {
-        // Если уже есть ответ, показать его на новом языке? Но у нас нет сохранения перевода текущего ответа. Просто сбросим на иконку.
-        orbTextDiv.innerHTML = '🔮';
-        witchLine.textContent = translations[currentLang].witchDefault;
-      } else {
-        orbTextDiv.innerHTML = '🔮';
-        witchLine.textContent = translations[currentLang].witchDefault;
-      }
-    });
-  });
-
-  // Обработчики кнопок
-  document.getElementById('threeCanvas').addEventListener('click', castSpell);
-  shareBtn.addEventListener('click', shareAnswer);
-  againBtn.addEventListener('click', anotherAnswer);
-  buyBtn.addEventListener('click', buyQuestions);
-  inviteBtn.addEventListener('click', inviteFriend);
-
-  // Заставка
-  let progress = 0;
-  const progressBar = document.getElementById('progressBar');
-  const interval = setInterval(() => {
-    progress += Math.random() * 15 + 5;
-    if (progress >= 100) {
-      progress = 100;
-      clearInterval(interval);
-      if (progressBar) progressBar.style.width = '100%';
-      setTimeout(() => {
-        splash.classList.add('hide');
+    // Заставка
+    let progress = 0;
+    const interval = setInterval(() => {
+      progress += Math.random() * 15 + 5;
+      if (progress >= 100) {
+        progress = 100;
+        clearInterval(interval);
+        progressBar.style.width = '100%';
         setTimeout(() => {
-          splash.style.display = 'none';
-          if (window.Telegram?.WebApp) {
-            window.Telegram.WebApp.ready();
-            window.Telegram.WebApp.expand();
-            window.Telegram.WebApp.setHeaderColor?.('#0a0a1a');
-            window.Telegram.WebApp.setBackgroundColor?.('#0a0a1a');
-          }
-        }, 600);
-      }, 400);
+          splash.classList.add('hide');
+          setTimeout(() => {
+            splash.style.display = 'none';
+            if (window.Telegram?.WebApp) {
+              window.Telegram.WebApp.ready();
+              window.Telegram.WebApp.expand();
+            }
+          }, 600);
+        }, 400);
+      }
+      progressBar.style.width = progress + '%';
+    }, 150);
+
+    // Генерация звёзд
+    const starsContainer = document.getElementById('stars');
+    for (let i = 0; i < 80; i++) {
+      const star = document.createElement('div');
+      star.className = 'star';
+      star.style.left = Math.random() * 100 + '%';
+      star.style.top = Math.random() * 100 + '%';
+      star.style.width = Math.random() * 2 + 1 + 'px';
+      star.style.height = star.style.width;
+      star.style.animationDelay = Math.random() * 5 + 's';
+      star.style.animationDuration = 2 + Math.random() * 4 + 's';
+      starsContainer.appendChild(star);
     }
-    if (progressBar) progressBar.style.width = progress + '%';
-  }, 150);
 
-  // Инициализация
-  await loadPredictions();
-  loadUsed();
-  applyLanguage();
-  orbTextDiv.innerHTML = '🔮';
-  witchLine.textContent = translations[currentLang].witchDefault;
-
-  // Генерация звёзд
-  const starsContainer = document.getElementById('stars');
-  for (let i = 0; i < 80; i++) {
-    const star = document.createElement('div');
-    star.className = 'star';
-    star.style.left = Math.random() * 100 + '%';
-    star.style.top = Math.random() * 100 + '%';
-    star.style.width = Math.random() * 2 + 1 + 'px';
-    star.style.height = star.style.width;
-    star.style.animationDelay = Math.random() * 5 + 's';
-    star.style.animationDuration = 2 + Math.random() * 4 + 's';
-    starsContainer.appendChild(star);
-  }
+    loadData();
+    orbText.innerHTML = '🔮';
+  })();
 </script>
 </body>
 </html>
