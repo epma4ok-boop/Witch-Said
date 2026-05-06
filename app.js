@@ -181,27 +181,20 @@ function applyOrbSizing(text, lines) {
     maxWidth = '12ch';
     lineHeight = '1';
     letterSpacing = '-0.02em';
+  } else if (lines.length === 2) {
+    fontSize = 'clamp(20px, 5vw, 34px)';
+    maxWidth = '11ch';
+    lineHeight = '1.05';
+    letterSpacing = '-0.02em';
   } else if (length < 28) {
     fontSize = 'clamp(28px, 7vw, 48px)';
     maxWidth = '8ch';
   }
 
-  document.documentElement.style.setProperty(
-    '--orb-font-size',
-    fontSize
-  );
-  document.documentElement.style.setProperty(
-    '--orb-max-width',
-    maxWidth
-  );
-  document.documentElement.style.setProperty(
-    '--orb-line-height',
-    lineHeight
-  );
-  document.documentElement.style.setProperty(
-    '--orb-letter-spacing',
-    letterSpacing
-  );
+  document.documentElement.style.setProperty('--orb-font-size', fontSize);
+  document.documentElement.style.setProperty('--orb-max-width', maxWidth);
+  document.documentElement.style.setProperty('--orb-line-height', lineHeight);
+  document.documentElement.style.setProperty('--orb-letter-spacing', letterSpacing);
 }
 
 function setOrbText(text, mode = 'reveal') {
