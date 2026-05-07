@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Ведьма сказала | Огненный шар</title>
+    <style>
+        :root {
+            --bg-top: #140402;
+            --bg-bottom: #020000;
+            --ui-bg: rgba(0, 0, 0, 0.64);
+            --ui-border: rgba(255, 118, 48, 0.38);
+            --ui-border-strong: rgba(255, 175, 116, 0.72);
+            --text-main: #fff3ea;
+            --text-soft: #ffc8a2;
+            --accent: #ff6a2d;
+            --accent-hot: #ffb256;
+        }
+        * { box-sizing: border-box; }
+        html, body { width: 100%; height: 100%; }
+        body {
+            margin: 0;
+            overflow: hidden;
+            font-family: Inter, system-ui, sans-serif;
+            background:
+                radial-gradient(circle at 50% 38%, rgba(255, 114, 33, 0.22) 0%, rgba(100, 25, 0, 0.08) 26%, rgba(0, 0, 0, 0) 48%),
+                radial-gradient(circle at 50% 50%, rgba(255, 100, 30, 0.08) 0%, rgba(0, 0, 0, 0) 56%),
+                linear-gradient(180deg, var(--bg-top), var(--bg-bottom));
+            color: var(--text-main);
+        }
+        canvas {
+            position: fixed;
+            inset: 0;
+            display: block;
+        }
+        .category-panel {
+            position: absolute;
+            top: max(18px, env(safe-area-inset-top));
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            z-index: 20;
+            pointer-events: auto;
+            padding: 0 16px;
+            flex-wrap: wrap;
+        }
+        .category-btn {
+            background: rgba(15, 4, 1, 0.74);
+            backdrop-filter: blur(14px);
+            border: 1px solid var(--ui-border);
+            color: #ffe0c9;
+            padding: 10px 18px;
+            border-radius: 999px;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            letter-spacing: 0.08em;
+            transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease, background .18s ease;
+        }
+        .category-btn.active {
+            background: rgba(255, 92, 28, 0.24);
+            border-color: var(--ui-border-strong);
+            box-shadow: 0 0 26px rgba(255, 88, 19, 0.28), inset 0 0 20px rgba(255, 176, 96, 0.08);
+            color: #fff8f0;
+        }
+        .ui {
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 92px;
+            z-index: 20;
+            padding: 24px 18px 20px;
+            text-align: center;
+            pointer-events: none;
+            background: linear-gradient(to top, rgba(0, 0, 0, 0.88), rgba(0, 0, 0, 0.34) 42%, transparent);
+        }
+        .answer-text {
+            font-size: clamp(20px, 2.3vw, 26px);
+            font-weight: 700;
+            color: #fff5ec;
+            text-shadow: 0 0 20px rgba(0, 0, 0, 0.9), 0 0 16px rgba(255, 118, 48, 0.38);
+            max-width: min(92vw, 720px);
+            margin: 0 auto;
+            letter-spacing: 0.04em;
+            background: linear-gradient(180deg, rgba(0,0,0,0.62), rgba(0,0,0,0.42));
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 140, 84, 0.16);
+            padding: 14px 20px;
+            border-radius: 999px;
+            display: inline-block;
+        }
+        .hint-text {
+            font-size: 11px;
+            color: var(--text-soft);
+            letter-spacing: 0.24em;
+            margin-top: 14px;
+            text-transform: uppercase;
+            opacity: 0.88;
+        }
+        .counter-panel {
+            display: flex;
+            justify-content: center;
+            gap: 18px;
+            margin: 20px auto 0;
+            background: var(--ui-bg);
+            backdrop-filter: blur(12px);
+            border-radius: 999px;
+            padding: 9px 20px;
+            width: fit-content;
+            border: 1px solid rgba(255, 120, 48, 0.24);
+            pointer-events: none;
+            box-shadow: inset 0 0 30px rgba(255, 136, 78, 0.05);
+        }
+        .counter-item {
+            display: flex;
+            gap: 8px;
+            font-size: 13px;
+            color: #ffd0ac;
+            align-items: center;
+        }
+        .counter-value {
+            font-weight: 800;
+            font-size: 18px;
+            color: #ffb86d;
+            text-shadow: 0 0 10px rgba(255, 94, 18, 0.5);
+        }
+        .action-buttons {
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: max(18px, env(safe-area-inset-bottom));
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            z-index: 20;
+            pointer-events: auto;
+            padding: 0 16px;
+        }
+        .action-btn {
+            background: rgba(10, 3, 1, 0.8);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 118, 48, 0.42);
+            color: #ffe7d4;
+            padding: 10px 16px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            flex: 1;
+            max-width: 140px;
+            text-align: center;
+            letter-spacing: 0.06em;
+            transition: transform .18s ease, background .18s ease, box-shadow .18s ease;
+        }
+        .action-btn:active {
+            transform: scale(0.96);
+            background: rgba(255, 88, 20, 0.24);
+            box-shadow: 0 0 24px rgba(255, 88, 20, 0.26);
+        }
+        @media (max-width: 600px) {
+            .ui { bottom: 88px; }
+            .answer-text { font-size: 18px; padding: 12px 16px; }
+            .category-btn { padding: 8px 14px; font-size: 12px; }
+            .action-btn { padding: 9px 10px; font-size: 11px; max-width: 112px; }
+            .counter-panel { gap: 14px; padding: 8px 16px; }
+            .counter-value { font-size: 16px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="category-panel">
+        <button class="category-btn active" data-cat="love">💗 ЛЮБОВЬ</button>
+        <button class="category-btn" data-cat="work">⚙️ РАБОТА</button>
+        <button class="category-btn" data-cat="money">📊 ДЕНЬГИ</button>
+    </div>
+
+    <div class="ui">
+        <div class="answer-text" id="answerText">ВЕДЬМА СКАЗАЛА</div>
+        <div class="hint-text" id="hintText">КОСНИСЬ ШАРА — ОТКРОЙ ИСТИНУ</div>
+        <div class="counter-panel">
+            <div class="counter-item"><span>💗</span><span class="counter-value" id="counterLove">1</span></div>
+            <div class="counter-item"><span>⚙️</span><span class="counter-value" id="counterWork">1</span></div>
+            <div class="counter-item"><span>📊</span><span class="counter-value" id="counterMoney">1</span></div>
+        </div>
+    </div>
+
+    <div class="action-buttons">
+        <button class="action-btn" id="buyBtn">⭐ КУПИТЬ</button>
+        <button class="action-btn" id="shareBtn">📤 ПОДЕЛИТЬСЯ</button>
+        <button class="action-btn" id="inviteBtn">👥 ПРИГЛАСИТЬ</button>
+    </div>
+
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script type="module">
+        import * as THREE from "https://unpkg.com/three@0.128.0/build/three.module.js";
+        import { EffectComposer } from "https://unpkg.com/three@0.128.0/examples/jsm/postprocessing/EffectComposer.js";
+        import { RenderPass } from "https://unpkg.com/three@0.128.0/examples/jsm/postprocessing/RenderPass.js";
+        import { UnrealBloomPass } from "https://unpkg.com/three@0.128.0/examples/jsm/postprocessing/UnrealBloomPass.js";
+
+        const tg = window.Telegram?.WebApp;
+        if (tg) { tg.ready(); tg.expand(); }
+
+        const memoryStorage = {
+            data: {},
+            getItem(key) { return this.data[key] ?? null; },
+            setItem(key, value) { this.data[key] = String(value); }
+        };
+        const storage = (() => {
+            try {
+                const testKey = '__witch_test__';
+                window.localStorage.setItem(testKey, '1');
+                window.localStorage.removeItem(testKey);
+                return window.localStorage;
+            } catch (e) {
+                return memoryStorage;
+            }
+        })();
+
+        const predictions = {
+            love: { ru: ["Он напишет, когда захочет. Не жди.", "Сердце знает, но разум сомневается.", "Любовь рядом. Или нет."], en: ["He'll text when he wants.", "Heart knows, mind doubts.", "Love is near. Or not."] },
+            work: { ru: ["Начальник заметит. Когда ты будешь в отпуске.", "Идею украдут через неделю.", "Успех близко. Сперва допей отчёт."], en: ["Boss will notice on your vacation.", "Idea will be stolen next week.", "Success is near. Finish report first."] },
+            money: { ru: ["Деньги придут. Как налоги, только приятнее.", "Инвестируй в себя. Например, в этот шар.", "Удача рядом. Но не прокути."], en: ["Money will come. Like taxes, but nicer.", "Invest in yourself. Like this orb.", "Luck is near. Don't splurge."] }
+        };
+
+        let currentLang = 'ru';
+        let activeCategory = 'love';
+        let used = { love: 0, work: 0, money: 0 };
+        let isCasting = false;
+        let currentAnswer = '';
+        let myReferralCode = 'witch_' + Math.random().toString(36).substr(2, 8);
+
+        const answerText = document.getElementById('answerText');
+        const hintText = document.getElementById('hintText');
+        const counterLove = document.getElementById('counterLove');
+        const counterWork = document.getElementById('counterWork');
+        const counterMoney = document.getElementById('counterMoney');
+
+        function updateCounters() {
+            counterLove.textContent = 1 - used.love;
+            counterWork.textContent = 1 - used.work;
+            counterMoney.textContent = 1 - used.money;
+        }
+
+        function loadData() {
+            const saved = storage.getItem('witch_used');
+            if (saved) {
+                try { used = JSON.parse(saved); } catch (e) {}
+            }
+            const lastDate = storage.getItem('witch_date');
+            const today = new Date().toDateString();
+            if (lastDate !== today) {
+                used = { love: 0, work: 0, money: 0 };
+                storage.setItem('witch_date', today);
+                saveUsed();
+            }
+            updateCounters();
+        }
+
+        function saveUsed() {
+            storage.setItem('witch_used', JSON.stringify(used));
+        }
+
+        function getRandomPrediction() {
+            const list = predictions[activeCategory][currentLang];
+            return list[Math.floor(Math.random() * list.length)];
+        }
+
+        function getReferralLink() {
+            const bot = tg?.initDataUnsafe?.user?.username || 'witch_said_bot';
+            return `https://t.me/${bot}?startapp=${myReferralCode}`;
+        }
+
+        function buyQuestions() {
+            if (tg) {
+                tg.showPopup({
+                    title: '⭐ Купить вопросы',
+                    message: '+5 вопросов за 10 Telegram Stars?',
+                    buttons: [
+                        { id: 'buy', type: 'default', text: 'Купить' },
+                        { id: 'cancel', type: 'cancel', text: 'Отмена' }
+                    ]
+                }, (btnId) => {
+                    if (btnId === 'buy') {
+                        used[activeCategory] = Math.max(0, used[activeCategory] - 5);
+                        saveUsed();
+                        updateCounters();
+                        tg.HapticFeedback?.notificationOccurred('success');
+                        hintText.textContent = '✨ +5 вопросов ✨';
+                        setTimeout(() => hintText.textContent = 'КОСНИСЬ ШАРА — ОТКРОЙ ИСТИНУ', 2500);
+                    }
+                });
+            } else {
+                alert('⭐ Покупка через Telegram Stars');
+            }
+        }
+
+        function sharePrediction() {
+            if (!currentAnswer) {
+                hintText.textContent = 'Сначала получи предсказание';
+                return;
+            }
+            const text = `🔮 ${currentAnswer} 🔮`;
+            const link = getReferralLink();
+            if (tg?.openTelegramLink) {
+                tg.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent(text)}`);
+            } else {
+                alert(text + '
+' + link);
+            }
+        }
+
+        function inviteFriend() {
+            const link = getReferralLink();
+            const text = '🧙‍♀️ Загляни в магический шар — первое предсказание бесплатно';
+            if (tg?.openTelegramLink) {
+                tg.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent(text)}`);
+            } else {
+                alert('👥 Пригласить: ' + link);
+            }
+        }
+
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x050100);
+        scene.fog = new THREE.FogExp2(0x050100, 0.08);
+
+        const camera = new THREE.PerspectiveCamera(42, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.set(0, 0, 4.8);
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        renderer.toneMapping = THREE.ReinhardToneMapping;
+        renderer.toneMappingExposure = 1.35;
+        document.body.appendChild(renderer.domElement);
+
+        const composer = new EffectComposer(renderer);
+        composer.addPass(new RenderPass(scene, camera));
+
+        const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 2.0, 0.85, 0.14);
+        bloomPass.threshold = 0.0;
+        bloomPass.strength = 2.05;
+        bloomPass.radius = 0.92;
+        composer.addPass(bloomPass);
+
+        const ambient = new THREE.AmbientLight(0x3b1508, 0.65);
+        scene.add(ambient);
+
+        const backLight = new THREE.PointLight(0xff7b2f, 2.4, 14, 2);
+        backLight.position.set(0, 0, -1.8);
+        scene.add(backLight);
+
+        const sideLight = new THREE.PointLight(0xffa24f, 1.2, 12, 2);
+        sideLight.position.set(1.8, 1.4, 2.8);
+        scene.add(sideLight);
+
+        const coreMat = new THREE.MeshStandardMaterial({
+            color: 0x020100,
+            roughness: 1,
+            metalness: 0,
+            emissive: 0x000000
+        });
+        const core = new THREE.Mesh(new THREE.SphereGeometry(1.0, 128, 128), coreMat);
+        scene.add(core);
+
+        const rimGeo = new THREE.RingGeometry(1.0, 1.13, 320);
+        const rimMat = new THREE.ShaderMaterial({
+            transparent: true,
+            depthWrite: false,
+            blending: THREE.AdditiveBlending,
+            uniforms: { uTime: { value: 0 }, uEnergy: { value: 0 } },
+            vertexShader: `
+                varying vec2 vUv;
+                void main() {
+                    vUv = uv;
+                    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+                }
+            `,
+            fragmentShader: `
+                varying vec2 vUv;
+                uniform float uTime;
+                uniform float uEnergy;
+                void main() {
+                    vec2 p = vUv - 0.5;
+                    float r = length(p) * 2.0;
+                    float ring = smoothstep(0.24, 0.0, abs(r - 1.0));
+                    float flicker = 0.88 + 0.12 * sin(uTime * 6.0) + 0.08 * sin(uTime * 14.0 + p.x * 11.0);
+                    float hot = smoothstep(0.0, 1.0, ring * 1.4);
+                    vec3 color = mix(vec3(1.0, 0.34, 0.08), vec3(1.0, 0.95, 0.72), hot);
+                    float alpha = ring * flicker * (0.86 + uEnergy * 0.45);
+                    gl_FragColor = vec4(color, alpha);
+                }
+            `
+        });
+        const rim = new THREE.Mesh(rimGeo, rimMat);
+        scene.add(rim);
+
+        const coronaCount = 1400;
+        const coronaGeo = new THREE.BufferGeometry();
+        const coronaPositions = new Float32Array(coronaCount * 3);
+        const coronaColors = new Float32Array(coronaCount * 3);
+        const coronaSizes = new Float32Array(coronaCount);
+        const coronaAngles = new Float32Array(coronaCount);
+        const coronaBase = new Float32Array(coronaCount);
+
+        for (let i = 0; i < coronaCount; i++) {
+            const angle = Math.random() * Math.PI * 2;
+            const base = 1.08 + Math.random() * 0.42;
+            coronaAngles[i] = angle;
+            coronaBase[i] = base;
+            coronaPositions[i * 3] = Math.cos(angle) * base;
+            coronaPositions[i * 3 + 1] = Math.sin(angle) * base;
+            coronaPositions[i * 3 + 2] = (Math.random() - 0.5) * 0.14;
+
+            const t = Math.random();
+            const color = new THREE.Color().setRGB(1.0, 0.28 + t * 0.55, 0.05 + t * 0.16);
+            coronaColors[i * 3] = color.r;
+            coronaColors[i * 3 + 1] = color.g;
+            coronaColors[i * 3 + 2] = color.b;
+            coronaSizes[i] = 14 + Math.random() * 30;
+        }
+
+        coronaGeo.setAttribute('position', new THREE.BufferAttribute(coronaPositions, 3));
+        coronaGeo.setAttribute('color', new THREE.BufferAttribute(coronaColors, 3));
+        coronaGeo.setAttribute('size', new THREE.BufferAttribute(coronaSizes, 1));
+
+        const coronaMat = new THREE.ShaderMaterial({
+            transparent: true,
+            depthWrite: false,
+            blending: THREE.AdditiveBlending,
+            uniforms: { uTime: { value: 0 }, uEnergy: { value: 0 } },
+            vertexColors: true,
+            vertexShader: `
+                attribute float size;
+                varying vec3 vColor;
+                uniform float uTime;
+                uniform float uEnergy;
+                void main() {
+                    vColor = color;
+                    vec3 p = position;
+                    float ang = atan(p.y, p.x);
+                    float dist = length(p.xy);
+                    float pulse = sin(uTime * 1.7 + ang * 7.0) * 0.07;
+                    dist += pulse + uEnergy * 0.06;
+                    p.x = cos(ang) * dist;
+                    p.y = sin(ang) * dist;
+                    vec4 mvPosition = modelViewMatrix * vec4(p, 1.0);
+                    gl_PointSize = size * (320.0 / -mvPosition.z) * (1.0 + uEnergy * 0.18);
+                    gl_Position = projectionMatrix * mvPosition;
+                }
+            `,
+            fragmentShader: `
+                varying vec3 vColor;
+                void main() {
+                    vec2 uv = gl_PointCoord - 0.5;
+                    float d = length(uv);
+                    float alpha = smoothstep(0.52, 0.02, d);
+                    alpha *= 1.25;
+                    gl_FragColor = vec4(vColor, alpha);
+                }
+            `
+        });
+        const corona = new THREE.Points(coronaGeo, coronaMat);
+        scene.add(corona);
+
+        const prominences = new THREE.Group();
+        const prominenceMeta = [];
+        const prominenceCount = 22;
+
+        for (let i = 0; i < prominenceCount; i++) {
+            const points = [];
+            const baseAngle = Math.random() * Math.PI * 2;
+            let radius = 1.04;
+            const steps = 20 + Math.floor(Math.random() * 7);
+
+            for (let s = 0; s < steps; s++) {
+                radius += 0.02 + Math.random() * 0.04;
+                const drift = (Math.random() - 0.5) * 0.18;
+                const angle = baseAngle + drift * (s / steps) * 6.0;
+                points.push(new THREE.Vector3(
+                    Math.cos(angle) * radius,
+                    Math.sin(angle) * radius,
+                    (Math.random() - 0.5) * 0.04
+                ));
+            }
+
+            const geo = new THREE.BufferGeometry().setFromPoints(points);
+            const color = new THREE.Color(1, 0.42 + Math.random() * 0.26, 0.08 + Math.random() * 0.06);
+            const mat = new THREE.LineBasicMaterial({
+                color,
+                transparent: true,
+                opacity: 0.18 + Math.random() * 0.18,
+                blending: THREE.AdditiveBlending
+            });
+            const line = new THREE.Line(geo, mat);
+            prominences.add(line);
+            prominenceMeta.push({ speed: 0.35 + Math.random() * 0.7, phase: Math.random() * Math.PI * 2, baseOpacity: mat.opacity });
+        }
+        scene.add(prominences);
+
+        const ashCount = 280;
+        const ashGeo = new THREE.BufferGeometry();
+        const ashPositions = new Float32Array(ashCount * 3);
+        for (let i = 0; i < ashCount; i++) {
+            ashPositions[i * 3] = (Math.random() - 0.5) * 18;
+            ashPositions[i * 3 + 1] = (Math.random() - 0.5) * 12;
+            ashPositions[i * 3 + 2] = -2 - Math.random() * 8;
+        }
+        ashGeo.setAttribute('position', new THREE.BufferAttribute(ashPositions, 3));
+        const ash = new THREE.Points(ashGeo, new THREE.PointsMaterial({
+            color: 0xffb873,
+            size: 0.035,
+            transparent: true,
+            opacity: 0.24,
+            blending: THREE.AdditiveBlending
+        }));
+        scene.add(ash);
+
+        let time = 0;
+        let castEnergy = 0;
+        let categoryTint = new THREE.Color(1.0, 0.48, 0.14);
+
+        function updateCategoryColors(category) {
+            if (category === 'love') categoryTint = new THREE.Color(1.0, 0.38, 0.22);
+            else if (category === 'work') categoryTint = new THREE.Color(1.0, 0.62, 0.14);
+            else categoryTint = new THREE.Color(1.0, 0.52, 0.10);
+
+            const colors = coronaGeo.attributes.color.array;
+            for (let i = 0; i < coronaCount; i++) {
+                const glowShift = 0.85 + Math.random() * 0.3;
+                colors[i * 3] = Math.min(1, categoryTint.r * glowShift);
+                colors[i * 3 + 1] = Math.min(1, categoryTint.g * (0.82 + Math.random() * 0.38));
+                colors[i * 3 + 2] = Math.min(0.35, categoryTint.b * (0.9 + Math.random() * 0.18));
+            }
+            coronaGeo.attributes.color.needsUpdate = true;
+
+            prominences.children.forEach((line) => {
+                line.material.color.setRGB(categoryTint.r, Math.min(1, categoryTint.g + 0.08), Math.max(0.05, categoryTint.b));
+            });
+        }
+
+        function flashEffect() {
+            castEnergy = 1.0;
+            bloomPass.strength = 2.6;
+            setTimeout(() => { bloomPass.strength = 2.05; }, 280);
+        }
+
+        async function castSpell() {
+            if (isCasting) return;
+            if (used[activeCategory] >= 1) {
+                hintText.textContent = '⚠️ Лимит на сегодня. Купи дополнительные вопросы.';
+                tg?.HapticFeedback?.notificationOccurred('error');
+                return;
+            }
+            isCasting = true;
+            used[activeCategory]++;
+            saveUsed();
+            updateCounters();
+            flashEffect();
+            tg?.HapticFeedback?.impactOccurred('medium');
+            hintText.textContent = 'ОГНЕННАЯ КОРОНА ЧИТАЕТ ЗНАКИ...';
+            answerText.innerHTML = '✦';
+            await new Promise(r => setTimeout(r, 1050));
+            currentAnswer = getRandomPrediction();
+            answerText.innerHTML = currentAnswer;
+            hintText.textContent = '✨ ПРЕДСКАЗАНИЕ ГОТОВО ✨';
+            tg?.HapticFeedback?.notificationOccurred('success');
+            isCasting = false;
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            time += 0.016;
+            castEnergy += (0 - castEnergy) * 0.045;
+
+            rimMat.uniforms.uTime.value = time;
+            rimMat.uniforms.uEnergy.value = castEnergy;
+            coronaMat.uniforms.uTime.value = time;
+            coronaMat.uniforms.uEnergy.value = castEnergy;
+
+            core.rotation.y += 0.0013;
+            corona.rotation.z += 0.0015;
+            corona.rotation.y = Math.sin(time * 0.18) * 0.08;
+            prominences.rotation.z -= 0.001;
+            prominences.rotation.x = Math.sin(time * 0.3) * 0.06;
+
+            prominences.children.forEach((line, i) => {
+                const meta = prominenceMeta[i];
+                line.rotation.z = Math.sin(time * meta.speed + meta.phase) * 0.11;
+                line.material.opacity = meta.baseOpacity + (0.08 + castEnergy * 0.18) * (0.5 + 0.5 * Math.sin(time * 1.8 + meta.phase));
+            });
+
+            const positions = coronaGeo.attributes.position.array;
+            for (let i = 0; i < coronaCount; i++) {
+                const angle = coronaAngles[i];
+                const wave = Math.sin(time * (1.2 + (i % 11) * 0.07) + angle * 5.0) * 0.05;
+                const dist = coronaBase[i] + wave + castEnergy * 0.05;
+                positions[i * 3] = Math.cos(angle) * dist;
+                positions[i * 3 + 1] = Math.sin(angle) * dist;
+            }
+            coronaGeo.attributes.position.needsUpdate = true;
+
+            ash.rotation.y += 0.0008;
+            ash.rotation.z -= 0.0005;
+
+            composer.render();
+        }
+        animate();
+
+        document.querySelectorAll('.category-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                activeCategory = btn.dataset.cat;
+                updateCategoryColors(activeCategory);
+                hintText.textContent = `🎯 ${btn.textContent.trim()}`;
+                answerText.innerHTML = 'ВЕДЬМА СКАЗАЛА';
+            });
+        });
+
+        renderer.domElement.addEventListener('click', castSpell);
+
+        window.addEventListener('click', (e) => {
+            if (e.target.classList && (e.target.classList.contains('category-btn') || e.target.classList.contains('action-btn'))) return;
+        });
+
+        document.getElementById('buyBtn').addEventListener('click', buyQuestions);
+        document.getElementById('shareBtn').addEventListener('click', sharePrediction);
+        document.getElementById('inviteBtn').addEventListener('click', inviteFriend);
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            composer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        updateCategoryColors(activeCategory);
+        loadData();
+        if (tg) tg.expand();
+    </script>
+</body>
+</html>
