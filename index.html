@@ -3,104 +3,93 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Ведьма сказала | Оракул</title>
+    <title>Ведьма сказала | Солнечное затмение — Eclipse Shader</title>
     <style>
         body {
             margin: 0;
             overflow: hidden;
-            font-family: 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
-            background-color: black;
-            color: white;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #000;
         }
-        /* Строгий, минималистичный UI поверх 3D */
+        
+        /* UI — Минималистичный, почти невидимый */
         .ui {
             position: absolute;
             bottom: 0;
             left: 0;
             right: 0;
             z-index: 20;
-            background: linear-gradient(to top, rgba(0,0,0,0.85), rgba(0,0,0,0.4) 60%, transparent);
+            background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
             padding: 30px 20px 35px;
-            backdrop-filter: blur(8px);
             pointer-events: none;
-            font-family: monospace;
-            letter-spacing: 1px;
-        }
-        .answer-area {
             text-align: center;
-            margin-bottom: 20px;
-            min-height: 90px;
         }
         .answer-text {
             font-size: 20px;
             font-weight: 400;
             color: #EEEEFF;
-            text-shadow: 0 0 10px rgba(68, 136, 255, 0.5);
-            line-height: 1.4;
+            text-shadow: 0 0 15px rgba(50,100,200,0.5);
+            letter-spacing: 1px;
             max-width: 85%;
             margin: 0 auto;
             font-family: monospace;
         }
         .hint-text {
-            font-size: 12px;
+            font-size: 11px;
             color: #88AADD;
             letter-spacing: 2px;
-            margin-top: 8px;
+            margin-top: 10px;
             text-transform: uppercase;
         }
         
-        /* Панель категорий — хай-тек минимализм */
         .category-panel {
             position: absolute;
-            top: 60px;
+            top: 55px;
             left: 0;
             right: 0;
             display: flex;
             justify-content: center;
-            gap: 10px;
+            gap: 12px;
             z-index: 20;
             pointer-events: auto;
             padding: 0 20px;
         }
         .category-btn {
-            background: rgba(10, 10, 20, 0.7);
+            background: rgba(10,10,20,0.7);
             backdrop-filter: blur(10px);
-            border: 1px solid rgba(68, 102, 204, 0.5);
+            border: 1px solid rgba(68,102,204,0.5);
             color: #CCDDEE;
-            padding: 8px 18px;
+            padding: 8px 20px;
             border-radius: 30px;
             font-size: 13px;
             font-weight: 500;
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: all 0.2s;
             font-family: monospace;
-            letter-spacing: 1px;
         }
         .category-btn.active {
-            background: rgba(68, 102, 204, 0.7);
+            background: rgba(68,102,204,0.7);
             border-color: #88AAFF;
             color: white;
-            box-shadow: 0 0 12px rgba(68, 102, 204, 0.6);
+            box-shadow: 0 0 15px rgba(68,102,204,0.5);
         }
         
-        /* Счётчики вопросов */
         .counter-panel {
             display: flex;
             justify-content: center;
             gap: 24px;
-            margin: 12px auto 8px;
+            margin: 15px auto 0;
             background: rgba(0,0,0,0.5);
             backdrop-filter: blur(12px);
             border-radius: 60px;
-            padding: 6px 24px;
+            padding: 5px 24px;
             width: fit-content;
-            border: 1px solid rgba(68, 136, 255, 0.3);
+            border: 1px solid rgba(68,136,255,0.3);
             pointer-events: none;
         }
         .counter-item {
             display: flex;
             gap: 6px;
-            align-items: baseline;
             font-size: 12px;
             color: #99AACC;
         }
@@ -110,7 +99,6 @@
             color: #88AAFF;
         }
         
-        /* Кнопки действий — строгие, но заметные */
         .action-buttons {
             position: absolute;
             bottom: 25px;
@@ -124,11 +112,11 @@
             padding: 0 20px;
         }
         .action-btn {
-            background: rgba(10, 10, 20, 0.8);
+            background: rgba(10,10,20,0.8);
             backdrop-filter: blur(12px);
-            border: 1px solid rgba(68, 136, 255, 0.6);
+            border: 1px solid rgba(68,136,255,0.6);
             color: #EEF;
-            padding: 8px 16px;
+            padding: 8px 18px;
             border-radius: 40px;
             font-size: 13px;
             font-weight: 500;
@@ -139,7 +127,7 @@
             text-align: center;
             font-family: monospace;
         }
-        .action-btn:active { transform: scale(0.96); background: rgba(68, 102, 204, 0.8); border-color: #AACCFF; color: white; }
+        .action-btn:active { transform: scale(0.96); background: rgba(68,102,204,0.8); }
         
         @media (max-width: 600px) {
             .answer-text { font-size: 16px; }
@@ -150,18 +138,15 @@
 </head>
 <body>
 
-    <!-- Элементы управления -->
     <div class="category-panel">
-        <button class="category-btn active" data-cat="love">💙 Любовь</button>
-        <button class="category-btn" data-cat="work">⚙️ Работа</button>
-        <button class="category-btn" data-cat="money">📊 Деньги</button>
+        <button class="category-btn active" data-cat="love">💙 ЛЮБОВЬ</button>
+        <button class="category-btn" data-cat="work">⚙️ РАБОТА</button>
+        <button class="category-btn" data-cat="money">📊 ДЕНЬГИ</button>
     </div>
     
     <div class="ui">
-        <div class="answer-area">
-            <div class="answer-text" id="answerText">ВЕДЬМА СКАЗАЛА</div>
-            <div class="hint-text" id="hintText">НАЖМИ НА ШАР — УЗНАЙ БУДУЩЕЕ</div>
-        </div>
+        <div class="answer-text" id="answerText">ВЕДЬМА СКАЗАЛА</div>
+        <div class="hint-text" id="hintText">КОСНИСЬ ШАРА — ОТКРОЙ ИСТИНУ</div>
         <div class="counter-panel">
             <div class="counter-item"><span>💙</span><span class="counter-value" id="counterLove">1</span></div>
             <div class="counter-item"><span>⚙️</span><span class="counter-value" id="counterWork">1</span></div>
@@ -170,12 +155,11 @@
     </div>
     
     <div class="action-buttons">
-        <button class="action-btn" id="buyBtn">⭐ Купить</button>
-        <button class="action-btn" id="shareBtn">📤 Поделиться</button>
-        <button class="action-btn" id="inviteBtn">👥 Пригласить</button>
+        <button class="action-btn" id="buyBtn">⭐ КУПИТЬ</button>
+        <button class="action-btn" id="shareBtn">📤 ПОДЕЛИТЬСЯ</button>
+        <button class="action-btn" id="inviteBtn">👥 ПРИГЛАСИТЬ</button>
     </div>
 
-    <!-- Импорт модулей Three.js -->
     <script type="importmap">
         {
             "imports": {
@@ -191,24 +175,15 @@
         import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
         import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
         
-        // --- Telegram WebApp ---
+        // --- Telegram ---
         const tg = window.Telegram?.WebApp;
         if (tg) { tg.ready(); tg.expand(); }
         
         // --- Логика приложения ---
         const predictions = {
-            love: {
-                ru: ["Он напишет, когда захочет. Не жди.", "Сердце знает, но разум сомневается.", "Не ищи любовь, она сама найдёт тебя. Или нет."],
-                en: ["He'll text when he wants. Don't wait.", "Heart knows, but mind doubts.", "Don't look for love, it will find you. Or not."]
-            },
-            work: {
-                ru: ["Начальник заметит твою работу. Когда ты будешь в отпуске.", "Твоя идея гениальна. Украдут через неделю.", "Успех близко. Но сперва допей этот отчёт."],
-                en: ["The boss will notice your work. When you're on vacation.", "Your idea is brilliant. Stolen next week.", "Success is near. First, finish the report."]
-            },
-            money: {
-                ru: ["Деньги придут. Как налоги, только приятнее.", "Инвестируй в себя. Например, в этот шар.", "Финансовая удача уже рядом. Но не прокути."],
-                en: ["Money will come. Like taxes, but nicer.", "Invest in yourself. For example, this orb.", "Financial luck is near. Don't splurge."]
-            }
+            love: { ru: ["Он напишет, когда захочет. Не жди.", "Сердце знает, но разум сомневается.", "Любовь рядом. Или нет."], en: ["He'll text when he wants.", "Heart knows, mind doubts.", "Love is near. Or not."] },
+            work: { ru: ["Начальник заметит. Когда ты будешь в отпуске.", "Идею украдут через неделю.", "Успех близко. Сперва допей отчёт."], en: ["Boss will notice on your vacation.", "Idea will be stolen next week.", "Success is near. Finish report first."] },
+            money: { ru: ["Деньги придут. Как налоги, только приятнее.", "Инвестируй в себя. Например, в этот шар.", "Удача рядом. Но не прокути."], en: ["Money will come. Like taxes, but nicer.", "Invest in yourself. Like this orb.", "Luck is near. Don't splurge."] }
         };
         
         let currentLang = 'ru';
@@ -218,23 +193,17 @@
         let currentAnswer = '';
         let myReferralCode = 'witch_' + Math.random().toString(36).substr(2, 8);
         
-        // DOM элементы
         const answerText = document.getElementById('answerText');
         const hintText = document.getElementById('hintText');
         const counterLove = document.getElementById('counterLove');
         const counterWork = document.getElementById('counterWork');
         const counterMoney = document.getElementById('counterMoney');
-        const buyBtn = document.getElementById('buyBtn');
-        const shareBtn = document.getElementById('shareBtn');
-        const inviteBtn = document.getElementById('inviteBtn');
-        const categoryBtns = document.querySelectorAll('.category-btn');
         
         function updateCounters() {
             counterLove.textContent = 1 - used.love;
             counterWork.textContent = 1 - used.work;
             counterMoney.textContent = 1 - used.money;
         }
-        
         function loadData() {
             const saved = localStorage.getItem('witch_used');
             if (saved) try { used = JSON.parse(saved); } catch(e) {}
@@ -249,8 +218,7 @@
         }
         function saveUsed() { localStorage.setItem('witch_used', JSON.stringify(used)); }
         function getRandomPrediction() { return predictions[activeCategory][currentLang][Math.floor(Math.random() * predictions[activeCategory][currentLang].length)]; }
-        function getCategoryName() { const names = { love: 'Любовь', work: 'Работа', money: 'Деньги' }; return names[activeCategory]; }
-        function getReferralLink() { const botUsername = tg?.initDataUnsafe?.user?.username || 'witch_said_bot'; return `https://t.me/${botUsername}?startapp=${myReferralCode}`; }
+        function getReferralLink() { const bot = tg?.initDataUnsafe?.user?.username || 'witch_said_bot'; return `https://t.me/${bot}?startapp=${myReferralCode}`; }
         
         function buyQuestions() {
             if (tg) {
@@ -263,13 +231,12 @@
                         used[activeCategory] = Math.max(0, used[activeCategory] - 5);
                         saveUsed(); updateCounters();
                         if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
-                        hintText.textContent = `✨ +5 вопросов для категории ${getCategoryName()}`;
-                        setTimeout(() => hintText.textContent = 'НАЖМИ НА ШАР — УЗНАЙ БУДУЩЕЕ', 3000);
+                        hintText.textContent = `✨ +5 вопросов`;
+                        setTimeout(() => hintText.textContent = 'КОСНИСЬ ШАРА — ОТКРОЙ ИСТИНУ', 3000);
                     }
                 });
             } else { alert('⭐ Покупка через Telegram Stars'); }
         }
-        
         function sharePrediction() {
             if (!currentAnswer) { hintText.textContent = 'Сначала получи предсказание'; return; }
             const text = `🔮 ${currentAnswer} 🔮`;
@@ -277,93 +244,135 @@
             if (tg?.openTelegramLink) { tg.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent(text)}`); } 
             else { alert(text + '\n' + link); }
         }
-        
         function inviteFriend() {
             const link = getReferralLink();
             const text = `🧙‍♀️ Загляни в магический шар — первое предсказание бесплатно`;
             if (tg?.openTelegramLink) { tg.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent(text)}`); } 
-            else { alert('👥 Пригласить друга: ' + link); }
+            else { alert('👥 Пригласить: ' + link); }
         }
         
-        // ========== 3D СЦЕНА — КИНЕМАТОГРАФИЧНЫЙ ОРАКУЛ ==========
+        // ========== 3D СЦЕНА С ПРОФЕССИОНАЛЬНЫМ ECLIPSE SHADER ==========
         const scene = new THREE.Scene();
         scene.background = new THREE.Color(0x010118);
-        scene.fog = new THREE.FogExp2(0x010118, 0.003);
+        scene.fog = new THREE.FogExp2(0x010118, 0.002);
         
         const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
         camera.position.set(0, 0, 4.2);
         
-        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.setPixelRatio(window.devicePixelRatio);
         renderer.toneMapping = THREE.ReinhardToneMapping;
-        renderer.toneMappingExposure = 1.1;
+        renderer.toneMappingExposure = 1.2;
         document.body.appendChild(renderer.domElement);
         
-        // Пост-эффекты: Bloom для строгого свечения
+        // Профессиональный Bloom
         const renderScene = new RenderPass(scene, camera);
-        const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 0.9, 0.3, 0.6);
-        bloomPass.threshold = 0.05;   // Порог яркости для свечения
-        bloomPass.strength = 0.85;    // Интенсивность
-        bloomPass.radius = 0.5;
+        const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 0.8, 0.3, 0.7);
+        bloomPass.threshold = 0.1;
+        bloomPass.strength = 0.95;
+        bloomPass.radius = 0.6;
         const effectComposer = new EffectComposer(renderer);
         effectComposer.addPass(renderScene);
         effectComposer.addPass(bloomPass);
         
-        // === ОСНОВНОЙ ШАР — ХОЛОДНОЕ СТЕКЛО С ПРЕЛОМЛЕНИЕМ ===
-        const geometry = new THREE.SphereGeometry(1.0, 256, 256);
-        const material = new THREE.MeshPhysicalMaterial({
-            color: 0x88aaff,
-            emissive: 0x001133,
-            emissiveIntensity: 0.15,
-            metalness: 0.98,
-            roughness: 0.28,
-            clearcoat: 1.0,
-            clearcoatRoughness: 0.12,
-            reflectivity: 0.55,
-            transparent: true,
-            opacity: 0.92,
+        // ========== ECLIPSE SHADER ==========
+        // Вершинный шейдер — просто передаём позицию и нормаль
+        const vertexShader = `
+            varying vec2 vUv;
+            varying vec3 vNormal;
+            void main() {
+                vUv = uv;
+                vNormal = normalize(normalMatrix * normal);
+                vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+                gl_PointSize = 1.0;
+                gl_Position = projectionMatrix * mvPosition;
+            }
+        `;
+        
+        // Фрагментный шейдер — симуляция затмения
+        const fragmentShader = `
+            uniform float uTime;
+            uniform vec3 uColorDay;
+            uniform vec3 uColorNight;
+            uniform float uEclipseProgress;
+            varying vec2 vUv;
+            varying vec3 vNormal;
+            
+            void main() {
+                // Симуляция положения "солнца" (источник света)
+                vec3 lightDir = normalize(vec3(1.0, 2.0, 1.0));
+                float dotNL = max(0.2, dot(vNormal, lightDir));
+                
+                // Симуляция затмения — создаём тень от "луны"
+                // Используем UV для создания эффекта затемнения на одной стороне шара
+                float eclipseFactor = smoothstep(0.2, 0.8, vUv.x);
+                eclipseFactor = mix(eclipseFactor, 1.0 - eclipseFactor, uEclipseProgress);
+                
+                // Добавляем "корону" — свечение по краям
+                float corona = pow(1.0 - abs(vUv.x - 0.5) * 2.0, 3.0) * 0.8;
+                corona += sin(vUv.y * 50.0 + uTime * 10.0) * 0.05;
+                
+                // Базовый цвет: смесь дневной и ночной стороны
+                vec3 finalColor = mix(uColorNight, uColorDay, dotNL * (1.0 - eclipseFactor));
+                
+                // Добавляем свечение короны
+                finalColor += vec3(0.8, 0.6, 0.3) * corona * (0.5 + uEclipseProgress);
+                
+                // Мерцание (эффект "бриллиантового кольца")
+                float sparkle = sin(vUv.x * 80.0 + uTime * 30.0) * 0.1;
+                finalColor += vec3(1.0, 0.8, 0.4) * max(0.0, sparkle) * uEclipseProgress;
+                
+                gl_FragColor = vec4(finalColor, 1.0);
+            }
+        `;
+        
+        const shaderMaterial = new THREE.ShaderMaterial({
+            uniforms: {
+                uTime: { value: 0 },
+                uColorDay: { value: new THREE.Color(0x88aaff) },
+                uColorNight: { value: new THREE.Color(0x110022) },
+                uEclipseProgress: { value: 0.5 }
+            },
+            vertexShader: vertexShader,
+            fragmentShader: fragmentShader,
+            transparent: false,
             side: THREE.DoubleSide
         });
-        const sphere = new THREE.Mesh(geometry, material);
-        scene.add(sphere);
         
-        // === ДОПОЛНИТЕЛЬНОЕ ВНУТРЕННЕЕ СВЕЧЕНИЕ ===
-        const glowMaterial = new THREE.MeshBasicMaterial({
-            color: 0x3377ff,
-            transparent: true,
-            opacity: 0.12,
-            side: THREE.BackSide
-        });
-        const innerGlow = new THREE.Mesh(new THREE.SphereGeometry(0.98, 64, 64), glowMaterial);
-        scene.add(innerGlow);
+        const sphereGeometry = new THREE.SphereGeometry(1.0, 256, 256);
+        const eclipseSphere = new THREE.Mesh(sphereGeometry, shaderMaterial);
+        scene.add(eclipseSphere);
         
-        // === КОРОНА — МИНИМАЛИСТИЧНЫЕ КОЛЬЦА ===
-        const rings = [];
-        const ringColors = [0x4488ff, 0x2266cc, 0x4488ff];
-        for (let i = 0; i < 3; i++) {
-            const ringGeo = new THREE.TorusGeometry(1.08 + i * 0.045, 0.008, 128, 300);
-            const ringMat = new THREE.MeshStandardMaterial({
-                color: ringColors[i],
-                emissive: 0x2266aa,
-                emissiveIntensity: 0.35 - i * 0.08,
-                transparent: true,
-                opacity: 0.45 - i * 0.08,
-                side: THREE.DoubleSide,
-                blending: THREE.AdditiveBlending
-            });
-            const ring = new THREE.Mesh(ringGeo, ringMat);
-            ring.rotation.x = Math.PI / 2;
-            scene.add(ring);
-            rings.push(ring);
+        // Добавляем внешнюю корону — мерцающие частицы
+        const coronaCount = 4000;
+        const coronaGeo = new THREE.BufferGeometry();
+        const coronaPositions = new Float32Array(coronaCount * 3);
+        for (let i = 0; i < coronaCount; i++) {
+            const r = 1.12 + Math.random() * 0.18;
+            const theta = Math.random() * Math.PI * 2;
+            const phi = Math.acos(2 * Math.random() - 1);
+            coronaPositions[i*3] = r * Math.sin(phi) * Math.cos(theta);
+            coronaPositions[i*3+1] = r * Math.sin(phi) * Math.sin(theta);
+            coronaPositions[i*3+2] = r * Math.cos(phi);
         }
+        coronaGeo.setAttribute('position', new THREE.BufferAttribute(coronaPositions, 3));
+        const coronaMat = new THREE.PointsMaterial({
+            color: 0xffaa66,
+            size: 0.006,
+            transparent: true,
+            blending: THREE.AdditiveBlending,
+            opacity: 0.6
+        });
+        const coronaParticles = new THREE.Points(coronaGeo, coronaMat);
+        scene.add(coronaParticles);
         
-        // === ЛУЧЕЙ НЕТ — ТОЛЬКО ЛЁГКИЕ ЧАСТИЦЫ ДЛЯ ГЛУБИНЫ ===
-        const dustCount = 1200;
+        // Внутренние частицы (магическая пыль)
+        const dustCount = 2000;
         const dustGeo = new THREE.BufferGeometry();
         const dustPositions = new Float32Array(dustCount * 3);
         for (let i = 0; i < dustCount; i++) {
-            const r = 1.18 + Math.random() * 0.45;
+            const r = 0.95 + Math.random() * 0.25;
             const theta = Math.random() * Math.PI * 2;
             const phi = Math.acos(2 * Math.random() - 1);
             dustPositions[i*3] = r * Math.sin(phi) * Math.cos(theta);
@@ -371,28 +380,39 @@
             dustPositions[i*3+2] = r * Math.cos(phi);
         }
         dustGeo.setAttribute('position', new THREE.BufferAttribute(dustPositions, 3));
-        const dustMat = new THREE.PointsMaterial({ color: 0x88aaff, size: 0.005, transparent: true, blending: THREE.AdditiveBlending });
-        const dust = new THREE.Points(dustGeo, dustMat);
-        scene.add(dust);
+        const dustMat = new THREE.PointsMaterial({
+            color: 0x88aaff,
+            size: 0.004,
+            transparent: true,
+            blending: THREE.AdditiveBlending,
+            opacity: 0.4
+        });
+        const dustParticles = new THREE.Points(dustGeo, dustMat);
+        scene.add(dustParticles);
         
-        // === АНИМАЦИЯ ===
+        // Анимация
         let time = 0;
+        let eclipsePhase = 0;
+        let eclipseDirection = 1;
+        
         function animate() {
             requestAnimationFrame(animate);
-            time += 0.012;
+            time += 0.016;
             
-            // Плавная пульсация колец
-            rings.forEach((ring, idx) => {
-                const pulse = 1 + Math.sin(time * 2.2 + idx) * 0.025;
-                ring.scale.set(pulse, pulse, pulse);
-                if (ring.material) ring.material.emissiveIntensity = 0.38 + Math.sin(time * 2 + idx) * 0.12;
-            });
+            // Медленное изменение фазы затмения (0 → 1 → 0)
+            eclipsePhase += 0.002 * eclipseDirection;
+            if (eclipsePhase >= 1) { eclipsePhase = 1; eclipseDirection = -1; }
+            if (eclipsePhase <= 0) { eclipsePhase = 0; eclipseDirection = 1; }
             
-            // Медленное вращение частиц и шара
-            dust.rotation.y = time * 0.06;
-            dust.rotation.x = Math.sin(time * 0.2) * 0.08;
-            sphere.rotation.y = time * 0.04;
-            innerGlow.rotation.y = time * 0.03;
+            // Обновление шейдера
+            shaderMaterial.uniforms.uTime.value = time;
+            shaderMaterial.uniforms.uEclipseProgress.value = eclipsePhase;
+            
+            // Анимация короны
+            coronaMat.color.setHSL(0.12 + Math.sin(time * 0.5) * 0.05, 1.0, 0.65);
+            coronaParticles.rotation.y = time * 0.05;
+            dustParticles.rotation.y = time * 0.03;
+            dustParticles.rotation.x = Math.sin(time * 0.2) * 0.1;
             
             effectComposer.render();
         }
@@ -405,17 +425,17 @@
             effectComposer.setSize(window.innerWidth, window.innerHeight);
         });
         
-        // === ВСПЫШКА ПРИ НАЖАТИИ (МИНИМАЛИСТИЧНАЯ) ===
+        // Вспышка при нажатии
         function flashEffect() {
-            material.emissiveIntensity = 0.65;
-            rings.forEach(ring => { if (ring.material) ring.material.emissiveIntensity = 0.9; });
+            shaderMaterial.uniforms.uEclipseProgress.value = 0.95;
+            coronaMat.color.setHex(0xffaa88);
             setTimeout(() => {
-                material.emissiveIntensity = 0.15;
-                rings.forEach(ring => { if (ring.material) ring.material.emissiveIntensity = 0.38; });
-            }, 250);
+                shaderMaterial.uniforms.uEclipseProgress.value = eclipsePhase;
+                coronaMat.color.setHex(0xffaa66);
+            }, 400);
         }
         
-        // === ПОЛУЧЕНИЕ ПРЕДСКАЗАНИЯ ===
+        // Получение предсказания
         async function castSpell() {
             if (isCasting) return;
             if (used[activeCategory] >= 1) {
@@ -429,10 +449,10 @@
             updateCounters();
             flashEffect();
             if (tg?.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
-            hintText.textContent = '⚡ Активация оракула...';
+            hintText.textContent = '⚡ Шейдер активирован...';
             answerText.innerHTML = '✨';
             
-            await new Promise(r => setTimeout(r, 1000));
+            await new Promise(r => setTimeout(r, 1100));
             
             currentAnswer = getRandomPrediction();
             answerText.innerHTML = currentAnswer;
@@ -441,13 +461,13 @@
             isCasting = false;
         }
         
-        // === СОБЫТИЯ ===
-        categoryBtns.forEach(btn => {
+        // Обработчики
+        document.querySelectorAll('.category-btn').forEach(btn => {
             btn.addEventListener('click', () => {
-                categoryBtns.forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
                 activeCategory = btn.dataset.cat;
-                hintText.textContent = `🎯 Сфера: ${btn.innerHTML}`;
+                hintText.textContent = `🎯 СФЕРА: ${btn.innerHTML}`;
                 answerText.innerHTML = 'ВЕДЬМА СКАЗАЛА';
             });
         });
@@ -457,13 +477,13 @@
             castSpell();
         });
         
-        buyBtn.addEventListener('click', buyQuestions);
-        shareBtn.addEventListener('click', sharePrediction);
-        inviteBtn.addEventListener('click', inviteFriend);
+        document.getElementById('buyBtn').addEventListener('click', buyQuestions);
+        document.getElementById('shareBtn').addEventListener('click', sharePrediction);
+        document.getElementById('inviteBtn').addEventListener('click', inviteFriend);
         
         loadData();
         if (tg) tg.expand();
-        console.log('✅ Кинематографичный оракул запущен');
+        console.log('🌞 Eclipse Shader активен — шейдеры работают!');
     </script>
 </body>
 </html>
