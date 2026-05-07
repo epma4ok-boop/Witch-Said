@@ -3,16 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Ведьма сказала | Солнечное затмение — Уровень 2</title>
+    <title>Ведьма сказала | Затмение — Прозрачная сфера</title>
     <style>
         body {
             margin: 0;
             overflow: hidden;
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', monospace;
+            font-family: 'Inter', monospace;
             background: #000;
         }
-        
-        /* UI — Минималистичный, почти невидимый */
         .ui {
             position: absolute;
             bottom: 0;
@@ -29,7 +27,6 @@
             font-weight: 400;
             color: #EEEEFF;
             text-shadow: 0 0 15px rgba(50,100,200,0.5);
-            letter-spacing: 1px;
             max-width: 85%;
             margin: 0 auto;
             font-family: monospace;
@@ -39,9 +36,7 @@
             color: #88AADD;
             letter-spacing: 2px;
             margin-top: 10px;
-            text-transform: uppercase;
         }
-        
         .category-panel {
             position: absolute;
             top: 55px;
@@ -52,7 +47,6 @@
             gap: 12px;
             z-index: 20;
             pointer-events: auto;
-            padding: 0 20px;
         }
         .category-btn {
             background: rgba(10,10,20,0.7);
@@ -61,10 +55,7 @@
             color: #CCDDEE;
             padding: 8px 20px;
             border-radius: 30px;
-            font-size: 13px;
-            font-weight: 500;
             cursor: pointer;
-            transition: all 0.2s;
             font-family: monospace;
         }
         .category-btn.active {
@@ -73,7 +64,6 @@
             color: white;
             box-shadow: 0 0 15px rgba(68,102,204,0.5);
         }
-        
         .counter-panel {
             display: flex;
             justify-content: center;
@@ -85,20 +75,9 @@
             padding: 5px 24px;
             width: fit-content;
             border: 1px solid rgba(68,136,255,0.3);
-            pointer-events: none;
         }
-        .counter-item {
-            display: flex;
-            gap: 6px;
-            font-size: 12px;
-            color: #99AACC;
-        }
-        .counter-value {
-            font-weight: 700;
-            font-size: 18px;
-            color: #88AAFF;
-        }
-        
+        .counter-item { display: flex; gap: 6px; font-size: 12px; color: #99AACC; }
+        .counter-value { font-weight: 700; font-size: 18px; color: #88AAFF; }
         .action-buttons {
             position: absolute;
             bottom: 25px;
@@ -109,7 +88,6 @@
             gap: 15px;
             z-index: 20;
             pointer-events: auto;
-            padding: 0 20px;
         }
         .action-btn {
             background: rgba(10,10,20,0.8);
@@ -118,17 +96,12 @@
             color: #EEF;
             padding: 8px 18px;
             border-radius: 40px;
-            font-size: 13px;
-            font-weight: 500;
             cursor: pointer;
-            transition: 0.2s;
             flex: 1;
             max-width: 130px;
             text-align: center;
             font-family: monospace;
         }
-        .action-btn:active { transform: scale(0.96); background: rgba(68,102,204,0.8); }
-        
         @media (max-width: 600px) {
             .answer-text { font-size: 16px; }
             .category-btn { padding: 6px 14px; font-size: 11px; }
@@ -137,13 +110,11 @@
     </style>
 </head>
 <body>
-
     <div class="category-panel">
         <button class="category-btn active" data-cat="love">💙 ЛЮБОВЬ</button>
         <button class="category-btn" data-cat="work">⚙️ РАБОТА</button>
         <button class="category-btn" data-cat="money">📊 ДЕНЬГИ</button>
     </div>
-    
     <div class="ui">
         <div class="answer-text" id="answerText">ВЕДЬМА СКАЗАЛА</div>
         <div class="hint-text" id="hintText">КОСНИСЬ ШАРА — ОТКРОЙ ИСТИНУ</div>
@@ -153,7 +124,6 @@
             <div class="counter-item"><span>📊</span><span class="counter-value" id="counterMoney">1</span></div>
         </div>
     </div>
-    
     <div class="action-buttons">
         <button class="action-btn" id="buyBtn">⭐ КУПИТЬ</button>
         <button class="action-btn" id="shareBtn">📤 ПОДЕЛИТЬСЯ</button>
@@ -251,15 +221,15 @@
             else { alert('👥 Пригласить: ' + link); }
         }
         
-        // ========== 3D СЦЕНА — УРОВЕНЬ 2 ==========
+        // ========== 3D СЦЕНА — ПРОЗРАЧНАЯ СФЕРА ==========
         const scene = new THREE.Scene();
         scene.background = new THREE.Color(0x010118);
-        scene.fog = new THREE.FogExp2(0x010118, 0.0015);
+        scene.fog = new THREE.FogExp2(0x010118, 0.0008);
         
         const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
-        camera.position.set(0, 0, 4.2);
+        camera.position.set(0, 0, 4.0);
         
-        const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.setPixelRatio(window.devicePixelRatio);
         renderer.toneMapping = THREE.ReinhardToneMapping;
@@ -268,22 +238,24 @@
         
         // Bloom
         const renderScene = new RenderPass(scene, camera);
-        const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 0.9, 0.3, 0.7);
-        bloomPass.threshold = 0.08;
-        bloomPass.strength = 1.0;
-        bloomPass.radius = 0.65;
+        const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.0, 0.4, 0.8);
+        bloomPass.threshold = 0.05;
+        bloomPass.strength = 1.1;
+        bloomPass.radius = 0.7;
         const effectComposer = new EffectComposer(renderer);
         effectComposer.addPass(renderScene);
         effectComposer.addPass(bloomPass);
         
-        // ========== СТАРОМУДРЫЙ SHADER ЗАТМЕНИЯ ==========
+        // ========== ПРОЗРАЧНЫЙ ШЕЙДЕР ЗАТМЕНИЯ ==========
         const vertexShader = `
             varying vec2 vUv;
             varying vec3 vNormal;
+            varying vec3 vViewPosition;
             void main() {
                 vUv = uv;
                 vNormal = normalize(normalMatrix * normal);
                 vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+                vViewPosition = -mvPosition.xyz;
                 gl_PointSize = 1.0;
                 gl_Position = projectionMatrix * mvPosition;
             }
@@ -298,116 +270,108 @@
             varying vec3 vNormal;
             
             void main() {
-                vec3 lightDir = normalize(vec3(1.0, 1.8, 1.2));
-                float dotNL = max(0.15, dot(vNormal, lightDir));
+                vec3 lightDir = normalize(vec3(1.0, 1.5, 1.2));
+                float dotNL = max(0.1, dot(vNormal, lightDir));
                 
-                float eclipseFactor = smoothstep(0.2, 0.8, vUv.x);
+                float eclipseFactor = smoothstep(0.2, 0.85, vUv.x);
                 eclipseFactor = mix(eclipseFactor, 1.0 - eclipseFactor, uEclipseProgress);
                 
-                float corona = pow(1.0 - abs(vUv.x - 0.5) * 2.0, 2.5) * 0.9;
-                corona += sin(vUv.y * 80.0 + uTime * 12.0) * 0.08;
-                corona += sin(vUv.x * 120.0 - uTime * 15.0) * 0.06;
+                // Эффект свечения короны (прозрачный)
+                float corona = pow(1.0 - abs(vUv.x - 0.5) * 2.2, 2.2) * 0.95;
+                corona += sin(vUv.y * 120.0 + uTime * 15.0) * 0.07;
+                corona += sin(vUv.x * 150.0 - uTime * 18.0) * 0.05;
                 
-                float sparkle = sin(vUv.x * 150.0 + uTime * 40.0) * 0.12;
-                sparkle += cos(vUv.y * 180.0 + uTime * 35.0) * 0.1;
+                float sparkle = sin(vUv.x * 200.0 + uTime * 50.0) * 0.1;
+                sparkle += cos(vUv.y * 220.0 + uTime * 45.0) * 0.08;
                 
-                vec3 finalColor = mix(uColorNight, uColorDay, dotNL * (1.0 - eclipseFactor));
-                finalColor += vec3(0.9, 0.65, 0.35) * corona * (0.6 + uEclipseProgress * 1.2);
-                finalColor += vec3(1.0, 0.85, 0.5) * max(0.0, sparkle) * uEclipseProgress * 0.8;
+                // Основной цвет с прозрачностью (alpha)
+                vec3 baseColor = mix(uColorNight, uColorDay, dotNL * (1.0 - eclipseFactor));
+                vec3 coronaColor = vec3(0.95, 0.7, 0.4);
+                vec3 finalColor = baseColor + coronaColor * corona * (0.7 + uEclipseProgress * 1.3);
+                finalColor += vec3(1.0, 0.85, 0.55) * max(0.0, sparkle) * uEclipseProgress;
                 
-                finalColor = pow(finalColor, vec3(1.0/1.1));
-                gl_FragColor = vec4(finalColor, 1.0);
+                // Альфа-канал: прозрачность ближе к краям, чтобы шар "исчезал" в короне
+                float alpha = 0.55 + corona * 0.3;
+                alpha = clamp(alpha, 0.4, 0.85);
+                
+                gl_FragColor = vec4(finalColor, alpha);
             }
         `;
         
         const shaderMaterial = new THREE.ShaderMaterial({
             uniforms: {
                 uTime: { value: 0 },
-                uColorDay: { value: new THREE.Color(0x6688cc) },
+                uColorDay: { value: new THREE.Color(0x88aaff) },
                 uColorNight: { value: new THREE.Color(0x110022) },
                 uEclipseProgress: { value: 0.5 }
             },
             vertexShader: vertexShader,
             fragmentShader: fragmentShader,
-            transparent: false,
-            side: THREE.DoubleSide
+            transparent: true,
+            side: THREE.DoubleSide,
+            opacity: 0.7
         });
         
         const sphereGeometry = new THREE.SphereGeometry(1.0, 512, 512);
         const eclipseSphere = new THREE.Mesh(sphereGeometry, shaderMaterial);
         scene.add(eclipseSphere);
         
-        // ========== HDRI-ЗВЁЗДЫ (20 000 ЧАСТИЦ ВОКРУГ) ==========
-        const starCount = 20000;
+        // ========== HDRI-ЗВЁЗДЫ (30 000) ==========
+        const starCount = 30000;
         const starGeo = new THREE.BufferGeometry();
         const starPositions = new Float32Array(starCount * 3);
         for (let i = 0; i < starCount; i++) {
-            // Разбрасываем звёзды в большом кубе
             starPositions[i*3] = (Math.random() - 0.5) * 200;
             starPositions[i*3+1] = (Math.random() - 0.5) * 100;
-            starPositions[i*3+2] = (Math.random() - 0.5) * 80 - 40;
+            starPositions[i*3+2] = (Math.random() - 0.5) * 80 - 30;
         }
         starGeo.setAttribute('position', new THREE.BufferAttribute(starPositions, 3));
-        const starMat = new THREE.PointsMaterial({
-            color: 0xffffff,
-            size: 0.08,
-            transparent: true,
-            opacity: 0.7,
-            blending: THREE.AdditiveBlending
-        });
+        const starMat = new THREE.PointsMaterial({ color: 0xffffff, size: 0.06, transparent: true, opacity: 0.6, blending: THREE.AdditiveBlending });
         const stars = new THREE.Points(starGeo, starMat);
         scene.add(stars);
         
-        // ========== КОРОНА — 50 000 МЕРЦАЮЩИХ ЧАСТИЦ ==========
-        const particleCount = 50000;
+        // ========== КОРОНА — 100 000 МЕРЦАЮЩИХ ЧАСТИЦ ==========
+        const particleCount = 100000;
         const coronaGeo = new THREE.BufferGeometry();
         const coronaPositions = new Float32Array(particleCount * 3);
         const coronaColors = new Float32Array(particleCount * 3);
         
         for (let i = 0; i < particleCount; i++) {
-            // Распределение частиц по сфере с разбросом
-            const r = 1.08 + Math.pow(Math.random(), 1.5) * 0.35;
+            const r = 1.06 + Math.pow(Math.random(), 1.6) * 0.42;
             const theta = Math.random() * Math.PI * 2;
             const phi = Math.acos(2 * Math.random() - 1);
             coronaPositions[i*3] = r * Math.sin(phi) * Math.cos(theta);
             coronaPositions[i*3+1] = r * Math.sin(phi) * Math.sin(theta);
             coronaPositions[i*3+2] = r * Math.cos(phi);
             
-            // Цвет частицы: от золотого до красноватого
             const colorChoice = Math.random();
             if (colorChoice < 0.7) {
                 coronaColors[i*3] = 1.0;
-                coronaColors[i*3+1] = 0.6 + Math.random() * 0.3;
-                coronaColors[i*3+2] = 0.2 + Math.random() * 0.3;
-            } else if (colorChoice < 0.9) {
+                coronaColors[i*3+1] = 0.5 + Math.random() * 0.4;
+                coronaColors[i*3+2] = 0.1 + Math.random() * 0.3;
+            } else if (colorChoice < 0.85) {
                 coronaColors[i*3] = 1.0;
-                coronaColors[i*3+1] = 0.3 + Math.random() * 0.4;
-                coronaColors[i*3+2] = 0.5 + Math.random() * 0.5;
+                coronaColors[i*3+1] = 0.2 + Math.random() * 0.4;
+                coronaColors[i*3+2] = 0.4 + Math.random() * 0.5;
             } else {
-                coronaColors[i*3] = 0.8 + Math.random() * 0.2;
-                coronaColors[i*3+1] = 0.2 + Math.random() * 0.3;
-                coronaColors[i*3+2] = 0.9 + Math.random() * 0.1;
+                coronaColors[i*3] = 0.7 + Math.random() * 0.3;
+                coronaColors[i*3+1] = 0.1 + Math.random() * 0.2;
+                coronaColors[i*3+2] = 0.8 + Math.random() * 0.2;
             }
         }
         coronaGeo.setAttribute('position', new THREE.BufferAttribute(coronaPositions, 3));
         coronaGeo.setAttribute('color', new THREE.BufferAttribute(coronaColors, 3));
         
-        const coronaMatLevel2 = new THREE.PointsMaterial({
-            size: 0.005,
-            vertexColors: true,
-            transparent: true,
-            blending: THREE.AdditiveBlending,
-            opacity: 0.65
-        });
-        const coronaParticles = new THREE.Points(coronaGeo, coronaMatLevel2);
+        const coronaMat = new THREE.PointsMaterial({ size: 0.0045, vertexColors: true, transparent: true, blending: THREE.AdditiveBlending, opacity: 0.7 });
+        const coronaParticles = new THREE.Points(coronaGeo, coronaMat);
         scene.add(coronaParticles);
         
-        // Внутренние светящиеся частицы (магическая пыль)
-        const dustCount = 8000;
+        // ========== ВНУТРЕННЯЯ ПЫЛЬ (10 000) ==========
+        const dustCount = 10000;
         const dustGeo = new THREE.BufferGeometry();
         const dustPositions = new Float32Array(dustCount * 3);
         for (let i = 0; i < dustCount; i++) {
-            const r = 0.92 + Math.random() * 0.25;
+            const r = 0.88 + Math.random() * 0.28;
             const theta = Math.random() * Math.PI * 2;
             const phi = Math.acos(2 * Math.random() - 1);
             dustPositions[i*3] = r * Math.sin(phi) * Math.cos(theta);
@@ -415,13 +379,7 @@
             dustPositions[i*3+2] = r * Math.cos(phi);
         }
         dustGeo.setAttribute('position', new THREE.BufferAttribute(dustPositions, 3));
-        const dustMat = new THREE.PointsMaterial({
-            color: 0x88aaff,
-            size: 0.003,
-            transparent: true,
-            blending: THREE.AdditiveBlending,
-            opacity: 0.45
-        });
+        const dustMat = new THREE.PointsMaterial({ color: 0x88aaff, size: 0.0025, transparent: true, blending: THREE.AdditiveBlending, opacity: 0.5 });
         const dustParticles = new THREE.Points(dustGeo, dustMat);
         scene.add(dustParticles);
         
@@ -434,22 +392,17 @@
             requestAnimationFrame(animate);
             time += 0.016;
             
-            eclipsePhase += 0.0018 * eclipseDirection;
+            eclipsePhase += 0.002 * eclipseDirection;
             if (eclipsePhase >= 1) { eclipsePhase = 1; eclipseDirection = -1; }
             if (eclipsePhase <= 0) { eclipsePhase = 0; eclipseDirection = 1; }
             
             shaderMaterial.uniforms.uTime.value = time;
             shaderMaterial.uniforms.uEclipseProgress.value = eclipsePhase;
             
-            // Вращение звёзд
-            stars.rotation.y = time * 0.01;
-            stars.rotation.x = time * 0.005;
-            
-            // Анимация короны
-            coronaParticles.rotation.y = time * 0.03;
-            coronaParticles.rotation.x = Math.sin(time * 0.15) * 0.05;
-            dustParticles.rotation.y = time * 0.02;
-            dustParticles.rotation.x = Math.sin(time * 0.2) * 0.08;
+            stars.rotation.y = time * 0.008;
+            coronaParticles.rotation.y = time * 0.02;
+            coronaParticles.rotation.x = Math.sin(time * 0.12) * 0.03;
+            dustParticles.rotation.y = time * 0.015;
             
             effectComposer.render();
         }
@@ -462,13 +415,12 @@
             effectComposer.setSize(window.innerWidth, window.innerHeight);
         });
         
-        // Вспышка
         function flashEffect() {
-            shaderMaterial.uniforms.uEclipseProgress.value = 0.98;
-            coronaMatLevel2.opacity = 1.0;
+            shaderMaterial.uniforms.uEclipseProgress.value = 0.99;
+            coronaMat.opacity = 1.0;
             setTimeout(() => {
                 shaderMaterial.uniforms.uEclipseProgress.value = eclipsePhase;
-                coronaMatLevel2.opacity = 0.65;
+                coronaMat.opacity = 0.7;
             }, 350);
         }
         
@@ -488,8 +440,7 @@
             hintText.textContent = '⚡ Затмение активировано...';
             answerText.innerHTML = '✨';
             
-            await new Promise(r => setTimeout(r, 1100));
-            
+            await new Promise(r => setTimeout(r, 1000));
             currentAnswer = getRandomPrediction();
             answerText.innerHTML = currentAnswer;
             hintText.textContent = '✨ Предсказание готово ✨';
@@ -518,7 +469,7 @@
         
         loadData();
         if (tg) tg.expand();
-        console.log('🌞 Уровень 2 активен: 50k частиц + HDRI-звёзды');
+        console.log('🌞 МАКСИМУМ: Прозрачная сфера + 100k частиц');
     </script>
 </body>
 </html>
