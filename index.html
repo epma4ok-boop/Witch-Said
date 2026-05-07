@@ -3,406 +3,359 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no" />
-  <meta name="theme-color" content="#0a0a1a" />
-  <title>Ведьма сказала | Шар солнечного затмения</title>
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <title>Ведьма сказала | Неоновое затмение</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
   <style>
     * {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
+      user-select: none;
       -webkit-tap-highlight-color: transparent;
     }
 
     body {
-      font-family: 'Inter', sans-serif;
-      background: #0a0a1a;
       min-height: 100vh;
-      overflow-x: hidden;
-    }
-
-    /* Фон с глубокими звёздами */
-    .bg-gradient {
-      position: fixed;
-      inset: 0;
-      background: radial-gradient(ellipse at 30% 20%, #1a1030 0%, #0a0a1a 60%, #050108 100%);
-      z-index: -2;
-    }
-    .stars {
-      position: fixed;
-      inset: 0;
-      z-index: -1;
-      pointer-events: none;
-    }
-    .star {
-      position: absolute;
-      background: white;
-      border-radius: 50%;
-      opacity: 0;
-      animation: starTwinkle 4s ease-in-out infinite;
-    }
-    @keyframes starTwinkle {
-      0%, 100% { opacity: 0; transform: scale(0.3); }
-      50% { opacity: 0.6; transform: scale(1); }
-    }
-
-    .container {
-      max-width: 500px;
-      margin: 0 auto;
-      padding: 20px 16px 32px;
+      background: radial-gradient(ellipse at 30% 20%, #0B0712 0%, #03010A 100%);
+      font-family: 'Inter', sans-serif;
       display: flex;
-      flex-direction: column;
-      position: relative;
-      z-index: 1;
+      align-items: center;
+      justify-content: center;
     }
 
-    /* Шапка */
+    /* Контейнер */
+    .app {
+      max-width: 500px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 24px 20px 40px;
+      position: relative;
+      z-index: 2;
+    }
+
+    /* Верхняя панель */
     .header {
       display: flex;
       justify-content: space-between;
       align-items: flex-start;
-      margin-bottom: 24px;
+      margin-bottom: 32px;
     }
-    .title-section { flex: 1; }
     .badge {
-      font-size: 11px; letter-spacing: 3px;
-      text-transform: uppercase; color: #00aaff;
-      font-weight: 500; margin-bottom: 8px;
-      text-shadow: 0 0 5px #00aaff;
+      font-size: 11px;
+      letter-spacing: 3px;
+      font-weight: 500;
+      color: #5F4B8B;
+      text-transform: uppercase;
     }
-    .main-title {
+    h1 {
       font-family: 'Cormorant Garamond', serif;
-      font-size: 28px; font-weight: 600;
-      background: linear-gradient(135deg, #fff, #ffaa88, #ff66aa, #aa88ff);
+      font-size: 28px;
+      font-weight: 600;
+      background: linear-gradient(135deg, #FFFFFF 0%, #B8A9FF 100%);
       -webkit-background-clip: text;
       background-clip: text;
       color: transparent;
+      margin-top: 8px;
       line-height: 1.2;
     }
     .lang-switch {
-      display: flex; gap: 6px;
-      background: rgba(0,0,0,0.5);
-      padding: 4px; border-radius: 60px;
-      backdrop-filter: blur(10px);
-      border: 1px solid rgba(255,255,255,0.2);
+      background: rgba(20, 15, 35, 0.6);
+      border-radius: 60px;
+      padding: 4px;
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255,255,255,0.05);
+      display: flex;
+      gap: 6px;
     }
     .lang {
-      border: none; background: transparent;
-      color: #ccddee; font-size: 11px; font-weight: 600;
-      padding: 6px 12px; border-radius: 60px;
+      background: transparent;
+      border: none;
+      color: #7B6A99;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 6px 12px;
+      border-radius: 60px;
       cursor: pointer;
     }
-    .lang.active { background: rgba(0, 150, 255, 0.5); color: white; text-shadow: 0 0 4px #00aaff; }
-
-    /* Карточка шара */
-    .magic-card {
-      background: linear-gradient(135deg, rgba(0,0,0,0.5), rgba(15,8,30,0.6));
-      border-radius: 56px;
-      backdrop-filter: blur(20px);
-      border: 1px solid rgba(255,255,255,0.1);
-      margin-bottom: 20px;
-      padding: 24px 20px;
+    .lang.active {
+      background: #3A2A5A;
+      color: white;
     }
 
-    /* ----- Шар «Солнечное затмение» ----- */
-    .orb-container {
+    /* Карточка шара */
+    .orb-card {
+      background: rgba(8, 5, 18, 0.5);
+      backdrop-filter: blur(16px);
+      border-radius: 64px;
+      border: 1px solid rgba(255,255,255,0.06);
+      padding: 24px;
+      margin-bottom: 28px;
+    }
+
+    /* ===== НЕОНОВЫЙ ШАР ===== */
+    .orb {
       position: relative;
       width: 260px;
       height: 260px;
-      margin: 0 auto 16px;
+      margin: 0 auto 20px;
       cursor: pointer;
     }
 
-    /* Тёмный шар (луна) */
-    .orb-shape {
-      position: relative;
-      width: 100%;
-      height: 100%;
-      border-radius: 50%;
-      background: radial-gradient(circle at 30% 30%, 
-        #111 0%, 
-        #1a1a2e 30%, 
-        #0a0a1a 70%, 
-        #000000 100%);
-      box-shadow: 
-        0 0 0 2px rgba(255, 255, 255, 0.2),
-        0 20px 40px rgba(0, 0, 0, 0.8),
-        inset 0 -10px 20px rgba(0, 0, 0, 0.8);
-      transition: transform 0.2s;
-      z-index: 2;
-    }
-    .orb-shape:active { transform: scale(0.97); }
-
-    /* Яркое пульсирующее кольцо и лучи (корона затмения) */
-    .orb-glow {
+    /* Тёмный центр */
+    .eclipse-core {
       position: absolute;
-      top: -15%;
-      left: -15%;
-      width: 130%;
-      height: 130%;
+      inset: 0;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 35%, 
+        #0F0C1A 0%, 
+        #05030A 60%, 
+        #000000 100%);
+      box-shadow: inset 0 0 30px rgba(0,0,0,0.8);
+      z-index: 3;
+    }
+
+    /* Неоновое кольцо (корона) */
+    .neon-ring {
+      position: absolute;
+      inset: -8px;
       border-radius: 50%;
       background: radial-gradient(circle, 
-        rgba(255, 200, 100, 0) 40%,
-        rgba(255, 100, 50, 0.3) 50%,
-        rgba(255, 50, 100, 0.4) 60%,
-        rgba(100, 50, 255, 0.3) 70%,
-        rgba(0, 100, 255, 0.2) 80%,
-        transparent 95%);
-      filter: blur(8px);
-      animation: eclipseGlow 3s infinite alternate;
-      pointer-events: none;
-      z-index: 1;
+        rgba(100, 80, 200, 0) 60%,
+        rgba(120, 90, 220, 0.2) 70%,
+        rgba(140, 100, 255, 0.5) 85%,
+        rgba(180, 130, 255, 0.8) 95%,
+        rgba(220, 180, 255, 0) 100%
+      );
+      filter: blur(6px);
+      animation: neonPulse 3s infinite alternate;
+      z-index: 2;
     }
-    /* Добавляем разноцветные "лучи" */
-    .orb-glint {
+
+    /* Лучи (мягкие) */
+    .rays {
       position: absolute;
-      top: -20%;
-      left: -20%;
-      width: 140%;
-      height: 140%;
+      inset: -20px;
       border-radius: 50%;
-      background: repeating-conic-gradient(from 0deg, 
-        #ff3366 0deg 15deg, 
-        #ffaa33 15deg 30deg, 
-        #33ffaa 30deg 45deg, 
-        #33aaff 45deg 60deg, 
-        #aa33ff 60deg 75deg,
-        #ff33aa 75deg 90deg);
-      mask: radial-gradient(circle, transparent 35%, black 55%, transparent 70%);
-      -webkit-mask: radial-gradient(circle, transparent 35%, black 55%, transparent 70%);
-      opacity: 0.6;
-      animation: rotateGlint 12s infinite linear;
-      pointer-events: none;
+      background: conic-gradient(
+        from 0deg,
+        rgba(100, 80, 255, 0) 0deg,
+        rgba(140, 110, 255, 0.15) 20deg,
+        rgba(200, 160, 255, 0.05) 40deg,
+        rgba(100, 80, 255, 0) 60deg,
+        rgba(140, 110, 255, 0.1) 80deg,
+        rgba(200, 160, 255, 0) 100deg,
+        rgba(100, 80, 255, 0.15) 120deg,
+        rgba(80, 60, 200, 0) 140deg,
+        rgba(120, 90, 220, 0.1) 160deg,
+        rgba(200, 160, 255, 0) 180deg,
+        rgba(100, 80, 255, 0.1) 200deg,
+        rgba(140, 110, 255, 0) 220deg,
+        rgba(180, 140, 255, 0.15) 240deg,
+        rgba(100, 80, 255, 0) 260deg,
+        rgba(120, 90, 220, 0.1) 280deg,
+        rgba(200, 160, 255, 0) 300deg,
+        rgba(100, 80, 255, 0.1) 320deg,
+        rgba(140, 110, 255, 0) 340deg,
+        rgba(180, 140, 255, 0.1) 360deg
+      );
+      filter: blur(12px);
+      animation: rotateRays 20s infinite linear;
       z-index: 1;
     }
-    /* Свечение при нажатии */
-    .orb-shape.casting ~ .orb-glow {
-      animation: castEclipse 0.5s ease-out;
-    }
-    .orb-shape.casting {
-      animation: castPulse 0.6s ease-in-out;
-    }
 
-    @keyframes eclipseGlow {
-      0% { opacity: 0.5; filter: blur(10px); transform: scale(1); }
-      100% { opacity: 1; filter: blur(15px); transform: scale(1.05); background: radial-gradient(circle, rgba(255, 200, 100, 0) 30%, rgba(255, 100, 50, 0.5) 50%, rgba(255, 50, 100, 0.6) 65%, rgba(100, 50, 255, 0.5) 75%, rgba(0, 100, 255, 0.4) 85%, transparent 95%); }
-    }
-    @keyframes rotateGlint {
-      from { transform: rotate(0deg); }
-      to { transform: rotate(360deg); }
-    }
-    @keyframes castPulse {
-      0% { transform: scale(1); }
-      50% { transform: scale(0.98); filter: brightness(1.2); }
-      100% { transform: scale(1); }
-    }
-    @keyframes castEclipse {
-      0% { opacity: 0.6; filter: blur(12px); transform: scale(1); }
-      50% { opacity: 1; filter: blur(5px); transform: scale(1.2); background: radial-gradient(circle, rgba(255,255,200,0.4) 30%, rgba(255,150,100,0.8) 50%, #ff66aa 65%, #aa88ff 80%, transparent 95%); }
-      100% { opacity: 0.7; filter: blur(10px); transform: scale(1.05); }
-    }
-
-    /* Текст внутри шара (на тёмном фоне) */
+    /* Текст внутри шара */
     .orb-text {
       position: absolute;
       inset: 0;
       display: flex;
-      flex-direction: column;
       align-items: center;
       justify-content: center;
       text-align: center;
       font-family: 'Cormorant Garamond', serif;
       font-size: 22px;
       font-weight: 700;
-      color: #ffeedd;
-      text-shadow: 0 0 8px #ffaa66, 0 0 12px #ff3366;
+      color: #E5D9FF;
+      text-shadow: 0 0 12px #5F4BFF, 0 0 4px #3A2A8A;
       padding: 20px;
       z-index: 10;
-      pointer-events: none;
+      backdrop-filter: blur(2px);
+      background: radial-gradient(circle, rgba(0,0,0,0.2), transparent 70%);
+      border-radius: 50%;
     }
     .orb-line {
       display: block;
       opacity: 0;
-      transform: translateY(10px);
-      animation: lineAppear 0.35s forwards;
-      max-width: 85%;
-      margin: 2px auto;
-      font-size: clamp(14px, 5vw, 22px);
-      line-height: 1.3;
-      background: rgba(0,0,0,0.4);
-      backdrop-filter: blur(4px);
-      border-radius: 40px;
-      padding: 4px 8px;
+      transform: translateY(8px);
+      animation: slideUp 0.4s cubic-bezier(0.2, 0.9, 0.4, 1.1) forwards;
     }
-    @keyframes lineAppear {
+    @keyframes slideUp {
       to { opacity: 1; transform: translateY(0); }
     }
 
-    /* Плавающие искры (солнечные частицы) */
-    .particle-spark {
-      position: absolute;
-      width: 4px;
-      height: 4px;
-      background: radial-gradient(circle, #ffaa66, #ff3366);
-      border-radius: 50%;
-      filter: blur(1px);
-      animation: floatSpark 3s infinite ease-in-out;
-      opacity: 0;
-      pointer-events: none;
-      z-index: 5;
-      box-shadow: 0 0 6px #ffaa66;
-    }
-    @keyframes floatSpark {
-      0% { transform: translateY(0) scale(0.5); opacity: 0; }
-      20% { opacity: 0.9; transform: scale(1); }
-      80% { opacity: 0.6; transform: translateY(-25px) scale(0.8); }
-      100% { transform: translateY(-40px) scale(0); opacity: 0; }
+    /* Анимации */
+    @keyframes neonPulse {
+      0% {
+        opacity: 0.5;
+        filter: blur(8px);
+        background: radial-gradient(circle, 
+          rgba(100, 80, 200, 0) 60%,
+          rgba(120, 90, 220, 0.2) 70%,
+          rgba(140, 100, 255, 0.4) 85%,
+          rgba(180, 130, 255, 0.6) 95%,
+          rgba(220, 180, 255, 0) 100%);
+      }
+      100% {
+        opacity: 1;
+        filter: blur(14px);
+        background: radial-gradient(circle, 
+          rgba(100, 80, 200, 0) 55%,
+          rgba(140, 110, 255, 0.3) 70%,
+          rgba(180, 130, 255, 0.6) 85%,
+          rgba(220, 180, 255, 0.9) 95%,
+          rgba(255, 220, 255, 0) 100%);
+      }
     }
 
+    @keyframes rotateRays {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    /* Вспышка при нажатии */
+    .orb.flash .neon-ring {
+      animation: eclipseFlash 0.35s ease-out;
+    }
+    @keyframes eclipseFlash {
+      0% { opacity: 0.5; filter: blur(10px); transform: scale(1); background: radial-gradient(circle, rgba(200,180,255,0.2) 50%, rgba(255,255,255,0.4) 80%, transparent 95%); }
+      50% { opacity: 1; filter: blur(20px); transform: scale(1.15); background: radial-gradient(circle, rgba(255,255,255,0.6) 40%, rgba(200,160,255,0.9) 70%, rgba(140,100,255,0.4) 90%); }
+      100% { opacity: 0.6; filter: blur(8px); transform: scale(1); }
+    }
+
+    /* Остальной UI */
     .witch-message {
-      font-size: 13px;
-      color: #ddccff;
       text-align: center;
-      padding: 10px 20px;
-      background: rgba(0,0,0,0.6);
+      font-size: 13px;
+      color: #8A7AAD;
+      background: rgba(10,5,20,0.5);
       border-radius: 60px;
-      backdrop-filter: blur(8px);
-      border: 1px solid rgba(255,255,255,0.15);
-      max-width: 280px;
+      padding: 10px 16px;
+      width: fit-content;
       margin: 0 auto;
-      box-shadow: 0 0 10px rgba(0,100,255,0.3);
+      backdrop-filter: blur(8px);
     }
 
-    /* Категории, кнопки и пр. — без изменений, но с небольшим редизайном */
-    .chip-group {
+    .chips {
       display: flex;
-      flex-wrap: wrap;
       gap: 12px;
-      justify-content: center;
-      margin-bottom: 20px;
+      margin: 20px 0 16px;
     }
     .chip {
-      background: rgba(0,0,0,0.6);
-      border: 1px solid rgba(255,150,100,0.4);
-      border-radius: 40px;
-      padding: 10px 24px;
+      flex: 1;
+      background: rgba(18, 12, 32, 0.6);
+      border: 1px solid rgba(255,255,255,0.05);
+      border-radius: 60px;
+      padding: 10px 0;
       font-size: 14px;
-      font-weight: 600;
-      color: #ffddcc;
+      font-weight: 500;
+      color: #B8A8D8;
+      text-align: center;
       cursor: pointer;
       transition: all 0.2s;
-      backdrop-filter: blur(8px);
-      flex: 1;
-      text-align: center;
     }
     .chip.active {
-      background: linear-gradient(135deg, rgba(255,100,50,0.4), rgba(255,50,100,0.3));
-      border-color: #ffaa66;
+      background: #2A1A4A;
+      border-color: #7B4BFF;
       color: white;
-      box-shadow: 0 0 15px #ff884d;
+      box-shadow: 0 0 12px rgba(123, 75, 255, 0.3);
     }
 
     .limits {
       display: flex;
-      justify-content: space-between;
       gap: 12px;
+      background: rgba(10,5,20,0.4);
+      border-radius: 60px;
+      padding: 10px 16px;
       margin-bottom: 20px;
-      background: rgba(0,0,0,0.5);
-      border-radius: 60px;
-      padding: 12px 16px;
     }
-    .limit-label { font-size: 11px; color: #aaaaff; }
-    .limit-value { font-size: 16px; font-weight: 700; color: #ffaa66; text-shadow: 0 0 4px #ff6644; }
-
-    .btn {
-      border: none;
-      padding: 12px 20px;
-      border-radius: 60px;
-      font-size: 14px;
-      font-weight: 600;
-      cursor: pointer;
+    .limit-item {
       flex: 1;
       text-align: center;
-      transition: all 0.2s;
+      font-size: 12px;
+      color: #9A8ABB;
     }
-    .btn-primary {
-      background: linear-gradient(135deg, #ff884d, #ff3366);
-      color: white;
-      box-shadow: 0 4px 15px rgba(255,68,68,0.3);
-    }
-    .btn-primary:active { transform: scale(0.98); }
-    .btn-secondary {
-      background: rgba(0,0,0,0.6);
-      border: 1px solid rgba(255,150,100,0.5);
-      color: white;
+    .limit-value {
+      font-weight: 700;
+      color: #A87BFF;
+      font-size: 16px;
     }
 
+    .button-group {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+    .btn {
+      flex: 1;
+      border: none;
+      border-radius: 60px;
+      padding: 12px;
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, #6B4BFF, #3A2A8A);
+      color: white;
+      box-shadow: 0 4px 14px rgba(107, 75, 255, 0.3);
+    }
+    .btn-secondary {
+      background: rgba(26, 18, 45, 0.8);
+      border: 1px solid rgba(255,255,255,0.1);
+      color: white;
+    }
     .footer {
       text-align: center;
       font-size: 11px;
-      color: #7799cc;
-      margin-top: 16px;
+      color: #5F4F8F;
+      margin-top: 20px;
     }
 
-    /* Заставка */
+    /* Спиннер загрузки */
     .splash {
       position: fixed;
       inset: 0;
-      z-index: 1000;
-      background: #050108;
+      background: #03010A;
       display: flex;
       align-items: center;
       justify-content: center;
-      transition: opacity 0.6s ease;
+      z-index: 1000;
+      transition: opacity 0.5s;
     }
     .splash.hide { opacity: 0; visibility: hidden; }
-    .splash-orb {
-      width: 100px; height: 100px;
-      background: radial-gradient(circle, #ffaa66, #ff3366, #550033);
-      border-radius: 50%;
-      animation: splashPulse 1s infinite alternate;
-      box-shadow: 0 0 40px #ff6644;
-    }
-    @keyframes splashPulse {
-      0% { transform: scale(1); opacity: 0.7; }
-      100% { transform: scale(1.2); opacity: 1; }
-    }
-    .splash-title {
-      font-family: 'Cormorant Garamond', serif;
-      font-size: 28px; margin-top: 20px;
-      background: linear-gradient(135deg, #fff, #ffaa88);
-      -webkit-background-clip: text;
-      background-clip: text;
-      color: transparent;
-    }
-    .splash-progress {
-      width: 200px; height: 2px;
-      background: rgba(255,100,50,0.3);
-      margin-top: 20px;
-    }
-    .splash-progress-bar {
-      width: 0%; height: 100%;
-      background: linear-gradient(90deg, #ff884d, #ff3366);
-    }
+    .splash-content { text-align: center; }
+    .splash-orb { width: 80px; height: 80px; background: radial-gradient(circle, #6B4BFF, #2A1A4A); border-radius: 50%; margin: 0 auto; animation: pulseScale 1s infinite alternate; box-shadow: 0 0 40px #6B4BFF; }
+    @keyframes pulseScale { 0% { transform: scale(1); opacity: 0.6; } 100% { transform: scale(1.2); opacity: 1; } }
+    .splash-title { margin-top: 20px; font-size: 24px; font-weight: 600; background: linear-gradient(135deg, #fff, #B8A9FF); -webkit-background-clip: text; background-clip: text; color: transparent; }
+    .progress-bar { width: 200px; height: 2px; background: #2A1A4A; margin: 20px auto; border-radius: 4px; overflow: hidden; }
+    .progress-fill { width: 0%; height: 100%; background: linear-gradient(90deg, #6B4BFF, #B87BFF); }
   </style>
 </head>
 <body>
-<div class="bg-gradient"></div>
-<div class="stars" id="stars"></div>
 
 <div class="splash" id="splash">
   <div class="splash-content">
     <div class="splash-orb"></div>
-    <div class="splash-title">СОЛНЕЧНОЕ ЗАТМЕНИЕ<br>ВЕДЬМА СКАЗАЛА</div>
-    <div class="splash-progress"><div class="splash-progress-bar" id="progressBar"></div></div>
+    <div class="splash-title">ВЕДЬМА СКАЗАЛА</div>
+    <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
   </div>
 </div>
 
-<div class="container" id="app">
+<div class="app" id="app">
   <div class="header">
-    <div class="title-section">
-      <div class="badge">🌞 КОРОНАЛЬНЫЙ ШАР</div>
-      <h1 class="main-title">Коснись затмения —<br>узнаешь ответ</h1>
+    <div>
+      <div class="badge">НЕОНОВОЕ ЗАТМЕНИЕ</div>
+      <h1>Коснись короны<br>узнаешь ответ</h1>
     </div>
     <div class="lang-switch">
       <button class="lang active" data-lang="ru">RU</button>
@@ -410,51 +363,45 @@
     </div>
   </div>
 
-  <div class="magic-card">
-    <div class="orb-container" id="orbContainer">
-      <div class="orb-shape" id="orbShape"></div>
-      <div class="orb-glow"></div>
-      <div class="orb-glint"></div>
-      <div class="orb-text" id="orbText">🔮</div>
-      <!-- Магические частицы -->
-      <div class="particle-spark" style="bottom: 15%; left: 10%; animation-delay: 0s;"></div>
-      <div class="particle-spark" style="bottom: 25%; left: 85%; animation-delay: 1.2s;"></div>
-      <div class="particle-spark" style="bottom: 60%; left: 8%; animation-delay: 0.7s;"></div>
-      <div class="particle-spark" style="bottom: 70%; left: 88%; animation-delay: 2.5s;"></div>
+  <div class="orb-card">
+    <div class="orb" id="orb">
+      <div class="rays"></div>
+      <div class="neon-ring"></div>
+      <div class="eclipse-core"></div>
+      <div class="orb-text" id="orbText">🌙</div>
     </div>
-    <div class="witch-message" id="witchLine">Коснись короны затмения, выбери тему</div>
+    <div class="witch-message" id="witchLine">Нажми на шар — начни ритуал</div>
   </div>
 
-  <div class="chip-group">
+  <div class="chips">
     <button class="chip active" data-key="love">💗 Любовь</button>
     <button class="chip" data-key="work">💼 Работа</button>
     <button class="chip" data-key="money">💰 Деньги</button>
   </div>
 
   <div class="limits">
-    <div class="limit-item"><div class="limit-label">💗 Любовь</div><div class="limit-value" id="limitLove">1</div></div>
-    <div class="limit-item"><div class="limit-label">💼 Работа</div><div class="limit-value" id="limitWork">1</div></div>
-    <div class="limit-item"><div class="limit-label">💰 Деньги</div><div class="limit-value" id="limitMoney">1</div></div>
+    <div class="limit-item"><div>💗 Любовь</div><div class="limit-value" id="limitLove">1</div></div>
+    <div class="limit-item"><div>💼 Работа</div><div class="limit-value" id="limitWork">1</div></div>
+    <div class="limit-item"><div>💰 Деньги</div><div class="limit-value" id="limitMoney">1</div></div>
   </div>
 
-  <div class="btn-row">
+  <div class="button-group">
     <button id="buyBtn" class="btn btn-secondary">⭐ Купить вопросы</button>
     <button id="inviteBtn" class="btn btn-secondary">👥 Пригласить</button>
   </div>
-  <div class="btn-row">
+  <div class="button-group">
     <button id="shareBtn" class="btn btn-primary">📤 Поделиться</button>
     <button id="againBtn" class="btn btn-secondary" style="display: none;">🎭 Другой ответ</button>
   </div>
-
-  <div class="footer">Магия внутри. Нажми — корона засияет</div>
+  <div class="footer">Магия неона внутри. Коснись — откроешь тайну</div>
 </div>
 
 <script>
   (function() {
-    // DOM элементы
+    // --- DOM элементы ---
     const splash = document.getElementById('splash');
     const app = document.getElementById('app');
-    const orbShape = document.getElementById('orbShape');
+    const orb = document.getElementById('orb');
     const orbText = document.getElementById('orbText');
     const witchLine = document.getElementById('witchLine');
     const shareBtn = document.getElementById('shareBtn');
@@ -465,80 +412,233 @@
     const limitLove = document.getElementById('limitLove');
     const limitWork = document.getElementById('limitWork');
     const limitMoney = document.getElementById('limitMoney');
-    const progressBar = document.getElementById('progressBar');
-
-    // Состояние
+    const progressFill = document.getElementById('progressFill');
+    
+    // --- Состояние ---
     let currentLang = 'ru';
     let activeCategory = 'love';
     let used = { love: 0, work: 0, money: 0 };
     let currentAnswer = '';
     let isCasting = false;
-
-    // Предсказания (оставим для краткости, как в прошлый раз)
+    
+    // --- Предсказания (короткие и атмосферные) ---
     const predictions = {
-      love: { ru: ["💗 Он напишет, когда закончится интернет. То есть никогда.", "💗 Вы будете вместе, если научишься терпеть его музыку.", "💗 Твоя любовь как криптовалюта: то взлетает, то обвал."], en: ["💗 He'll text when the internet ends.", "💗 You'll be together if you tolerate his music.", "💗 Your love is like crypto."] },
-      work: { ru: ["💼 Начальник заметит твою работу. Когда ты будешь в отпуске.", "💼 Повышение дадут тому, кто пьёт с ним кофе.", "💼 Твоя идея гениальна. Украдут через неделю."], en: ["💼 The boss will notice your work when you're on vacation.", "💼 Promotion goes to whoever drinks coffee with him.", "💼 Your idea is brilliant. It'll be stolen."] },
-      money: { ru: ["💰 Деньги придут неожиданно. Как налоги, только приятнее.", "💰 Твой бюджет худеет. Пора кормить его меньше.", "💰 Крупная покупка опустошит кошелёк. Зато будет радость."], en: ["💰 Money will come unexpectedly.", "💰 Your budget is shrinking. Feed it less.", "💰 A big purchase will empty your wallet. But joy remains."] }
+      love: {
+        ru: [
+          "🌙 Он напишет, когда закончится интернет. То есть никогда.",
+          "🌙 Твоя любовь — как криптовалюта: то взлёт, то обвал.",
+          "🌙 Отправь ему это предсказание. Если не ответит — порви.",
+          "🌙 Совместное будущее есть, но ты будешь мыть посуду.",
+          "🌙 Он уже сохранил твой номер как «Магия, осторожно»."
+        ],
+        en: [
+          "🌙 He'll text when the internet ends. That is, never.",
+          "🌙 Your love is like crypto: soar or crash.",
+          "🌙 Send him this. If no reply — rip it up.",
+          "🌙 A future exists, but you'll do the dishes.",
+          "🌙 He saved you as 'Magic, careful'."
+        ]
+      },
+      work: {
+        ru: [
+          "⚡ Начальник заметит твою работу. Когда ты будешь в отпуске.",
+          "⚡ Повышение дадут тому, кто пьёт с ним кофе.",
+          "⚡ Твоя идея гениальна. Украдут через неделю.",
+          "⚡ Коллеги тайно завидуют. И явно тоже.",
+          "⚡ Успех близко. Но сперва допей этот отчёт."
+        ],
+        en: [
+          "⚡ Boss will notice your work. When you're on vacation.",
+          "⚡ Promotion goes to whoever drinks coffee with him.",
+          "⚡ Your idea is brilliant. Stolen next week.",
+          "⚡ Colleagues envy. Secretly and openly.",
+          "⚡ Success is near. But first, finish that report."
+        ]
+      },
+      money: {
+        ru: [
+          "💰 Деньги придут. Как налоги, только приятнее.",
+          "💰 Твой бюджет худеет. Пора кормить его меньше.",
+          "💰 Крупная покупка опустошит кошелёк. Зато радость.",
+          "💰 Инвестируй в себя. Например, в этот шар.",
+          "💰 Финансовая удача уже рядом. Но не прокути."
+        ],
+        en: [
+          "💰 Money will come. Like taxes, but nicer.",
+          "💰 Your budget is shrinking. Feed it less.",
+          "💰 A big purchase will empty your wallet. Joy remains.",
+          "💰 Invest in yourself. For example, this orb.",
+          "💰 Financial luck is near. Don't splurge."
+        ]
+      }
     };
-    function getRandomPrediction(cat) { const arr = predictions[cat][currentLang]; return arr[Math.floor(Math.random() * arr.length)]; }
+    
+    function getRandomPrediction(cat) {
+      const arr = predictions[cat][currentLang];
+      return arr[Math.floor(Math.random() * arr.length)];
+    }
+    
     function showAnswer(text) {
       const words = text.split(' ');
-      const lines = []; let current = '';
-      for (let w of words) { if ((current + ' ' + w).length > 20 && current) { lines.push(current); current = w; } else { current = current ? current + ' ' + w : w; } }
+      const lines = [];
+      let current = '';
+      for (let w of words) {
+        if ((current + ' ' + w).length > 20 && current) {
+          lines.push(current);
+          current = w;
+        } else {
+          current = current ? current + ' ' + w : w;
+        }
+      }
       if (current) lines.push(current);
       orbText.innerHTML = lines.map(l => `<span class="orb-line">${l}</span>`).join('');
     }
-
+    
+    function triggerFlash() {
+      orb.classList.add('flash');
+      setTimeout(() => orb.classList.remove('flash'), 400);
+    }
+    
     async function castSpell() {
       if (isCasting) return;
-      if (used[activeCategory] >= 1) { witchLine.textContent = '⚠️ Бесплатный вопрос использован. Купи дополнительные. ⭐'; return; }
+      if (used[activeCategory] >= 1) {
+        witchLine.textContent = '⚠️ Бесплатный вопрос использован. Купи дополнительные. ⭐';
+        return;
+      }
       isCasting = true;
       used[activeCategory]++;
       localStorage.setItem('witch_used', JSON.stringify(used));
       updateLimits();
-
-      orbShape.classList.add('casting');
-      witchLine.textContent = '🌞 Корона вспыхивает...';
+      
+      triggerFlash();
+      witchLine.textContent = '🌑 Корона вспыхивает...';
       orbText.innerHTML = '✨';
-
-      await new Promise(r => setTimeout(r, 1200));
-
+      
+      if (window.Telegram?.WebApp?.HapticFeedback) window.Telegram.WebApp.HapticFeedback.impactOccurred('medium');
+      
+      await new Promise(r => setTimeout(r, 1100));
+      
       currentAnswer = getRandomPrediction(activeCategory);
       showAnswer(currentAnswer);
       witchLine.textContent = '✨ Вот что сказала ведьма ✨';
-      orbShape.classList.remove('casting');
       againBtn.style.display = 'block';
       shareBtn.dataset.text = currentAnswer;
+      
+      if (window.Telegram?.WebApp?.HapticFeedback) window.Telegram.WebApp.HapticFeedback.notificationOccurred('success');
       isCasting = false;
     }
-
-    function updateLimits() { limitLove.textContent = 1 - used.love; limitWork.textContent = 1 - used.work; limitMoney.textContent = 1 - used.money; }
+    
+    function updateLimits() {
+      limitLove.textContent = 1 - used.love;
+      limitWork.textContent = 1 - used.work;
+      limitMoney.textContent = 1 - used.money;
+    }
+    
     function loadData() {
       const saved = localStorage.getItem('witch_used');
       if (saved) { try { used = JSON.parse(saved); } catch(e) {} }
       const lastDate = localStorage.getItem('witch_date');
       const today = new Date().toDateString();
-      if (lastDate !== today) { used = { love: 0, work: 0, money: 0 }; localStorage.setItem('witch_date', today); saveUsed(); }
+      if (lastDate !== today) {
+        used = { love: 0, work: 0, money: 0 };
+        localStorage.setItem('witch_date', today);
+        saveUsed();
+      }
       updateLimits();
     }
     function saveUsed() { localStorage.setItem('witch_used', JSON.stringify(used)); }
-    function shareAnswer() { const text = shareBtn.dataset.text || currentAnswer; if (window.Telegram?.WebApp?.openTelegramLink) { window.Telegram.WebApp.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent('https://t.me/place_bot')}&text=${encodeURIComponent('🌞 ' + text + ' 🌞')}`); } else { alert('🌞 ' + text); } }
+    
+    function shareAnswer() {
+      const text = shareBtn.dataset.text || currentAnswer;
+      const shareText = `🌑 ${text} 🌑\n\n✨ Ведьма сказала — магический шар`;
+      if (window.Telegram?.WebApp?.openTelegramLink) {
+        window.Telegram.WebApp.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent('https://t.me/place_bot')}&text=${encodeURIComponent(shareText)}`);
+      } else {
+        alert(shareText);
+      }
+    }
     function anotherAnswer() { if (!isCasting && used[activeCategory] < 1) castSpell(); }
-    function buyQuestions() { alert('⭐ Покупка вопросов через Telegram Stars\nСкоро появится!'); }
-    function inviteFriend() { alert('👥 Пригласи друга:\nhttps://t.me/place_bot?start=ref'); }
-
-    document.getElementById('orbContainer').addEventListener('click', castSpell);
+    function buyQuestions() { alert('⭐ Покупка через Telegram Stars появится скоро'); }
+    function inviteFriend() { alert('👥 Пригласи друга: https://t.me/place_bot?start=ref'); }
+    
+    // --- Обработчики ---
+    orb.addEventListener('click', castSpell);
     shareBtn.addEventListener('click', shareAnswer);
     againBtn.addEventListener('click', anotherAnswer);
     buyBtn.addEventListener('click', buyQuestions);
     inviteBtn.addEventListener('click', inviteFriend);
-    chips.forEach(chip => { chip.addEventListener('click', () => { chips.forEach(c => c.classList.remove('active')); chip.classList.add('active'); activeCategory = chip.dataset.key; witchLine.textContent = `🔮 Выбрана сфера: ${chip.textContent.trim()}`; againBtn.style.display = 'none'; orbText.innerHTML = '🌞'; }); });
-    document.querySelectorAll('.lang').forEach(btn => { btn.addEventListener('click', () => { const newLang = btn.dataset.lang; if (newLang === currentLang) return; currentLang = newLang; document.querySelectorAll('.lang').forEach(b => b.classList.remove('active')); btn.classList.add('active'); orbText.innerHTML = '🌞'; witchLine.textContent = 'Коснись короны затмения'; }); });
-
+    
+    chips.forEach(chip => {
+      chip.addEventListener('click', () => {
+        chips.forEach(c => c.classList.remove('active'));
+        chip.classList.add('active');
+        activeCategory = chip.dataset.key;
+        witchLine.textContent = `🔮 Выбрана сфера: ${chip.textContent.trim()}`;
+        againBtn.style.display = 'none';
+        orbText.innerHTML = '🌙';
+      });
+    });
+    
+    document.querySelectorAll('.lang').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const val = btn.dataset.lang;
+        if (val === currentLang) return;
+        currentLang = val;
+        document.querySelectorAll('.lang').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        orbText.innerHTML = '🌙';
+        witchLine.textContent = 'Нажми на шар — начни ритуал';
+      });
+    });
+    
+    // --- Скрываем заставку ---
     let progress = 0;
-    const interval = setInterval(() => { progress += Math.random() * 15 + 5; if (progress >= 100) { progress = 100; clearInterval(interval); progressBar.style.width = '100%'; setTimeout(() => { splash.classList.add('hide'); setTimeout(() => { splash.style.display = 'none'; if (window.Telegram?.WebApp) { window.Telegram.WebApp.ready(); window.Telegram.WebApp.expand(); } }, 600); }, 400); } progressBar.style.width = progress + '%'; }, 150);
-    for (let i = 0; i < 80; i++) { const star = document.createElement('div'); star.className = 'star'; star.style.left = Math.random() * 100 + '%'; star.style.top = Math.random() * 100 + '%'; star.style.width = Math.random() * 2 + 1 + 'px'; star.style.animationDelay = Math.random() * 5 + 's'; document.getElementById('stars').appendChild(star); }
-    loadData(); orbText.innerHTML = '🌞';
+    const interval = setInterval(() => {
+      progress += Math.random() * 15 + 5;
+      if (progress >= 100) {
+        progress = 100;
+        clearInterval(interval);
+        progressFill.style.width = '100%';
+        setTimeout(() => {
+          splash.classList.add('hide');
+          setTimeout(() => {
+            splash.style.display = 'none';
+            if (window.Telegram?.WebApp) {
+              window.Telegram.WebApp.ready();
+              window.Telegram.WebApp.expand();
+            }
+          }, 400);
+        }, 300);
+      }
+      progressFill.style.width = progress + '%';
+    }, 150);
+    
+    // --- Звёздный фон (декоративный) ---
+    const starsContainer = document.createElement('div');
+    starsContainer.style.position = 'fixed';
+    starsContainer.style.inset = '0';
+    starsContainer.style.pointerEvents = 'none';
+    starsContainer.style.zIndex = '0';
+    for (let i = 0; i < 80; i++) {
+      const s = document.createElement('div');
+      s.style.position = 'absolute';
+      s.style.width = Math.random() * 2 + 1 + 'px';
+      s.style.height = s.style.width;
+      s.style.background = '#fff';
+      s.style.borderRadius = '50%';
+      s.style.left = Math.random() * 100 + '%';
+      s.style.top = Math.random() * 100 + '%';
+      s.style.opacity = Math.random() * 0.5;
+      s.style.animation = `starTwinkle ${2 + Math.random() * 4}s infinite`;
+      starsContainer.appendChild(s);
+    }
+    document.body.insertBefore(starsContainer, app);
+    const style = document.createElement('style');
+    style.textContent = `@keyframes starTwinkle { 0%,100% { opacity: 0; } 50% { opacity: 1; } }`;
+    document.head.appendChild(style);
+    
+    loadData();
+    orbText.innerHTML = '🌙';
   })();
 </script>
 </body>
