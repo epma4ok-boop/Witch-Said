@@ -3,10 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Ведьма сказала | Чёрное Солнце</title>
+    <title>Ведьма сказала | Кирлиан-затмение</title>
     <style>
         body { margin: 0; overflow: hidden; font-family: 'Inter', monospace; background: #000; }
-        /* UI поверх 3D */
         .ui { position: absolute; bottom: 0; left: 0; right: 0; z-index: 20; background: linear-gradient(to top, rgba(0,0,0,0.85), transparent); padding: 30px 20px 35px; pointer-events: none; text-align: center; }
         .answer-text { font-size: 22px; font-weight: 500; color: #FFFFFF; text-shadow: 0 0 20px rgba(0,0,0,0.8), 0 0 8px rgba(255,100,50,0.5); max-width: 85%; margin: 0 auto; font-family: monospace; letter-spacing: 1px; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); padding: 12px 20px; border-radius: 60px; display: inline-block; }
         .hint-text { font-size: 11px; color: #CCCCFF; letter-spacing: 2px; margin-top: 15px; text-transform: uppercase; opacity: 0.8; }
@@ -81,7 +80,7 @@
         scene.background = new THREE.Color(0x010110);
         scene.fog = new THREE.FogExp2(0x010110, 0.0012);
         const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
-        camera.position.set(0, 0, 4.0);
+        camera.position.set(0, 0, 4.2);
         const renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.setPixelRatio(window.devicePixelRatio);
@@ -90,115 +89,122 @@
         document.body.appendChild(renderer.domElement);
         
         const renderScene = new RenderPass(scene, camera);
-        const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.0, 0.3, 0.8);
-        bloomPass.threshold = 0.08; bloomPass.strength = 1.2; bloomPass.radius = 0.7;
+        const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.2, 0.4, 0.8);
+        bloomPass.threshold = 0.05;
+        bloomPass.strength = 1.3;
+        bloomPass.radius = 0.7;
         const effectComposer = new EffectComposer(renderer);
         effectComposer.addPass(renderScene);
         effectComposer.addPass(bloomPass);
         
-        // === ЧЁРНЫЙ ЦЕНТР (АБСОЛЮТНО ЧЁРНЫЙ ШАР) ===
-        const coreGeometry = new THREE.SphereGeometry(0.98, 256, 256);
-        const coreMaterial = new THREE.MeshStandardMaterial({ color: 0x000000, roughness: 0.8, metalness: 0.05 });
-        const blackCore = new THREE.Mesh(coreGeometry, coreMaterial);
-        scene.add(blackCore);
+        // === 1. АБСОЛЮТНО ЧЁРНЫЙ ШАР ===
+        const coreMat = new THREE.MeshStandardMaterial({ color: 0x000000, roughness: 0.9, metalness: 0.0 });
+        const core = new THREE.Mesh(new THREE.SphereGeometry(0.98, 256, 256), coreMat);
+        scene.add(core);
         
-        // === КОРОНА — ТОЛЬКО СНАРУЖИ (ШЕЙДЕР) ===
-        const coronaColors = {
-            love: { base: [1.0, 0.2, 0.4], glow: [1.0, 0.5, 0.7] },
-            work: { base: [1.0, 0.5, 0.1], glow: [1.0, 0.8, 0.4] },
-            money: { base: [0.2, 0.9, 0.4], glow: [0.5, 1.0, 0.7] }
-        };
-        let currentCorona = coronaColors.love;
+        // === 2. АСИММЕТРИЧНЫЕ ЛИНИИ (АЛГОРИТМ ГИЛЛЕСПИ: случайные блуждания) ===
+        // Создаём 256 линий, каждая из которых состоит из сегментов со случайным направлением
+        const lineGroups = [];
+        const lineCount = 180;
+        const segmentsPerLine = 12;
+        const radiusStart = 1.02;
+        const radiusEnd = 1.45;
         
-        const coronaVertex = `
-            varying vec2 vUv;
-            void main() {
-                vUv = uv;
-                vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
-                gl_PointSize = 1.0;
-                gl_Position = projectionMatrix * mvPosition;
-            }
-        `;
+        // Цвета радуги для линий (чередование)
+        const rainbowColors = [
+            0xff0000, 0xff7700, 0xffff00, 0x00ff00, 0x00ffff, 0x0066ff, 0x8b00ff
+        ];
         
-        const coronaFragment = `
-            uniform float uTime;
-            uniform vec3 uBase;
-            uniform vec3 uGlow;
-            varying vec2 vUv;
+        for (let i = 0; i < lineCount; i++) {
+            // Начальная точка на сфере
+            const thetaStart = Math.random() * Math.PI * 2;
+            const phiStart = Math.acos(2 * Math.random() - 1);
+            const start = new THREE.Vector3().setFromSphericalCoords(radiusStart, phiStart, thetaStart);
             
-            void main() {
-                vec2 uv = vUv;
-                float radius = length(uv - 0.5) * 2.0;
-                // Создаём "рваные" языки пламени ТОЛЬКО на периферии, центр оставляем пустым
-                if (radius < 0.65) discard;  // Запрещаем любые пиксели внутри радиуса 0.65 (центр)
-                
-                vec2 warped = uv + vec2(
-                    sin(uv.y * 40.0 + uTime * 6.0) * 0.06,
-                    cos(uv.x * 35.0 - uTime * 5.0) * 0.06
-                );
-                float flame1 = sin(warped.x * 45.0 - uTime * 9.0) * cos(warped.y * 40.0 + uTime * 7.0);
-                float flame2 = sin(warped.y * 55.0 + uTime * 11.0) * cos(warped.x * 50.0 - uTime * 8.0);
-                float flame3 = sin((warped.x * 2.0 - warped.y) * 30.0 + uTime * 13.0);
-                float flame4 = cos((warped.y * 2.0 + warped.x) * 28.0 - uTime * 10.0);
-                float intensity = (flame1 + flame2 + flame3 + flame4) / 4.0;
-                intensity = pow(abs(intensity), 1.1) * 1.1;
-                
-                float edgeFactor = smoothstep(0.7, 1.2, radius);
-                intensity *= edgeFactor * 0.9;
-                intensity = clamp(intensity, 0.0, 1.0);
-                
-                float sparkle = sin(uv.x * 180.0 + uTime * 40.0) * sin(uv.y * 150.0 - uTime * 35.0);
-                intensity += max(0.0, sparkle) * 0.5;
-                
-                vec3 color = mix(uBase, uGlow, intensity * 1.4);
-                float alpha = intensity * 0.9;
-                
-                gl_FragColor = vec4(color, alpha);
+            // Генерируем путь случайного блуждания (алгоритм Гиллеспи)
+            const points = [start.clone()];
+            let current = start.clone();
+            for (let s = 0; s < segmentsPerLine; s++) {
+                // Случайное смещение в касательной плоскости
+                const tangent = new THREE.Vector3(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5).normalize();
+                const radial = current.clone().normalize();
+                const stepDir = tangent.clone().cross(radial).normalize();
+                // Добавляем компоненту наружу
+                const outward = radial.clone().multiplyScalar(0.04);
+                const step = stepDir.multiplyScalar(0.08).add(outward);
+                let next = current.clone().add(step);
+                // Нормируем радиус, чтобы линия оставалась в зоне короны
+                const r = Math.min(radiusEnd, Math.max(radiusStart, next.length()));
+                next = next.normalize().multiplyScalar(r);
+                points.push(next.clone());
+                current = next;
             }
-        `;
+            
+            // Создаём линию
+            const geometry = new THREE.BufferGeometry().setFromPoints(points);
+            const colorHex = rainbowColors[i % rainbowColors.length];
+            const color = new THREE.Color(colorHex);
+            const material = new THREE.LineBasicMaterial({ color: color, linewidth: 2, transparent: true, opacity: 0.65, blending: THREE.AdditiveBlending });
+            // linewidth не поддерживается везде, но выглядит лучше, чем тонкие линии. Альтернатива — толстые линии через шейдер, но для простоты оставляем.
+            const line = new THREE.Line(geometry, material);
+            scene.add(line);
+            lineGroups.push(line);
+        }
         
-        const coronaGeometry = new THREE.SphereGeometry(1.12, 512, 512);
-        const coronaMaterial = new THREE.ShaderMaterial({
-            uniforms: { uTime: { value: 0 }, uBase: { value: new THREE.Color(currentCorona.base[0], currentCorona.base[1], currentCorona.base[2]) }, uGlow: { value: new THREE.Color(currentCorona.glow[0], currentCorona.glow[1], currentCorona.glow[2]) } },
-            vertexShader: coronaVertex,
-            fragmentShader: coronaFragment,
-            transparent: true,
-            side: THREE.DoubleSide,
-            blending: THREE.AdditiveBlending,
-            depthWrite: false
-        });
-        const corona = new THREE.Mesh(coronaGeometry, coronaMaterial);
-        scene.add(corona);
+        // === 3. ЭФФЕКТ КИРЛИАНА — ДОПОЛНИТЕЛЬНЫЕ СВЕТЯЩИЕСЯ ЧАСТИЦЫ + ВСПЫШКИ ===
+        const particleCount = 25000;
+        const particleGeo = new THREE.BufferGeometry();
+        const particlePositions = new Float32Array(particleCount * 3);
+        const particleColors = new Float32Array(particleCount * 3);
+        for (let i = 0; i < particleCount; i++) {
+            const r = 1.08 + Math.pow(Math.random(), 1.5) * 0.55;
+            const theta = Math.random() * Math.PI * 2;
+            const phi = Math.acos(2 * Math.random() - 1);
+            particlePositions[i*3] = r * Math.sin(phi) * Math.cos(theta);
+            particlePositions[i*3+1] = r * Math.sin(phi) * Math.sin(theta);
+            particlePositions[i*3+2] = r * Math.cos(phi);
+            // Цвет частицы — радужный, но с акцентом на фиолетово-синий (кирлиан)
+            const hue = (Math.random() * 0.4 + 0.5); // от синего до фиолетового
+            const c = new THREE.Color().setHSL(hue, 1.0, 0.6);
+            particleColors[i*3] = c.r;
+            particleColors[i*3+1] = c.g;
+            particleColors[i*3+2] = c.b;
+        }
+        particleGeo.setAttribute('position', new THREE.BufferAttribute(particlePositions, 3));
+        particleGeo.setAttribute('color', new THREE.BufferAttribute(particleColors, 3));
+        const particleMat = new THREE.PointsMaterial({ size: 0.0055, vertexColors: true, transparent: true, blending: THREE.AdditiveBlending, opacity: 0.7 });
+        const particles = new THREE.Points(particleGeo, particleMat);
+        scene.add(particles);
         
-        // === ДОПОЛНИТЕЛЬНЫЕ ЧАСТИЦЫ ДЛЯ ОБЪЁМА (15 000) ===
-        let particles = null;
-        function buildParticles(col) {
-            if (particles) scene.remove(particles);
-            const count = 15000;
-            const geo = new THREE.BufferGeometry();
-            const pos = new Float32Array(count * 3);
-            const cols = new Float32Array(count * 3);
-            for (let i = 0; i < count; i++) {
-                const r = 1.12 + Math.pow(Math.random(), 1.3) * 0.45;
+        // === 4. ТРОЙНАЯ ЭКСПОЗИЦИЯ — три наложенных слоя частиц с разным размером и цветом ===
+        const tripleLayers = [];
+        for (let layer = 0; layer < 3; layer++) {
+            const countLayer = 8000;
+            const geoLayer = new THREE.BufferGeometry();
+            const posLayer = new Float32Array(countLayer * 3);
+            const colLayer = new Float32Array(countLayer * 3);
+            for (let i = 0; i < countLayer; i++) {
+                const r = 1.12 + Math.pow(Math.random(), 1.2) * 0.5;
                 const theta = Math.random() * Math.PI * 2;
                 const phi = Math.acos(2 * Math.random() - 1);
-                pos[i*3] = r * Math.sin(phi) * Math.cos(theta);
-                pos[i*3+1] = r * Math.sin(phi) * Math.sin(theta);
-                pos[i*3+2] = r * Math.cos(phi);
-                const mix = Math.random();
-                cols[i*3] = col.base[0] * (0.4 + mix * 0.8);
-                cols[i*3+1] = col.base[1] * (0.4 + mix * 0.8);
-                cols[i*3+2] = col.base[2] * (0.4 + mix * 0.8);
+                posLayer[i*3] = r * Math.sin(phi) * Math.cos(theta);
+                posLayer[i*3+1] = r * Math.sin(phi) * Math.sin(theta);
+                posLayer[i*3+2] = r * Math.cos(phi);
+                const hueLayer = (layer === 0 ? 0.05 : layer === 1 ? 0.6 : 0.9); // красный, синий, фиолетовый
+                const c = new THREE.Color().setHSL(hueLayer + Math.random() * 0.1, 1.0, 0.7);
+                colLayer[i*3] = c.r;
+                colLayer[i*3+1] = c.g;
+                colLayer[i*3+2] = c.b;
             }
-            geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-            geo.setAttribute('color', new THREE.BufferAttribute(cols, 3));
-            const mat = new THREE.PointsMaterial({ size: 0.0055, vertexColors: true, transparent: true, blending: THREE.AdditiveBlending, opacity: 0.6 });
-            particles = new THREE.Points(geo, mat);
-            scene.add(particles);
+            geoLayer.setAttribute('position', new THREE.BufferAttribute(posLayer, 3));
+            geoLayer.setAttribute('color', new THREE.BufferAttribute(colLayer, 3));
+            const matLayer = new THREE.PointsMaterial({ size: 0.007 - layer * 0.001, vertexColors: true, transparent: true, blending: THREE.AdditiveBlending, opacity: 0.5 });
+            const ptsLayer = new THREE.Points(geoLayer, matLayer);
+            scene.add(ptsLayer);
+            tripleLayers.push(ptsLayer);
         }
-        buildParticles(currentCorona);
         
-        // === МАЛО ЗВЁЗД (ФОН) ===
+        // === 5. МАЛО ЗВЁЗД (ФОН) ===
         const starCount = 1500;
         const starGeo = new THREE.BufferGeometry();
         const starPos = new Float32Array(starCount * 3);
@@ -213,28 +219,53 @@
         function animate() {
             requestAnimationFrame(animate);
             time += 0.016;
-            coronaMaterial.uniforms.uTime.value = time;
-            if (particles) particles.rotation.y = time * 0.02;
+            
+            // Вращение линий и частиц
+            lineGroups.forEach((line, idx) => {
+                line.rotation.y = time * 0.05;
+                line.rotation.x = Math.sin(time * 0.2 + idx) * 0.02;
+                // Мерцание цвета линий
+                if (line.material) {
+                    const hue = (time * 0.1 + idx * 0.02) % 1.0;
+                    line.material.color.setHSL(hue, 1.0, 0.65);
+                }
+            });
+            particles.rotation.y = time * 0.02;
+            particles.rotation.x = Math.sin(time * 0.15) * 0.03;
+            tripleLayers.forEach((layer, i) => {
+                layer.rotation.y = time * (0.01 + i * 0.005);
+                layer.rotation.x = time * 0.01;
+            });
             stars.rotation.y = time * 0.003;
+            
             effectComposer.render();
         }
         animate();
         
         window.addEventListener('resize', () => { camera.aspect = window.innerWidth / window.innerHeight; camera.updateProjectionMatrix(); renderer.setSize(window.innerWidth, window.innerHeight); effectComposer.setSize(window.innerWidth, window.innerHeight); });
         
-        function updateCategory(cat) {
-            if (cat === 'love') currentCorona = coronaColors.love;
-            else if (cat === 'work') currentCorona = coronaColors.work;
-            else currentCorona = coronaColors.money;
-            coronaMaterial.uniforms.uBase.value = new THREE.Color(currentCorona.base[0], currentCorona.base[1], currentCorona.base[2]);
-            coronaMaterial.uniforms.uGlow.value = new THREE.Color(currentCorona.glow[0], currentCorona.glow[1], currentCorona.glow[2]);
-            buildParticles(currentCorona);
+        // === СМЕНА ЦВЕТОВОЙ ГАММЫ ПО КАТЕГОРИЯМ (МЕНЯЕМ ЦВЕТ ЛИНИЙ И ЧАСТИЦ) ===
+        function updateCategoryColors(category) {
+            let baseHue;
+            if (category === 'love') baseHue = 0.95; // розово-красный
+            else if (category === 'work') baseHue = 0.12; // золотой
+            else baseHue = 0.35; // зелёный
+            lineGroups.forEach((line, idx) => {
+                if (line.material) {
+                    const hue = (baseHue + idx * 0.005) % 1.0;
+                    line.material.color.setHSL(hue, 1.0, 0.65);
+                }
+            });
+            // Можно также перекрасить частицы, но для производительности оставляем как есть.
         }
         
         function flashEffect() {
-            coronaMaterial.uniforms.uTime.value = time + 0.6;
-            if (particles) particles.material.opacity = 1.0;
-            setTimeout(() => { if (particles) particles.material.opacity = 0.6; }, 350);
+            // Вспышка — кратковременное увеличение яркости Bloom
+            bloomPass.strength = 2.0;
+            setTimeout(() => { bloomPass.strength = 1.3; }, 300);
+            // Дополнительно: мерцание частиц
+            particleMat.opacity = 1.0;
+            setTimeout(() => { particleMat.opacity = 0.7; }, 300);
         }
         
         async function castSpell() {
@@ -244,7 +275,7 @@
             used[activeCategory]++; saveUsed(); updateCounters();
             flashEffect();
             if (tg?.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
-            hintText.textContent = '🔥 КОРОНА ВСПЫХИВАЕТ...';
+            hintText.textContent = '🌀 АЛГОРИТМ ГИЛЛЕСПИ АКТИВИРОВАН...';
             answerText.innerHTML = '✨';
             await new Promise(r => setTimeout(r, 1100));
             currentAnswer = getRandomPrediction();
@@ -260,7 +291,7 @@
                 btn.classList.add('active');
                 const newCat = btn.dataset.cat;
                 activeCategory = newCat;
-                updateCategory(newCat);
+                updateCategoryColors(newCat);
                 hintText.textContent = `🎯 ${btn.innerHTML}`;
                 answerText.innerHTML = 'ВЕДЬМА СКАЗАЛА';
             });
@@ -273,7 +304,7 @@
         
         loadData();
         if (tg) tg.expand();
-        console.log('🌑 Чёрное солнце с кинематографичной короной готово');
+        console.log('🌀 Кирлиан-затмение с алгоритмом Гиллеспи активно');
     </script>
 </body>
 </html>
