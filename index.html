@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Ведьма сказала | Солнечное затмение — Eclipse Shader</title>
+    <title>Ведьма сказала | Солнечное затмение — Уровень 2</title>
     <style>
         body {
             margin: 0;
             overflow: hidden;
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', monospace;
             background: #000;
         }
         
@@ -19,7 +19,7 @@
             left: 0;
             right: 0;
             z-index: 20;
-            background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+            background: linear-gradient(to top, rgba(0,0,0,0.85), transparent);
             padding: 30px 20px 35px;
             pointer-events: none;
             text-align: center;
@@ -251,10 +251,10 @@
             else { alert('👥 Пригласить: ' + link); }
         }
         
-        // ========== 3D СЦЕНА С ПРОФЕССИОНАЛЬНЫМ ECLIPSE SHADER ==========
+        // ========== 3D СЦЕНА — УРОВЕНЬ 2 ==========
         const scene = new THREE.Scene();
         scene.background = new THREE.Color(0x010118);
-        scene.fog = new THREE.FogExp2(0x010118, 0.002);
+        scene.fog = new THREE.FogExp2(0x010118, 0.0015);
         
         const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
         camera.position.set(0, 0, 4.2);
@@ -263,21 +263,20 @@
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.setPixelRatio(window.devicePixelRatio);
         renderer.toneMapping = THREE.ReinhardToneMapping;
-        renderer.toneMappingExposure = 1.2;
+        renderer.toneMappingExposure = 1.3;
         document.body.appendChild(renderer.domElement);
         
-        // Профессиональный Bloom
+        // Bloom
         const renderScene = new RenderPass(scene, camera);
-        const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 0.8, 0.3, 0.7);
-        bloomPass.threshold = 0.1;
-        bloomPass.strength = 0.95;
-        bloomPass.radius = 0.6;
+        const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 0.9, 0.3, 0.7);
+        bloomPass.threshold = 0.08;
+        bloomPass.strength = 1.0;
+        bloomPass.radius = 0.65;
         const effectComposer = new EffectComposer(renderer);
         effectComposer.addPass(renderScene);
         effectComposer.addPass(bloomPass);
         
-        // ========== ECLIPSE SHADER ==========
-        // Вершинный шейдер — просто передаём позицию и нормаль
+        // ========== СТАРОМУДРЫЙ SHADER ЗАТМЕНИЯ ==========
         const vertexShader = `
             varying vec2 vUv;
             varying vec3 vNormal;
@@ -290,7 +289,6 @@
             }
         `;
         
-        // Фрагментный шейдер — симуляция затмения
         const fragmentShader = `
             uniform float uTime;
             uniform vec3 uColorDay;
@@ -300,29 +298,24 @@
             varying vec3 vNormal;
             
             void main() {
-                // Симуляция положения "солнца" (источник света)
-                vec3 lightDir = normalize(vec3(1.0, 2.0, 1.0));
-                float dotNL = max(0.2, dot(vNormal, lightDir));
+                vec3 lightDir = normalize(vec3(1.0, 1.8, 1.2));
+                float dotNL = max(0.15, dot(vNormal, lightDir));
                 
-                // Симуляция затмения — создаём тень от "луны"
-                // Используем UV для создания эффекта затемнения на одной стороне шара
                 float eclipseFactor = smoothstep(0.2, 0.8, vUv.x);
                 eclipseFactor = mix(eclipseFactor, 1.0 - eclipseFactor, uEclipseProgress);
                 
-                // Добавляем "корону" — свечение по краям
-                float corona = pow(1.0 - abs(vUv.x - 0.5) * 2.0, 3.0) * 0.8;
-                corona += sin(vUv.y * 50.0 + uTime * 10.0) * 0.05;
+                float corona = pow(1.0 - abs(vUv.x - 0.5) * 2.0, 2.5) * 0.9;
+                corona += sin(vUv.y * 80.0 + uTime * 12.0) * 0.08;
+                corona += sin(vUv.x * 120.0 - uTime * 15.0) * 0.06;
                 
-                // Базовый цвет: смесь дневной и ночной стороны
+                float sparkle = sin(vUv.x * 150.0 + uTime * 40.0) * 0.12;
+                sparkle += cos(vUv.y * 180.0 + uTime * 35.0) * 0.1;
+                
                 vec3 finalColor = mix(uColorNight, uColorDay, dotNL * (1.0 - eclipseFactor));
+                finalColor += vec3(0.9, 0.65, 0.35) * corona * (0.6 + uEclipseProgress * 1.2);
+                finalColor += vec3(1.0, 0.85, 0.5) * max(0.0, sparkle) * uEclipseProgress * 0.8;
                 
-                // Добавляем свечение короны
-                finalColor += vec3(0.8, 0.6, 0.3) * corona * (0.5 + uEclipseProgress);
-                
-                // Мерцание (эффект "бриллиантового кольца")
-                float sparkle = sin(vUv.x * 80.0 + uTime * 30.0) * 0.1;
-                finalColor += vec3(1.0, 0.8, 0.4) * max(0.0, sparkle) * uEclipseProgress;
-                
+                finalColor = pow(finalColor, vec3(1.0/1.1));
                 gl_FragColor = vec4(finalColor, 1.0);
             }
         `;
@@ -330,7 +323,7 @@
         const shaderMaterial = new THREE.ShaderMaterial({
             uniforms: {
                 uTime: { value: 0 },
-                uColorDay: { value: new THREE.Color(0x88aaff) },
+                uColorDay: { value: new THREE.Color(0x6688cc) },
                 uColorNight: { value: new THREE.Color(0x110022) },
                 uEclipseProgress: { value: 0.5 }
             },
@@ -340,39 +333,81 @@
             side: THREE.DoubleSide
         });
         
-        const sphereGeometry = new THREE.SphereGeometry(1.0, 256, 256);
+        const sphereGeometry = new THREE.SphereGeometry(1.0, 512, 512);
         const eclipseSphere = new THREE.Mesh(sphereGeometry, shaderMaterial);
         scene.add(eclipseSphere);
         
-        // Добавляем внешнюю корону — мерцающие частицы
-        const coronaCount = 4000;
+        // ========== HDRI-ЗВЁЗДЫ (20 000 ЧАСТИЦ ВОКРУГ) ==========
+        const starCount = 20000;
+        const starGeo = new THREE.BufferGeometry();
+        const starPositions = new Float32Array(starCount * 3);
+        for (let i = 0; i < starCount; i++) {
+            // Разбрасываем звёзды в большом кубе
+            starPositions[i*3] = (Math.random() - 0.5) * 200;
+            starPositions[i*3+1] = (Math.random() - 0.5) * 100;
+            starPositions[i*3+2] = (Math.random() - 0.5) * 80 - 40;
+        }
+        starGeo.setAttribute('position', new THREE.BufferAttribute(starPositions, 3));
+        const starMat = new THREE.PointsMaterial({
+            color: 0xffffff,
+            size: 0.08,
+            transparent: true,
+            opacity: 0.7,
+            blending: THREE.AdditiveBlending
+        });
+        const stars = new THREE.Points(starGeo, starMat);
+        scene.add(stars);
+        
+        // ========== КОРОНА — 50 000 МЕРЦАЮЩИХ ЧАСТИЦ ==========
+        const particleCount = 50000;
         const coronaGeo = new THREE.BufferGeometry();
-        const coronaPositions = new Float32Array(coronaCount * 3);
-        for (let i = 0; i < coronaCount; i++) {
-            const r = 1.12 + Math.random() * 0.18;
+        const coronaPositions = new Float32Array(particleCount * 3);
+        const coronaColors = new Float32Array(particleCount * 3);
+        
+        for (let i = 0; i < particleCount; i++) {
+            // Распределение частиц по сфере с разбросом
+            const r = 1.08 + Math.pow(Math.random(), 1.5) * 0.35;
             const theta = Math.random() * Math.PI * 2;
             const phi = Math.acos(2 * Math.random() - 1);
             coronaPositions[i*3] = r * Math.sin(phi) * Math.cos(theta);
             coronaPositions[i*3+1] = r * Math.sin(phi) * Math.sin(theta);
             coronaPositions[i*3+2] = r * Math.cos(phi);
+            
+            // Цвет частицы: от золотого до красноватого
+            const colorChoice = Math.random();
+            if (colorChoice < 0.7) {
+                coronaColors[i*3] = 1.0;
+                coronaColors[i*3+1] = 0.6 + Math.random() * 0.3;
+                coronaColors[i*3+2] = 0.2 + Math.random() * 0.3;
+            } else if (colorChoice < 0.9) {
+                coronaColors[i*3] = 1.0;
+                coronaColors[i*3+1] = 0.3 + Math.random() * 0.4;
+                coronaColors[i*3+2] = 0.5 + Math.random() * 0.5;
+            } else {
+                coronaColors[i*3] = 0.8 + Math.random() * 0.2;
+                coronaColors[i*3+1] = 0.2 + Math.random() * 0.3;
+                coronaColors[i*3+2] = 0.9 + Math.random() * 0.1;
+            }
         }
         coronaGeo.setAttribute('position', new THREE.BufferAttribute(coronaPositions, 3));
-        const coronaMat = new THREE.PointsMaterial({
-            color: 0xffaa66,
-            size: 0.006,
+        coronaGeo.setAttribute('color', new THREE.BufferAttribute(coronaColors, 3));
+        
+        const coronaMatLevel2 = new THREE.PointsMaterial({
+            size: 0.005,
+            vertexColors: true,
             transparent: true,
             blending: THREE.AdditiveBlending,
-            opacity: 0.6
+            opacity: 0.65
         });
-        const coronaParticles = new THREE.Points(coronaGeo, coronaMat);
+        const coronaParticles = new THREE.Points(coronaGeo, coronaMatLevel2);
         scene.add(coronaParticles);
         
-        // Внутренние частицы (магическая пыль)
-        const dustCount = 2000;
+        // Внутренние светящиеся частицы (магическая пыль)
+        const dustCount = 8000;
         const dustGeo = new THREE.BufferGeometry();
         const dustPositions = new Float32Array(dustCount * 3);
         for (let i = 0; i < dustCount; i++) {
-            const r = 0.95 + Math.random() * 0.25;
+            const r = 0.92 + Math.random() * 0.25;
             const theta = Math.random() * Math.PI * 2;
             const phi = Math.acos(2 * Math.random() - 1);
             dustPositions[i*3] = r * Math.sin(phi) * Math.cos(theta);
@@ -382,10 +417,10 @@
         dustGeo.setAttribute('position', new THREE.BufferAttribute(dustPositions, 3));
         const dustMat = new THREE.PointsMaterial({
             color: 0x88aaff,
-            size: 0.004,
+            size: 0.003,
             transparent: true,
             blending: THREE.AdditiveBlending,
-            opacity: 0.4
+            opacity: 0.45
         });
         const dustParticles = new THREE.Points(dustGeo, dustMat);
         scene.add(dustParticles);
@@ -399,20 +434,22 @@
             requestAnimationFrame(animate);
             time += 0.016;
             
-            // Медленное изменение фазы затмения (0 → 1 → 0)
-            eclipsePhase += 0.002 * eclipseDirection;
+            eclipsePhase += 0.0018 * eclipseDirection;
             if (eclipsePhase >= 1) { eclipsePhase = 1; eclipseDirection = -1; }
             if (eclipsePhase <= 0) { eclipsePhase = 0; eclipseDirection = 1; }
             
-            // Обновление шейдера
             shaderMaterial.uniforms.uTime.value = time;
             shaderMaterial.uniforms.uEclipseProgress.value = eclipsePhase;
             
+            // Вращение звёзд
+            stars.rotation.y = time * 0.01;
+            stars.rotation.x = time * 0.005;
+            
             // Анимация короны
-            coronaMat.color.setHSL(0.12 + Math.sin(time * 0.5) * 0.05, 1.0, 0.65);
-            coronaParticles.rotation.y = time * 0.05;
-            dustParticles.rotation.y = time * 0.03;
-            dustParticles.rotation.x = Math.sin(time * 0.2) * 0.1;
+            coronaParticles.rotation.y = time * 0.03;
+            coronaParticles.rotation.x = Math.sin(time * 0.15) * 0.05;
+            dustParticles.rotation.y = time * 0.02;
+            dustParticles.rotation.x = Math.sin(time * 0.2) * 0.08;
             
             effectComposer.render();
         }
@@ -425,17 +462,16 @@
             effectComposer.setSize(window.innerWidth, window.innerHeight);
         });
         
-        // Вспышка при нажатии
+        // Вспышка
         function flashEffect() {
-            shaderMaterial.uniforms.uEclipseProgress.value = 0.95;
-            coronaMat.color.setHex(0xffaa88);
+            shaderMaterial.uniforms.uEclipseProgress.value = 0.98;
+            coronaMatLevel2.opacity = 1.0;
             setTimeout(() => {
                 shaderMaterial.uniforms.uEclipseProgress.value = eclipsePhase;
-                coronaMat.color.setHex(0xffaa66);
-            }, 400);
+                coronaMatLevel2.opacity = 0.65;
+            }, 350);
         }
         
-        // Получение предсказания
         async function castSpell() {
             if (isCasting) return;
             if (used[activeCategory] >= 1) {
@@ -449,7 +485,7 @@
             updateCounters();
             flashEffect();
             if (tg?.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
-            hintText.textContent = '⚡ Шейдер активирован...';
+            hintText.textContent = '⚡ Затмение активировано...';
             answerText.innerHTML = '✨';
             
             await new Promise(r => setTimeout(r, 1100));
@@ -461,7 +497,6 @@
             isCasting = false;
         }
         
-        // Обработчики
         document.querySelectorAll('.category-btn').forEach(btn => {
             btn.addEventListener('click', () => {
                 document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
@@ -483,7 +518,7 @@
         
         loadData();
         if (tg) tg.expand();
-        console.log('🌞 Eclipse Shader активен — шейдеры работают!');
+        console.log('🌞 Уровень 2 активен: 50k частиц + HDRI-звёзды');
     </script>
 </body>
 </html>
