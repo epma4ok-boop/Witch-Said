@@ -214,27 +214,21 @@ export default function Home() {
 
       <div className="relative z-10 flex flex-col justify-between h-full px-4 pt-8 pb-8 max-w-lg mx-auto pointer-events-none">
 
-        {/* TOP: category pills */}
+        {/* TOP: category pills — НОВЫЙ СТИЛЬ */}
         <div className="flex justify-center pointer-events-auto">
-          <div className="flex gap-2">
+          <div className="category-panel">
             {(Object.keys(CATEGORY_CONFIG) as Category[]).map((cat) => {
-              const c = CATEGORY_CONFIG[cat];
               const isActive = category === cat;
+              const symbol = cat === "love" ? "✧" : cat === "work" ? "✦" : "✶";
+              const label = CATEGORY_CONFIG[cat].label;
               return (
                 <button
                   key={cat}
                   onClick={() => handleCategoryClick(cat)}
-                  className="px-4 py-2 rounded-full text-[11px] font-bold tracking-widest border transition-all duration-300 backdrop-blur-md uppercase"
-                  style={{
-                    background: isActive ? c.activeBg : "rgba(5,8,18,0.75)",
-                    border: `1px solid ${isActive ? c.accent : "rgba(255,255,255,0.07)"}`,
-                    color: isActive ? "#fff" : "rgba(255,255,255,0.38)",
-                    boxShadow: isActive ? `0 0 20px ${c.glow}, 0 0 6px ${c.glow}` : "none",
-                    fontFamily: "monospace",
-                    letterSpacing: "0.14em",
-                  }}
+                  className={`category-btn ${isActive ? "active" : ""}`}
                 >
-                  {c.emoji} {c.label}
+                  <span className="cat-symbol">{symbol}</span>
+                  <span className="cat-label">{label}</span>
                 </button>
               );
             })}
@@ -302,6 +296,54 @@ export default function Home() {
         accentColor={cfg.accent}
         accentGlow={cfg.glow}
       />
+
+      {/* Инлайн-стили для новых кнопок */}
+      <style>{`
+        .category-panel {
+          display: flex;
+          justify-content: center;
+          gap: 0.5rem;
+          background: rgba(0, 0, 0, 0.3);
+          backdrop-filter: blur(12px);
+          border-radius: 60px;
+          padding: 0.4rem;
+          border: 0.5px solid rgba(255, 255, 255, 0.06);
+        }
+        .category-btn {
+          background: transparent;
+          border: none;
+          padding: 0.5rem 1.4rem;
+          border-radius: 40px;
+          font-size: 0.8rem;
+          font-weight: 400;
+          letter-spacing: 2px;
+          text-transform: uppercase;
+          font-family: 'Raleway', monospace;
+          color: rgba(255, 255, 255, 0.45);
+          cursor: pointer;
+          transition: all 0.3s ease;
+          display: flex;
+          align-items: center;
+          gap: 0.4rem;
+        }
+        .category-btn .cat-symbol {
+          font-size: 0.9rem;
+          opacity: 0.6;
+        }
+        .category-btn.active {
+          color: white;
+          background: rgba(255, 255, 255, 0.06);
+          box-shadow: 0 0 12px rgba(255, 255, 255, 0.08);
+        }
+        .category-btn.active .cat-symbol {
+          opacity: 1;
+        }
+        @media (max-width: 500px) {
+          .category-panel { gap: 0.3rem; padding: 0.3rem; }
+          .category-btn { padding: 0.4rem 1rem; font-size: 0.65rem; }
+          .category-btn .cat-symbol { font-size: 0.75rem; }
+        }
+      `}</style>
     </div>
   );
 }
