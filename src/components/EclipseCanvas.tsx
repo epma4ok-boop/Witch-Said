@@ -116,8 +116,8 @@ export default function EclipseCanvas({
     canvas.width = s.width;
     canvas.height = s.height;
     s.cx = s.width / 2;
-    s.cy = s.height / 3.2; // шар выше, чтобы кнопки поместились
-    s.r = Math.min(s.width, s.height) * 0.4;
+    s.cy = s.height / 2; // шар выше, чтобы кнопки поместились
+    s.r = Math.min(s.width, s.height) * 0.35;
   }, []);
 
   function wrapText(ctx: CanvasRenderingContext2D, text: string, maxWidth: number): string[] {
