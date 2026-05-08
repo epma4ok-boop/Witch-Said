@@ -229,8 +229,8 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Кнопки действий и истории — внизу */}
-        <div className="flex flex-col items-center gap-3 pointer-events-auto mb-4" style={{ marginBottom: "env(safe-area-inset-bottom, 20px)" }}>
+        {/* Кнопки действий и истории — внизу — УЛУЧШЕННЫЙ БЛОК ДЛЯ IPHONE */}
+        <div className="flex flex-col items-center gap-3 pointer-events-auto mb-4" style={{ marginBottom: "40px", transform: "translateZ(0)", willChange: "transform" }}>
           <div className="flex gap-3 justify-center w-full">
             <button onClick={handleShare} className="action-btn-large">
               <span className="action-icon">↑</span>
@@ -351,6 +351,15 @@ export default function Home() {
           font-size: 0.6rem;
           opacity: 0.5;
           transform: rotate(180deg);
+        }
+        /* Фикс для Telegram iOS — принудительное включение аппаратного ускорения */
+        .absolute.inset-0.z-10 {
+          transform: translateZ(0);
+          will-change: transform;
+          pointer-events: none;
+        }
+        .pointer-events-auto {
+          pointer-events: auto !important;
         }
       `}</style>
     </div>
