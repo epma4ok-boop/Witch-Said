@@ -209,7 +209,7 @@ export default function Home() {
         hintText={hintText}
       />
 
-      <div className="relative z-10 flex flex-col h-full px-4 pt-8 pb-6 max-w-lg mx-auto pointer-events-none">
+      <div className="relative z-10 flex flex-col h-full px-4 pt-8 pb-10 max-w-lg mx-auto pointer-events-none" style={{ paddingBottom: "env(safe-area-inset-bottom, 20px)" }}>
         
         {/* Кнопки категорий — вверху */}
         <div className="flex justify-center pointer-events-auto mb-4">
@@ -230,11 +230,11 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Пустое пространство, шар будет поднят через EclipseCanvas */}
+        {/* Пустое пространство — шар будет поднят через EclipseCanvas */}
         <div className="flex-1" />
 
         {/* Кнопки действий — прямо под шаром */}
-        <div className="flex flex-col items-center gap-3 pointer-events-auto mb-6">
+        <div className="flex flex-col items-center gap-4 pointer-events-auto mb-4">
           <div className="flex gap-3 justify-center w-full">
             {[
               { label: "ПОДЕЛИТЬСЯ", icon: "↑", onClick: handleShare },
@@ -252,7 +252,7 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Кнопка истории — в самом низу */}
+        {/* Кнопка истории — в самом низу, с отступом для safe area */}
         <div className="flex justify-center pointer-events-auto pb-2">
           <button
             onClick={() => setHistoryOpen(true)}
