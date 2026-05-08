@@ -209,28 +209,28 @@ export default function Home() {
         hintText={hintText}
       />
 
-      {/* Кнопки категорий — вверху */}
-      <div className="absolute top-5 left-0 right-0 z-20 flex justify-center px-4">
-        <div className="category-panel-large">
-          {Object.keys(CATEGORY_CONFIG).map((cat) => {
-            const isActive = category === cat;
-            const label = CATEGORY_CONFIG[cat as Category].label;
-            return (
-              <button
-                key={cat}
-                onClick={() => handleCategoryClick(cat as Category)}
-                className={`category-btn-large ${isActive ? "active" : ""}`}
-              >
-                {label}
-              </button>
-            );
-          })}
+      <div className="absolute inset-0 z-10 flex flex-col justify-between px-4 py-5 pointer-events-none">
+        {/* Кнопки категорий — вверху */}
+        <div className="flex justify-center pointer-events-auto">
+          <div className="category-panel-large">
+            {(Object.keys(CATEGORY_CONFIG) as Category[]).map((cat) => {
+              const isActive = category === cat;
+              const label = CATEGORY_CONFIG[cat].label;
+              return (
+                <button
+                  key={cat}
+                  onClick={() => handleCategoryClick(cat)}
+                  className={`category-btn-large ${isActive ? "active" : ""}`}
+                >
+                  {label}
+                </button>
+              );
+            })}
+          </div>
         </div>
-      </div>
 
-      {/* Кнопки действий и истории — внизу экрана */}
-      <div className="absolute bottom-0 left-0 right-0 z-20 px-4 pb-6" style={{ paddingBottom: "env(safe-area-inset-bottom, 20px)" }}>
-        <div className="flex flex-col items-center gap-3">
+        {/* Кнопки действий и истории — внизу */}
+        <div className="flex flex-col items-center gap-3 pointer-events-auto mb-4" style={{ marginBottom: "env(safe-area-inset-bottom, 20px)" }}>
           <div className="flex gap-3 justify-center w-full">
             <button onClick={handleShare} className="action-btn-large">
               <span className="action-icon">↑</span>
@@ -288,17 +288,17 @@ export default function Home() {
           box-shadow: 0 0 20px rgba(255, 255, 255, 0.08);
         }
         .action-btn-large {
-          background: rgba(0, 0, 0, 0.6);
+          background: rgba(0, 0, 0, 0.5);
           backdrop-filter: blur(16px);
-          border: 0.5px solid rgba(255, 255, 255, 0.2);
+          border: 0.5px solid rgba(255, 255, 255, 0.15);
           border-radius: 50px;
-          padding: 0.8rem 1rem;
+          padding: 0.7rem 1rem;
           display: flex;
           align-items: center;
           justify-content: center;
-          gap: 0.6rem;
+          gap: 0.5rem;
           flex: 1;
-          max-width: 160px;
+          max-width: 150px;
           cursor: pointer;
           transition: all 0.2s ease;
         }
@@ -307,11 +307,11 @@ export default function Home() {
           background: rgba(255, 255, 255, 0.15);
         }
         .action-icon {
-          font-size: 1rem;
+          font-size: 0.9rem;
           opacity: 0.8;
         }
         .action-label {
-          font-size: 0.75rem;
+          font-size: 0.7rem;
           font-weight: 600;
           letter-spacing: 2px;
           text-transform: uppercase;
@@ -319,15 +319,15 @@ export default function Home() {
           color: rgba(255, 255, 255, 0.9);
         }
         .history-btn {
-          background: rgba(0, 0, 0, 0.5);
+          background: rgba(0, 0, 0, 0.4);
           backdrop-filter: blur(12px);
-          border: 0.5px solid rgba(255, 255, 255, 0.12);
+          border: 0.5px solid rgba(255, 255, 255, 0.1);
           border-radius: 40px;
-          padding: 0.5rem 1.2rem;
+          padding: 0.5rem 1rem;
           display: flex;
           align-items: center;
           justify-content: center;
-          gap: 0.5rem;
+          gap: 0.4rem;
           cursor: pointer;
           transition: all 0.2s ease;
         }
@@ -336,11 +336,11 @@ export default function Home() {
           background: rgba(255, 255, 255, 0.08);
         }
         .history-icon {
-          font-size: 0.85rem;
-          opacity: 0.7;
+          font-size: 0.8rem;
+          opacity: 0.6;
         }
         .history-label {
-          font-size: 0.65rem;
+          font-size: 0.6rem;
           font-weight: 500;
           letter-spacing: 1.5px;
           text-transform: uppercase;
@@ -348,14 +348,9 @@ export default function Home() {
           color: rgba(255, 255, 255, 0.7);
         }
         .history-arrow {
-          font-size: 0.65rem;
+          font-size: 0.6rem;
           opacity: 0.5;
           transform: rotate(180deg);
-        }
-        @media (max-width: 600px) {
-          .action-btn-large { max-width: 140px; padding: 0.6rem 0.8rem; }
-          .action-label { font-size: 0.65rem; }
-          .history-label { font-size: 0.55rem; }
         }
       `}</style>
     </div>
