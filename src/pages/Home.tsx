@@ -209,48 +209,43 @@ export default function Home() {
         hintText={hintText}
       />
 
-      {/* UI поверх canvas */}
-      <div className="absolute inset-x-0 z-10" style={{ top: "20px", bottom: "20px", pointerEvents: "none" }}>
-        <div className="flex flex-col h-full justify-between px-4">
-          
-          {/* Кнопки категорий — вверху */}
-          <div className="flex justify-center pointer-events-auto">
-            <div className="category-panel-large">
-              {(Object.keys(CATEGORY_CONFIG) as Category[]).map((cat) => {
-                const isActive = category === cat;
-                const label = CATEGORY_CONFIG[cat].label;
-                return (
-                  <button
-                    key={cat}
-                    onClick={() => handleCategoryClick(cat)}
-                    className={`category-btn-large ${isActive ? "active" : ""}`}
-                  >
-                    {label}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
+      {/* Кнопки категорий — вверху */}
+      <div className="absolute top-5 left-0 right-0 z-20 flex justify-center px-4">
+        <div className="category-panel-large">
+          {Object.keys(CATEGORY_CONFIG).map((cat) => {
+            const isActive = category === cat;
+            const label = CATEGORY_CONFIG[cat as Category].label;
+            return (
+              <button
+                key={cat}
+                onClick={() => handleCategoryClick(cat as Category)}
+                className={`category-btn-large ${isActive ? "active" : ""}`}
+              >
+                {label}
+              </button>
+            );
+          })}
+        </div>
+      </div>
 
-          {/* Кнопки внизу */}
-          <div className="flex flex-col items-center gap-4 pointer-events-auto" style={{ marginBottom: "env(safe-area-inset-bottom, 20px)" }}>
-            <div className="flex gap-3 justify-center w-full">
-              {[
-                { label: "ПОДЕЛИТЬСЯ", icon: "↑", onClick: handleShare },
-                { label: "ПРИГЛАСИТЬ", icon: "✦", onClick: handleInvite },
-              ].map(({ label, icon, onClick }) => (
-                <button key={label} onClick={onClick} className="action-btn-large">
-                  <span className="action-icon">{icon}</span>
-                  <span className="action-label">{label}</span>
-                </button>
-              ))}
-            </div>
-            <button onClick={() => setHistoryOpen(true)} className="history-btn">
-              <span className="history-icon">📜</span>
-              <span className="history-label">ПОСЛЕДНИЕ {history.length} ПРЕДСКАЗАНИЙ</span>
-              <span className="history-arrow">▲</span>
+      {/* Кнопки действий и истории — внизу экрана */}
+      <div className="absolute bottom-0 left-0 right-0 z-20 px-4 pb-6" style={{ paddingBottom: "env(safe-area-inset-bottom, 20px)" }}>
+        <div className="flex flex-col items-center gap-3">
+          <div className="flex gap-3 justify-center w-full">
+            <button onClick={handleShare} className="action-btn-large">
+              <span className="action-icon">↑</span>
+              <span className="action-label">ПОДЕЛИТЬСЯ</span>
+            </button>
+            <button onClick={handleInvite} className="action-btn-large">
+              <span className="action-icon">✦</span>
+              <span className="action-label">ПРИГЛАСИТЬ</span>
             </button>
           </div>
+          <button onClick={() => setHistoryOpen(true)} className="history-btn">
+            <span className="history-icon">📜</span>
+            <span className="history-label">ПОСЛЕДНИЕ {history.length} ПРЕДСКАЗАНИЙ</span>
+            <span className="history-arrow">▲</span>
+          </button>
         </div>
       </div>
 
@@ -293,46 +288,46 @@ export default function Home() {
           box-shadow: 0 0 20px rgba(255, 255, 255, 0.08);
         }
         .action-btn-large {
-          background: rgba(0, 0, 0, 0.4);
+          background: rgba(0, 0, 0, 0.6);
           backdrop-filter: blur(16px);
-          border: 0.5px solid rgba(255, 255, 255, 0.12);
+          border: 0.5px solid rgba(255, 255, 255, 0.2);
           border-radius: 50px;
-          padding: 0.7rem 0.8rem;
+          padding: 0.8rem 1rem;
           display: flex;
           align-items: center;
           justify-content: center;
-          gap: 0.5rem;
+          gap: 0.6rem;
           flex: 1;
-          max-width: 140px;
+          max-width: 160px;
           cursor: pointer;
           transition: all 0.2s ease;
         }
         .action-btn-large:active {
           transform: scale(0.96);
-          background: rgba(255, 255, 255, 0.1);
+          background: rgba(255, 255, 255, 0.15);
         }
         .action-icon {
-          font-size: 0.9rem;
-          opacity: 0.7;
+          font-size: 1rem;
+          opacity: 0.8;
         }
         .action-label {
-          font-size: 0.7rem;
-          font-weight: 500;
+          font-size: 0.75rem;
+          font-weight: 600;
           letter-spacing: 2px;
           text-transform: uppercase;
           font-family: 'Raleway', monospace;
-          color: rgba(255, 255, 255, 0.7);
+          color: rgba(255, 255, 255, 0.9);
         }
         .history-btn {
-          background: rgba(0, 0, 0, 0.35);
+          background: rgba(0, 0, 0, 0.5);
           backdrop-filter: blur(12px);
-          border: 0.5px solid rgba(255, 255, 255, 0.1);
+          border: 0.5px solid rgba(255, 255, 255, 0.12);
           border-radius: 40px;
-          padding: 0.5rem 1rem;
+          padding: 0.5rem 1.2rem;
           display: flex;
           align-items: center;
           justify-content: center;
-          gap: 0.4rem;
+          gap: 0.5rem;
           cursor: pointer;
           transition: all 0.2s ease;
         }
@@ -341,21 +336,26 @@ export default function Home() {
           background: rgba(255, 255, 255, 0.08);
         }
         .history-icon {
-          font-size: 0.8rem;
-          opacity: 0.6;
+          font-size: 0.85rem;
+          opacity: 0.7;
         }
         .history-label {
-          font-size: 0.55rem;
+          font-size: 0.65rem;
           font-weight: 500;
           letter-spacing: 1.5px;
           text-transform: uppercase;
           font-family: 'Raleway', monospace;
-          color: rgba(255, 255, 255, 0.6);
+          color: rgba(255, 255, 255, 0.7);
         }
         .history-arrow {
-          font-size: 0.6rem;
+          font-size: 0.65rem;
           opacity: 0.5;
           transform: rotate(180deg);
+        }
+        @media (max-width: 600px) {
+          .action-btn-large { max-width: 140px; padding: 0.6rem 0.8rem; }
+          .action-label { font-size: 0.65rem; }
+          .history-label { font-size: 0.55rem; }
         }
       `}</style>
     </div>
