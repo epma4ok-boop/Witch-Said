@@ -296,50 +296,41 @@ export default function Home() {
       />
 
       {/* Инлайн-стили для новых кнопок */}
+            {/* Инлайн-стили для крупных кнопок */}
+      {/* Инлайн-стили для крупных кнопок */}
       <style>{`
-        .category-panel {
+        .category-panel-large {
           display: flex;
           justify-content: center;
-          gap: 0.5rem;
-          background: rgba(0, 0, 0, 0.3);
-          backdrop-filter: blur(12px);
-          border-radius: 60px;
-          padding: 0.4rem;
-          border: 0.5px solid rgba(255, 255, 255, 0.06);
+          gap: 1.2rem;
+          background: rgba(0, 0, 0, 0.45);
+          backdrop-filter: blur(20px);
+          border-radius: 100px;
+          padding: 0.8rem 1.5rem;
+          border: 0.5px solid rgba(255, 255, 255, 0.12);
         }
-        .category-btn {
+        .category-btn-large {
           background: transparent;
           border: none;
-          padding: 0.5rem 1.4rem;
-          border-radius: 40px;
-          font-size: 0.8rem;
-          font-weight: 400;
-          letter-spacing: 2px;
+          padding: 0.9rem 2rem;
+          border-radius: 80px;
+          font-size: 1.1rem;
+          font-weight: 500;
+          letter-spacing: 4px;
           text-transform: uppercase;
           font-family: 'Raleway', monospace;
-          color: rgba(255, 255, 255, 0.45);
+          color: rgba(255, 255, 255, 0.5);
           cursor: pointer;
           transition: all 0.3s ease;
-          display: flex;
-          align-items: center;
-          gap: 0.4rem;
         }
-        .category-btn .cat-symbol {
-          font-size: 0.9rem;
-          opacity: 0.6;
-        }
-        .category-btn.active {
+        .category-btn-large.active {
           color: white;
-          background: rgba(255, 255, 255, 0.06);
-          box-shadow: 0 0 12px rgba(255, 255, 255, 0.08);
+          background: rgba(255, 255, 255, 0.1);
+          box-shadow: 0 0 24px rgba(255, 255, 255, 0.08);
         }
-        .category-btn.active .cat-symbol {
-          opacity: 1;
-        }
-        @media (max-width: 500px) {
-          .category-panel { gap: 0.3rem; padding: 0.3rem; }
-          .category-btn { padding: 0.4rem 1rem; font-size: 0.65rem; }
-          .category-btn .cat-symbol { font-size: 0.75rem; }
+        @media (max-width: 600px) {
+          .category-panel-large { gap: 0.8rem; padding: 0.5rem 1rem; }
+          .category-btn-large { padding: 0.6rem 1.2rem; font-size: 0.85rem; letter-spacing: 3px; }
         }
       `}</style>
     </div>
