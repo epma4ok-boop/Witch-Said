@@ -4,11 +4,10 @@ import HistoryPanel, { type HistoryEntry } from "@/components/HistoryPanel";
 import { PREDICTIONS } from "@/data/predictions";
 import { useMysticSound } from "@/hooks/useMysticSound";
 
-// Characteristic root frequency per category (used for switch sound tuning)
 const CATEGORY_FREQ: Record<string, number> = {
-  love: 415,  // Ab4 — warm, emotional
-  work: 523,  // C5  — clear, decisive
-  money: 659, // E5  — bright, hopeful
+  love: 415,
+  work: 523,
+  money: 659,
 };
 
 declare global {
@@ -94,7 +93,6 @@ export default function Home() {
     if (tg) { tg.ready(); tg.expand(); }
   }, [tg]);
 
-  // Global swipe-up to open history
   useEffect(() => {
     const onTouchStart = (e: TouchEvent) => {
       swipeStartYRef.current = e.touches[0].clientY;
@@ -156,7 +154,6 @@ export default function Home() {
     setHintText("✦  ПОСЛАНИЕ ПОЛУЧЕНО  ✦");
     animateReveal(answer.length * 55);
 
-    // Save to history
     const entry: HistoryEntry = {
       id: Date.now().toString(),
       text: answer,
@@ -212,10 +209,10 @@ export default function Home() {
         hintText={hintText}
       />
 
-      <div className="relative z-10 flex flex-col justify-between h-full px-4 pt-8 pb-8 max-w-lg mx-auto pointer-events-none">
-
-        {/* TOP: category pills — увеличенные, без иконок, элегантные */}
-        <div className="flex justify-center pointer-events-auto mt-2">
+      <div className="relative z-10 flex flex-col h-full px-4 pt-8 pb-6 max-w-lg mx-auto pointer-events-none">
+        
+        {/* Кнопки категорий — вверху */}
+        <div className="flex justify-center pointer-events-auto mb-4">
           <div className="category-panel-large">
             {(Object.keys(CATEGORY_CONFIG) as Category[]).map((cat) => {
               const isActive = category === cat;
@@ -233,31 +230,12 @@ export default function Home() {
           </div>
         </div>
 
-        {/* BOTTOM — всё поднято выше */}
-        <div className="flex flex-col items-center gap-3 pointer-events-auto mb-10">
-          {/* Swipe hint — остаётся на месте */}
-          <button
-            onClick={() => setHistoryOpen(true)}
-            className="flex flex-col items-center gap-1 active:opacity-60 transition-opacity"
-            style={{ pointerEvents: "auto" }}
-          >
-            <span
-              className="text-[10px] tracking-widest uppercase"
-              style={{ color: "rgba(255,255,255,0.22)", fontFamily: "monospace" }}
-            >
-              {history.length > 0 ? `${history.length} посланий` : "История"}
-            </span>
-            <div
-              className="flex flex-col items-center gap-0.5"
-              style={{ color: `${cfg.accent}55` }}
-            >
-              <span style={{ fontSize: 10, lineHeight: 1 }}>▲</span>
-              <span style={{ fontSize: 8, lineHeight: 1, opacity: 0.6 }}>▲</span>
-            </div>
-          </button>
+        {/* Пустое пространство, шар будет поднят через EclipseCanvas */}
+        <div className="flex-1" />
 
-          {/* Кнопки действий — подняты, с отступами */}
-          <div className="flex gap-3 justify-center w-full mt-4">
+        {/* Кнопки действий — прямо под шаром */}
+        <div className="flex flex-col items-center gap-3 pointer-events-auto mb-6">
+          <div className="flex gap-3 justify-center w-full">
             {[
               { label: "ПОДЕЛИТЬСЯ", icon: "↑", onClick: handleShare },
               { label: "ПРИГЛАСИТЬ", icon: "✦", onClick: handleInvite },
@@ -273,9 +251,20 @@ export default function Home() {
             ))}
           </div>
         </div>
+
+        {/* Кнопка истории — в самом низу */}
+        <div className="flex justify-center pointer-events-auto pb-2">
+          <button
+            onClick={() => setHistoryOpen(true)}
+            className="history-btn"
+          >
+            <span className="history-icon">📜</span>
+            <span className="history-label">ПОСЛЕДНИЕ {history.length} ПРЕДСКАЗАНИЙ</span>
+            <span className="history-arrow">▲</span>
+          </button>
+        </div>
       </div>
 
-      {/* History panel */}
       <HistoryPanel
         entries={history}
         open={historyOpen}
@@ -284,7 +273,6 @@ export default function Home() {
         accentGlow={cfg.glow}
       />
 
-      {/* Стили для крупных кнопок категорий и действий */}
       <style>{`
         .category-panel-large {
           display: flex;
@@ -346,16 +334,48 @@ export default function Home() {
           font-family: 'Raleway', monospace;
           color: rgba(255, 255, 255, 0.7);
         }
+        .history-btn {
+          background: rgba(0, 0, 0, 0.35);
+          backdrop-filter: blur(12px);
+          border: 0.5px solid rgba(255, 255, 255, 0.1);
+          border-radius: 40px;
+          padding: 0.6rem 1.2rem;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 0.5rem;
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
+        .history-btn:active {
+          transform: scale(0.96);
+          background: rgba(255, 255, 255, 0.08);
+        }
+        .history-icon {
+          font-size: 0.9rem;
+          opacity: 0.6;
+        }
+        .history-label {
+          font-size: 0.7rem;
+          font-weight: 500;
+          letter-spacing: 2px;
+          text-transform: uppercase;
+          font-family: 'Raleway', monospace;
+          color: rgba(255, 255, 255, 0.6);
+        }
+        .history-arrow {
+          font-size: 0.7rem;
+          opacity: 0.5;
+          transform: rotate(180deg);
+        }
         @media (max-width: 600px) {
           .category-panel-large { gap: 0.8rem; padding: 0.5rem 1rem; }
           .category-btn-large { padding: 0.6rem 1.2rem; font-size: 0.85rem; letter-spacing: 3px; }
           .action-btn-large { padding: 0.6rem 0.8rem; max-width: 140px; }
           .action-label { font-size: 0.65rem; letter-spacing: 2px; }
           .action-icon { font-size: 0.8rem; }
-        }
-        @media (max-width: 400px) {
-          .action-btn-large { max-width: 120px; }
-          .action-label { font-size: 0.55rem; letter-spacing: 1.5px; }
+          .history-label { font-size: 0.55rem; letter-spacing: 1.5px; }
+          .history-btn { padding: 0.5rem 1rem; }
         }
       `}</style>
     </div>
