@@ -209,9 +209,9 @@ export default function Home() {
         hintText={hintText}
       />
 
-      <div className="absolute inset-0 z-10 flex flex-col justify-between px-4 py-5 pointer-events-none">
-        {/* Кнопки категорий — вверху */}
-        <div className="flex justify-center pointer-events-auto">
+      {/* Кнопки категорий — вверху, кнопки действий — приподняты */}
+      <div className="absolute inset-x-0 top-5 z-10 flex justify-center px-4 pointer-events-none">
+        <div className="pointer-events-auto">
           <div className="category-panel-large">
             {(Object.keys(CATEGORY_CONFIG) as Category[]).map((cat) => {
               const isActive = category === cat;
@@ -228,9 +228,11 @@ export default function Home() {
             })}
           </div>
         </div>
+      </div>
 
-        {/* Кнопки действий и истории — внизу — УЛУЧШЕННЫЙ БЛОК ДЛЯ IPHONE */}
-        <div className="flex flex-col items-center gap-3 pointer-events-auto mb-4" style={{ marginBottom: "40px", transform: "translateZ(0)", willChange: "transform" }}>
+      {/* Кнопки действий и истории — подняты выше, прижаты к низу, но с отступом */}
+      <div className="absolute bottom-0 left-0 right-0 z-10 px-4 pb-8 pointer-events-none" style={{ paddingBottom: "max(20px, env(safe-area-inset-bottom))" }}>
+        <div className="flex flex-col items-center gap-3 pointer-events-auto">
           <div className="flex gap-3 justify-center w-full">
             <button onClick={handleShare} className="action-btn-large">
               <span className="action-icon">↑</span>
@@ -351,15 +353,6 @@ export default function Home() {
           font-size: 0.6rem;
           opacity: 0.5;
           transform: rotate(180deg);
-        }
-        /* Фикс для Telegram iOS — принудительное включение аппаратного ускорения */
-        .absolute.inset-0.z-10 {
-          transform: translateZ(0);
-          will-change: transform;
-          pointer-events: none;
-        }
-        .pointer-events-auto {
-          pointer-events: auto !important;
         }
       `}</style>
     </div>
