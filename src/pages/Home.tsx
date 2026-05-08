@@ -214,21 +214,19 @@ export default function Home() {
 
       <div className="relative z-10 flex flex-col justify-between h-full px-4 pt-8 pb-8 max-w-lg mx-auto pointer-events-none">
 
-        {/* TOP: category pills — НОВЫЙ СТИЛЬ */}
-        <div className="flex justify-center pointer-events-auto">
-          <div className="category-panel">
+                {/* TOP: category pills — увеличенные, без иконок, элегантные */}
+        <div className="flex justify-center pointer-events-auto mt-2">
+          <div className="category-panel-large">
             {(Object.keys(CATEGORY_CONFIG) as Category[]).map((cat) => {
               const isActive = category === cat;
-              const symbol = cat === "love" ? "✧" : cat === "work" ? "✦" : "✶";
               const label = CATEGORY_CONFIG[cat].label;
               return (
                 <button
                   key={cat}
                   onClick={() => handleCategoryClick(cat)}
-                  className={`category-btn ${isActive ? "active" : ""}`}
+                  className={`category-btn-large ${isActive ? "active" : ""}`}
                 >
-                  <span className="cat-symbol">{symbol}</span>
-                  <span className="cat-label">{label}</span>
+                  {label}
                 </button>
               );
             })}
