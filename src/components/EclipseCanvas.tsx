@@ -124,7 +124,7 @@ export default function EclipseCanvas({
     canvas.width = s.width;
     canvas.height = s.height;
     s.cx = s.width / 2;
-    s.cy = s.height / 2,8;
+    s.cy = s.height / 3,2;
     s.r = Math.min(s.width, s.height) * 0.42;
   }, []);
 
