@@ -214,7 +214,7 @@ export default function Home() {
 
       <div className="relative z-10 flex flex-col justify-between h-full px-4 pt-8 pb-8 max-w-lg mx-auto pointer-events-none">
 
-                {/* TOP: category pills — увеличенные, без иконок, элегантные */}
+        {/* TOP: category pills — увеличенные, без иконок, элегантные */}
         <div className="flex justify-center pointer-events-auto mt-2">
           <div className="category-panel-large">
             {(Object.keys(CATEGORY_CONFIG) as Category[]).map((cat) => {
@@ -257,8 +257,8 @@ export default function Home() {
             </div>
           </button>
 
-          {/* Action buttons */}
-          <div className="flex gap-3 justify-center w-full">
+          {/* Action buttons — новый стиль, вровень с категориями */}
+          <div className="flex gap-3 justify-center w-full mt-4">
             {[
               { label: "ПОДЕЛИТЬСЯ", icon: "↑", onClick: handleShare },
               { label: "ПРИГЛАСИТЬ", icon: "✦", onClick: handleInvite },
@@ -266,20 +266,10 @@ export default function Home() {
               <button
                 key={label}
                 onClick={onClick}
-                className="flex-1 max-w-[150px] flex items-center justify-center gap-2 py-3 px-4 rounded-2xl text-[11px] font-semibold tracking-widest uppercase transition-all duration-200 active:scale-95 active:brightness-75"
-                style={{
-                  background: `linear-gradient(135deg, rgba(${cfg.color.r},${cfg.color.g},${cfg.color.b},0.18) 0%, rgba(3,5,12,0.85) 100%)`,
-                  backdropFilter: "blur(16px)",
-                  border: `1px solid rgba(${cfg.color.r},${cfg.color.g},${cfg.color.b},0.45)`,
-                  color: "rgba(255,255,255,0.85)",
-                  boxShadow: `0 0 18px rgba(${cfg.color.r},${cfg.color.g},${cfg.color.b},0.25), inset 0 1px 0 rgba(255,255,255,0.07)`,
-                  fontFamily: "'Raleway', sans-serif",
-                  letterSpacing: "0.12em",
-                  transition: "box-shadow 0.4s, border-color 0.4s",
-                }}
+                className="action-btn-large"
               >
-                <span style={{ fontSize: 13, opacity: 0.8, lineHeight: 1 }}>{icon}</span>
-                {label}
+                <span className="action-icon">{icon}</span>
+                <span className="action-label">{label}</span>
               </button>
             ))}
           </div>
@@ -295,9 +285,7 @@ export default function Home() {
         accentGlow={cfg.glow}
       />
 
-      {/* Инлайн-стили для новых кнопок */}
-            {/* Инлайн-стили для крупных кнопок */}
-      {/* Инлайн-стили для крупных кнопок */}
+      {/* Стили для крупных кнопок категорий и действий */}
       <style>{`
         .category-panel-large {
           display: flex;
@@ -328,9 +316,47 @@ export default function Home() {
           background: rgba(255, 255, 255, 0.1);
           box-shadow: 0 0 24px rgba(255, 255, 255, 0.08);
         }
+        .action-btn-large {
+          background: rgba(0, 0, 0, 0.4);
+          backdrop-filter: blur(16px);
+          border: 0.5px solid rgba(255, 255, 255, 0.12);
+          border-radius: 60px;
+          padding: 0.8rem 1rem;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 0.6rem;
+          flex: 1;
+          max-width: 160px;
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
+        .action-btn-large:active {
+          transform: scale(0.96);
+          background: rgba(255, 255, 255, 0.1);
+        }
+        .action-icon {
+          font-size: 1rem;
+          opacity: 0.7;
+        }
+        .action-label {
+          font-size: 0.8rem;
+          font-weight: 500;
+          letter-spacing: 3px;
+          text-transform: uppercase;
+          font-family: 'Raleway', monospace;
+          color: rgba(255, 255, 255, 0.7);
+        }
         @media (max-width: 600px) {
           .category-panel-large { gap: 0.8rem; padding: 0.5rem 1rem; }
           .category-btn-large { padding: 0.6rem 1.2rem; font-size: 0.85rem; letter-spacing: 3px; }
+          .action-btn-large { padding: 0.6rem 0.8rem; max-width: 140px; }
+          .action-label { font-size: 0.65rem; letter-spacing: 2px; }
+          .action-icon { font-size: 0.8rem; }
+        }
+        @media (max-width: 400px) {
+          .action-btn-large { max-width: 120px; }
+          .action-label { font-size: 0.55rem; letter-spacing: 1.5px; }
         }
       `}</style>
     </div>
