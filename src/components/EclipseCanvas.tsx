@@ -124,8 +124,8 @@ export default function EclipseCanvas({
     canvas.width = s.width;
     canvas.height = s.height;
     s.cx = s.width / 2;
-    s.cy = s.height / 2,6;
-    s.r = Math.min(s.width, s.height) * 0.42;
+    s.cy = s.height / 3;
+    s.r = Math.min(s.width, s.height) * 0.4;
   }, []);
 
   // Word-wrap helper
