@@ -233,10 +233,9 @@ export default function Home() {
           </div>
         </div>
 
-        {/* BOTTOM */}
-        <div className="flex flex-col items-center gap-3 pointer-events-auto">
-
-          {/* Swipe hint */}
+        {/* BOTTOM — всё поднято выше */}
+        <div className="flex flex-col items-center gap-3 pointer-events-auto mb-10">
+          {/* Swipe hint — остаётся на месте */}
           <button
             onClick={() => setHistoryOpen(true)}
             className="flex flex-col items-center gap-1 active:opacity-60 transition-opacity"
@@ -257,7 +256,7 @@ export default function Home() {
             </div>
           </button>
 
-          {/* Action buttons — новый стиль, вровень с категориями */}
+          {/* Кнопки действий — подняты, с отступами */}
           <div className="flex gap-3 justify-center w-full mt-4">
             {[
               { label: "ПОДЕЛИТЬСЯ", icon: "↑", onClick: handleShare },
