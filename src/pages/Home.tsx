@@ -2,12 +2,11 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import EclipseCanvas, { type EclipseColor } from "@/components/EclipseCanvas";
 import HistoryPanel, { type HistoryEntry } from "@/components/HistoryPanel";
 import { PREDICTIONS } from "@/data/predictions";
+import { PREDICTIONS_EN, UI, type Lang } from "@/data/i18n";
 import { useMysticSound } from "@/hooks/useMysticSound";
 
 const CATEGORY_FREQ: Record<string, number> = {
-  love: 415,
-  work: 523,
-  money: 659,
+  love: 415, work: 523, money: 659,
 };
 
 declare global {
@@ -25,7 +24,6 @@ declare global {
           impactOccurred: (style: string) => void;
           notificationOccurred: (type: string) => void;
         };
-        showPopup?: (params: object, callback: (btnId: string) => void) => void;
         openTelegramLink?: (url: string) => void;
         initDataUnsafe?: { user?: { username?: string } };
       };
@@ -36,61 +34,44 @@ declare global {
 type Category = "love" | "work" | "money";
 
 const CATEGORY_CONFIG: Record<Category, {
-  label: string; color: EclipseColor;
+  color: EclipseColor;
   accent: string; glow: string; activeBg: string;
 }> = {
-  love: {
-    label: "Любовь",
-    color: { r: 220, g: 40, b: 80 },
-    accent: "#ff4466", glow: "rgba(220,40,80,0.7)",
-    activeBg: "rgba(180,30,60,0.6)",
-  },
-  work: {
-    label: "Работа",
-    color: { r: 60, g: 140, b: 255 },
-    accent: "#5599ff", glow: "rgba(60,140,255,0.7)",
-    activeBg: "rgba(30,90,200,0.6)",
-  },
-  money: {
-    label: "Деньги",
-    color: { r: 40, g: 200, b: 100 },
-    accent: "#33dd77", glow: "rgba(40,200,100,0.7)",
-    activeBg: "rgba(20,140,60,0.6)",
-  },
+  love:  { color: { r: 220, g: 40,  b: 80  }, accent: "#ff4466", glow: "rgba(220,40,80,0.7)",   activeBg: "rgba(180,30,60,0.6)"  },
+  work:  { color: { r: 60,  g: 140, b: 255 }, accent: "#5599ff", glow: "rgba(60,140,255,0.7)",  activeBg: "rgba(30,90,200,0.6)"  },
+  money: { color: { r: 40,  g: 200, b: 100 }, accent: "#33dd77", glow: "rgba(40,200,100,0.7)",  activeBg: "rgba(20,140,60,0.6)"  },
 };
 
 const HISTORY_KEY = "universe_history";
 const MAX_HISTORY = 20;
 
 function loadHistory(): HistoryEntry[] {
-  try {
-    const saved = localStorage.getItem(HISTORY_KEY);
-    if (saved) return JSON.parse(saved);
-  } catch {}
+  try { const s = localStorage.getItem(HISTORY_KEY); if (s) return JSON.parse(s); } catch {}
   return [];
 }
-
-function saveHistory(entries: HistoryEntry[]) {
-  localStorage.setItem(HISTORY_KEY, JSON.stringify(entries.slice(-MAX_HISTORY)));
+function saveHistory(e: HistoryEntry[]) {
+  localStorage.setItem(HISTORY_KEY, JSON.stringify(e.slice(-MAX_HISTORY)));
 }
-
 function getTgViewportHeight(): number {
   const tg = window.Telegram?.WebApp;
-  if (tg && tg.viewportStableHeight && tg.viewportStableHeight > 100) {
-    return tg.viewportStableHeight;
-  }
+  if (tg && tg.viewportStableHeight && tg.viewportStableHeight > 100) return tg.viewportStableHeight;
   return window.innerHeight;
 }
 
-export default function Home() {
+interface HomeProps { lang: Lang; }
+
+export default function Home({ lang }: HomeProps) {
+  const t = UI[lang];
+  const predictions = lang === "en" ? PREDICTIONS_EN : PREDICTIONS;
+
   const tg = window.Telegram?.WebApp;
   const referralCode = useRef("universe_" + Math.random().toString(36).substr(2, 8));
 
   const [category, setCategory] = useState<Category>("love");
   const [isCasting, setIsCasting] = useState(false);
   const [currentAnswer, setCurrentAnswer] = useState("");
-  const [predictionText, setPredictionText] = useState("ВСЕЛЕННАЯ ГОВОРИТ");
-  const [hintText, setHintText] = useState("КОСНИСЬ ЗАТМЕНИЯ · ОТКРОЙ ИСТИНУ");
+  const [predictionText, setPredictionText] = useState(t.oracle);
+  const [hintText, setHintText] = useState(t.hint);
   const [revealProgress, setRevealProgress] = useState(1);
   const [flashTrigger, setFlashTrigger] = useState(0);
   const [catPulseTrigger, setCatPulseTrigger] = useState(0);
@@ -104,33 +85,32 @@ export default function Home() {
   const { playInvoke, playReveal, playSwitch } = useMysticSound();
   const { r: cr, g: cg, b: cb } = cfg.color;
 
+  // Update oracle text when language changes
+  useEffect(() => {
+    setPredictionText(t.oracle);
+    setHintText(t.hint);
+    setCurrentAnswer("");
+  }, [lang, t.oracle, t.hint]);
+
   useEffect(() => {
     if (tg) { tg.ready(); tg.expand(); }
     const updateHeight = () => setViewportHeight(getTgViewportHeight());
     if (tg) tg.onEvent("viewportChanged", updateHeight);
     window.addEventListener("resize", updateHeight);
-    const t = setTimeout(updateHeight, 300);
-    return () => {
-      if (tg) tg.offEvent("viewportChanged", updateHeight);
-      window.removeEventListener("resize", updateHeight);
-      clearTimeout(t);
-    };
+    const timer = setTimeout(updateHeight, 300);
+    return () => { if (tg) tg.offEvent("viewportChanged", updateHeight); window.removeEventListener("resize", updateHeight); clearTimeout(timer); };
   }, [tg]);
 
   useEffect(() => {
     const onTouchStart = (e: TouchEvent) => { swipeStartYRef.current = e.touches[0].clientY; };
     const onTouchEnd = (e: TouchEvent) => {
       if (swipeStartYRef.current === null) return;
-      const delta = swipeStartYRef.current - e.changedTouches[0].clientY;
-      if (delta > 70 && !historyOpen) setHistoryOpen(true);
+      if (swipeStartYRef.current - e.changedTouches[0].clientY > 70 && !historyOpen) setHistoryOpen(true);
       swipeStartYRef.current = null;
     };
     document.addEventListener("touchstart", onTouchStart, { passive: true });
     document.addEventListener("touchend", onTouchEnd, { passive: true });
-    return () => {
-      document.removeEventListener("touchstart", onTouchStart);
-      document.removeEventListener("touchend", onTouchEnd);
-    };
+    return () => { document.removeEventListener("touchstart", onTouchStart); document.removeEventListener("touchend", onTouchEnd); };
   }, [historyOpen]);
 
   const animateReveal = useCallback((duration: number) => {
@@ -153,85 +133,66 @@ export default function Home() {
   const handleTap = useCallback(async () => {
     if (isCasting || historyOpen) return;
     setIsCasting(true);
-    setFlashTrigger((n) => n + 1);
+    setFlashTrigger(n => n + 1);
     tg?.HapticFeedback?.impactOccurred("medium");
     playInvoke();
     setRevealProgress(0);
     setPredictionText("");
-    setHintText("ВСЕЛЕННАЯ ОТВЕЧАЕТ...");
+    setHintText(t.answering);
     animateReveal(600);
-    await new Promise((r) => setTimeout(r, 1300));
-    const preds = PREDICTIONS[category];
+    await new Promise(r => setTimeout(r, 1300));
+    const preds = predictions[category];
     const answer = preds[Math.floor(Math.random() * preds.length)];
     setCurrentAnswer(answer);
     setPredictionText(answer);
     setRevealProgress(0);
-    setFlashTrigger((n) => n + 1);
+    setFlashTrigger(n => n + 1);
     tg?.HapticFeedback?.notificationOccurred("success");
     playReveal();
-    setHintText("ПОСЛАНИЕ ПОЛУЧЕНО");
+    setHintText(t.received);
     animateReveal(answer.length * 55);
     const entry: HistoryEntry = { id: Date.now().toString(), text: answer, category, date: new Date().toISOString() };
-    setHistory((prev) => {
-      const updated = [...prev, entry].slice(-MAX_HISTORY);
-      saveHistory(updated);
-      return updated;
-    });
+    setHistory(prev => { const updated = [...prev, entry].slice(-MAX_HISTORY); saveHistory(updated); return updated; });
     setIsCasting(false);
-  }, [isCasting, historyOpen, category, tg, animateReveal]);
+  }, [isCasting, historyOpen, category, tg, animateReveal, predictions, t]);
 
   const handleShare = useCallback(() => {
-    if (!currentAnswer) { setHintText("СНАЧАЛА ПОЛУЧИ ПОСЛАНИЕ"); return; }
-    const text = `${currentAnswer}`;
+    if (!currentAnswer) { setHintText(t.firstGet); return; }
     const link = getReferralLink();
     if (tg?.openTelegramLink) {
-      tg.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent(text)}`);
-    } else { alert(`${text}\n${link}`); }
-  }, [currentAnswer, getReferralLink, tg]);
+      tg.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent(currentAnswer)}`);
+    } else { alert(`${currentAnswer}\n${link}`); }
+  }, [currentAnswer, getReferralLink, tg, t]);
 
   const handleInvite = useCallback(() => {
     const link = getReferralLink();
-    const text = "Загляни в солнечное затмение — вселенная отвечает на твои вопросы";
     if (tg?.openTelegramLink) {
-      tg.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent(text)}`);
+      tg.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent(t.inviteText)}`);
     } else { alert(link); }
-  }, [getReferralLink, tg]);
+  }, [getReferralLink, tg, t]);
 
   const handleCategoryClick = (cat: Category) => {
     if (isCasting) return;
     setCategory(cat);
-    setCatPulseTrigger((n) => n + 1);
+    setCatPulseTrigger(n => n + 1);
     playSwitch(CATEGORY_FREQ[cat]);
-    setPredictionText("ВСЕЛЕННАЯ ГОВОРИТ");
+    setPredictionText(t.oracle);
     setRevealProgress(1);
-    setHintText("КОСНИСЬ ЗАТМЕНИЯ · ОТКРОЙ ИСТИНУ");
+    setHintText(t.hint);
+    setCurrentAnswer("");
+  };
+
+  const catLabels: Record<Category, string> = {
+    love: t.catLove, work: t.catWork, money: t.catMoney,
   };
 
   return (
-    <div
-      style={{
-        background: "#030508",
-        height: `${viewportHeight}px`,
-        display: "flex",
-        flexDirection: "column",
-        overflow: "hidden",
-        position: "relative",
-      }}
-    >
+    <div style={{ background: "#030508", height: `${viewportHeight}px`, display: "flex", flexDirection: "column", overflow: "hidden", position: "relative" }}>
+
       {/* ── Category tabs ── */}
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "center",
-          paddingTop: 28,
-          paddingBottom: 4,
-          position: "relative",
-          zIndex: 10,
-          flexShrink: 0,
-        }}
-      >
+      <div style={{ display: "flex", justifyContent: "center", paddingTop: 28, paddingBottom: 4, position: "relative", zIndex: 10, flexShrink: 0 }}>
         <div style={{ display: "flex", gap: 6 }}>
-          {(Object.keys(CATEGORY_CONFIG) as Category[]).map((cat) => {
+          {(["love", "work", "money"] as Category[]).map((cat) => {
             const c = CATEGORY_CONFIG[cat];
             const isActive = category === cat;
             return (
@@ -243,7 +204,7 @@ export default function Home() {
                   borderRadius: 999,
                   fontSize: 11,
                   fontWeight: 300,
-                  letterSpacing: "0.18em",
+                  letterSpacing: "0.16em",
                   fontFamily: "'Raleway', sans-serif",
                   textTransform: "uppercase",
                   border: `0.5px solid ${isActive ? c.accent : "rgba(255,255,255,0.1)"}`,
@@ -255,7 +216,7 @@ export default function Home() {
                   cursor: "pointer",
                 }}
               >
-                {c.label}
+                {catLabels[cat]}
               </button>
             );
           })}
@@ -276,70 +237,25 @@ export default function Home() {
         />
       </div>
 
-      {/* ── Bottom: history + actions ── */}
-      <div
-        style={{
-          flexShrink: 0,
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          gap: 10,
-          paddingBottom: 28,
-          paddingTop: 8,
-          position: "relative",
-          zIndex: 10,
-        }}
-      >
+      {/* ── Bottom ── */}
+      <div style={{ flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "center", gap: 10, paddingBottom: 28, paddingTop: 8, position: "relative", zIndex: 10 }}>
+
         {/* History trigger */}
         <button
           onClick={() => setHistoryOpen(true)}
-          style={{
-            background: "transparent",
-            border: "none",
-            cursor: "pointer",
-            padding: "4px 20px",
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            gap: 5,
-          }}
+          style={{ background: "transparent", border: "none", cursor: "pointer", padding: "4px 20px", display: "flex", flexDirection: "column", alignItems: "center", gap: 5 }}
         >
-          <div
-            style={{
-              width: 24,
-              height: 0.5,
-              background: `rgba(${cr},${cg},${cb},0.35)`,
-            }}
-          />
-          <span
-            style={{
-              fontFamily: "'Raleway', sans-serif",
-              fontWeight: 200,
-              fontSize: 9,
-              letterSpacing: "0.3em",
-              textTransform: "uppercase",
-              color: "rgba(255,255,255,0.18)",
-            }}
-          >
-            {history.length > 0 ? `${history.length} посланий` : "история"}
+          <div style={{ width: 24, height: 0.5, background: `rgba(${cr},${cg},${cb},0.35)` }} />
+          <span style={{ fontFamily: "'Raleway', sans-serif", fontWeight: 200, fontSize: 9, letterSpacing: "0.3em", textTransform: "uppercase", color: "rgba(255,255,255,0.18)" }}>
+            {history.length > 0 ? t.historyCount(history.length) : t.history}
           </span>
         </button>
 
         {/* Share / Invite */}
-        <div
-          style={{
-            display: "flex",
-            gap: 10,
-            paddingLeft: 24,
-            paddingRight: 24,
-            width: "100%",
-            maxWidth: 360,
-            boxSizing: "border-box",
-          }}
-        >
+        <div style={{ display: "flex", gap: 10, paddingLeft: 24, paddingRight: 24, width: "100%", maxWidth: 360, boxSizing: "border-box" }}>
           {[
-            { label: "Поделиться", onClick: handleShare },
-            { label: "Пригласить", onClick: handleInvite },
+            { label: t.share, onClick: handleShare },
+            { label: t.invite, onClick: handleInvite },
           ].map(({ label, onClick }) => (
             <button
               key={label}
@@ -375,6 +291,7 @@ export default function Home() {
         accentColor={cfg.accent}
         accentGlow={cfg.glow}
         accentRgb={{ r: cr, g: cg, b: cb }}
+        lang={lang}
       />
     </div>
   );
