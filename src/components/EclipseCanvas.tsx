@@ -116,8 +116,10 @@ export default function EclipseCanvas({
     const canvas = canvasRef.current;
     if (!canvas) return;
     const s = stateRef.current;
-    s.width = canvas.parentElement?.clientWidth || window.innerWidth;
-    s.height = canvas.parentElement?.clientHeight || window.innerHeight;
+    const rect = canvas.getBoundingClientRect();
+    s.width = Math.round(rect.width);
+    s.height = Math.round(rect.height);
+    if (s.width === 0 || s.height === 0) return;
     canvas.width = s.width;
     canvas.height = s.height;
     s.cx = s.width / 2;
@@ -543,10 +545,27 @@ export default function EclipseCanvas({
   }, [drawFrame]);
 
   useEffect(() => {
-    resize(); init();
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    init();
     animFrameRef.current = requestAnimationFrame(animate);
-    window.addEventListener("resize", resize);
-    return () => { cancelAnimationFrame(animFrameRef.current); window.removeEventListener("resize", resize); };
+
+    // ResizeObserver fires AFTER layout is complete — getBoundingClientRect is reliable here
+    const ro = new ResizeObserver(() => {
+      resize();
+    });
+    ro.observe(canvas);
+
+    // Fallback: also call resize immediately and after a short delay
+    resize();
+    const t = setTimeout(resize, 150);
+
+    return () => {
+      cancelAnimationFrame(animFrameRef.current);
+      ro.disconnect();
+      clearTimeout(t);
+    };
   }, [resize, init, animate]);
 
   useEffect(() => {
