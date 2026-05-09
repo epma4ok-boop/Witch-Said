@@ -109,32 +109,21 @@ export default function Home() {
       tg.expand();
     }
 
-    const updateHeight = () => {
-      setViewportHeight(getTgViewportHeight());
-    };
+    const updateHeight = () => setViewportHeight(getTgViewportHeight());
 
-    if (tg) {
-      tg.onEvent("viewportChanged", updateHeight);
-    }
-
+    if (tg) tg.onEvent("viewportChanged", updateHeight);
     window.addEventListener("resize", updateHeight);
-
-    // Give Telegram a moment to settle its viewport after expand()
     const t = setTimeout(updateHeight, 300);
 
     return () => {
-      if (tg) {
-        tg.offEvent("viewportChanged", updateHeight);
-      }
+      if (tg) tg.offEvent("viewportChanged", updateHeight);
       window.removeEventListener("resize", updateHeight);
       clearTimeout(t);
     };
   }, [tg]);
 
   useEffect(() => {
-    const onTouchStart = (e: TouchEvent) => {
-      swipeStartYRef.current = e.touches[0].clientY;
-    };
+    const onTouchStart = (e: TouchEvent) => { swipeStartYRef.current = e.touches[0].clientY; };
     const onTouchEnd = (e: TouchEvent) => {
       if (swipeStartYRef.current === null) return;
       const delta = swipeStartYRef.current - e.changedTouches[0].clientY;
@@ -168,19 +157,15 @@ export default function Home() {
 
   const handleTap = useCallback(async () => {
     if (isCasting || historyOpen) return;
-
     setIsCasting(true);
     setFlashTrigger((n) => n + 1);
     tg?.HapticFeedback?.impactOccurred("medium");
     playInvoke();
-
     setRevealProgress(0);
     setPredictionText("");
     setHintText("ВСЕЛЕННАЯ ОТВЕЧАЕТ...");
     animateReveal(600);
-
     await new Promise((r) => setTimeout(r, 1300));
-
     const preds = PREDICTIONS[category];
     const answer = preds[Math.floor(Math.random() * preds.length)];
     setCurrentAnswer(answer);
@@ -191,7 +176,6 @@ export default function Home() {
     playReveal();
     setHintText("✦  ПОСЛАНИЕ ПОЛУЧЕНО  ✦");
     animateReveal(answer.length * 55);
-
     const entry: HistoryEntry = {
       id: Date.now().toString(),
       text: answer,
@@ -203,7 +187,6 @@ export default function Home() {
       saveHistory(updated);
       return updated;
     });
-
     setIsCasting(false);
   }, [isCasting, historyOpen, category, tg, animateReveal]);
 
@@ -234,97 +217,182 @@ export default function Home() {
     setHintText("КОСНИСЬ ЗАТМЕНИЯ · ОТКРОЙ ИСТИНУ");
   };
 
+  const { r: cr, g: cg, b: cb } = cfg.color;
+
   return (
     <div
-      className="relative w-full overflow-hidden"
-      style={{ background: "#030508", height: `${viewportHeight}px` }}
+      style={{
+        background: "#030508",
+        height: `${viewportHeight}px`,
+        display: "flex",
+        flexDirection: "column",
+        overflow: "hidden",
+        position: "relative",
+      }}
     >
-      <EclipseCanvas
-        onTap={handleTap}
-        isCasting={isCasting}
-        flashTrigger={flashTrigger}
-        catPulseTrigger={catPulseTrigger}
-        color={cfg.color}
-        predictionText={predictionText}
-        revealProgress={revealProgress}
-        hintText={hintText}
-      />
-
-      <div className="relative z-10 flex flex-col justify-between px-4 pt-8 pb-8 max-w-lg mx-auto pointer-events-none" style={{ height: `${viewportHeight}px` }}>
-
-        <div className="flex justify-center pointer-events-auto">
-          <div className="flex gap-2">
-            {(Object.keys(CATEGORY_CONFIG) as Category[]).map((cat) => {
-              const c = CATEGORY_CONFIG[cat];
-              const isActive = category === cat;
-              return (
-                <button
-                  key={cat}
-                  onClick={() => handleCategoryClick(cat)}
-                  className="px-4 py-2 rounded-full text-[11px] font-bold tracking-widest border transition-all duration-300 backdrop-blur-md uppercase"
-                  style={{
-                    background: isActive ? c.activeBg : "rgba(5,8,18,0.75)",
-                    border: `1px solid ${isActive ? c.accent : "rgba(255,255,255,0.07)"}`,
-                    color: isActive ? "#fff" : "rgba(255,255,255,0.38)",
-                    boxShadow: isActive ? `0 0 20px ${c.glow}, 0 0 6px ${c.glow}` : "none",
-                    fontFamily: "monospace",
-                    letterSpacing: "0.14em",
-                  }}
-                >
-                  {c.emoji} {c.label}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        <div className="flex flex-col items-center gap-3 pointer-events-auto">
-
-          <button
-            onClick={() => setHistoryOpen(true)}
-            className="flex flex-col items-center gap-1 active:opacity-60 transition-opacity"
-            style={{ pointerEvents: "auto" }}
-          >
-            <span
-              className="text-[10px] tracking-widest uppercase"
-              style={{ color: "rgba(255,255,255,0.22)", fontFamily: "monospace" }}
-            >
-              {history.length > 0 ? `${history.length} посланий` : "История"}
-            </span>
-            <div
-              className="flex flex-col items-center gap-0.5"
-              style={{ color: `${cfg.accent}55` }}
-            >
-              <span style={{ fontSize: 10, lineHeight: 1 }}>▲</span>
-              <span style={{ fontSize: 8, lineHeight: 1, opacity: 0.6 }}>▲</span>
-            </div>
-          </button>
-
-          <div className="flex gap-3 justify-center w-full">
-            {[
-              { label: "ПОДЕЛИТЬСЯ", icon: "↑", onClick: handleShare },
-              { label: "ПРИГЛАСИТЬ", icon: "✦", onClick: handleInvite },
-            ].map(({ label, icon, onClick }) => (
+      {/* ── Category tabs ── */}
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          paddingTop: 28,
+          paddingBottom: 4,
+          position: "relative",
+          zIndex: 10,
+          flexShrink: 0,
+        }}
+      >
+        <div style={{ display: "flex", gap: 8 }}>
+          {(Object.keys(CATEGORY_CONFIG) as Category[]).map((cat) => {
+            const c = CATEGORY_CONFIG[cat];
+            const isActive = category === cat;
+            return (
               <button
-                key={label}
-                onClick={onClick}
-                className="flex-1 max-w-[150px] flex items-center justify-center gap-2 py-3 px-4 rounded-2xl text-[11px] font-semibold tracking-widest uppercase transition-all duration-200 active:scale-95 active:brightness-75"
+                key={cat}
+                onClick={() => handleCategoryClick(cat)}
                 style={{
-                  background: `linear-gradient(135deg, rgba(${cfg.color.r},${cfg.color.g},${cfg.color.b},0.18) 0%, rgba(3,5,12,0.85) 100%)`,
-                  backdropFilter: "blur(16px)",
-                  border: `1px solid rgba(${cfg.color.r},${cfg.color.g},${cfg.color.b},0.45)`,
-                  color: "rgba(255,255,255,0.85)",
-                  boxShadow: `0 0 18px rgba(${cfg.color.r},${cfg.color.g},${cfg.color.b},0.25), inset 0 1px 0 rgba(255,255,255,0.07)`,
-                  fontFamily: "'Raleway', sans-serif",
-                  letterSpacing: "0.12em",
-                  transition: "box-shadow 0.4s, border-color 0.4s",
+                  padding: "7px 14px",
+                  borderRadius: 999,
+                  fontSize: 10,
+                  fontWeight: 600,
+                  letterSpacing: "0.14em",
+                  fontFamily: "monospace",
+                  textTransform: "uppercase",
+                  border: `1px solid ${isActive ? c.accent : "rgba(255,255,255,0.07)"}`,
+                  background: isActive ? c.activeBg : "rgba(5,8,18,0.75)",
+                  color: isActive ? "#fff" : "rgba(255,255,255,0.38)",
+                  boxShadow: isActive ? `0 0 20px ${c.glow}, 0 0 6px ${c.glow}` : "none",
+                  backdropFilter: "blur(12px)",
+                  transition: "all 0.3s",
+                  cursor: "pointer",
                 }}
               >
-                <span style={{ fontSize: 13, opacity: 0.8, lineHeight: 1 }}>{icon}</span>
-                {label}
+                {c.emoji} {c.label}
               </button>
-            ))}
+            );
+          })}
+        </div>
+      </div>
+
+      {/* ── Eclipse canvas (flex-1 so it takes remaining space) ── */}
+      <div style={{ flex: 1, position: "relative", minHeight: 0 }}>
+        <EclipseCanvas
+          onTap={handleTap}
+          isCasting={isCasting}
+          flashTrigger={flashTrigger}
+          catPulseTrigger={catPulseTrigger}
+          color={cfg.color}
+          predictionText={predictionText}
+          revealProgress={revealProgress}
+          hintText={hintText}
+        />
+      </div>
+
+      {/* ── Bottom: history + share/invite ── */}
+      <div
+        style={{
+          flexShrink: 0,
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          gap: 10,
+          paddingBottom: 24,
+          paddingTop: 6,
+          position: "relative",
+          zIndex: 10,
+        }}
+      >
+        {/* History trigger */}
+        <button
+          onClick={() => setHistoryOpen(true)}
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            gap: 3,
+            background: "transparent",
+            border: "none",
+            cursor: "pointer",
+            padding: "2px 12px",
+          }}
+        >
+          <div style={{ display: "flex", gap: 4, alignItems: "center" }}>
+            <span style={{ color: `${cfg.accent}66`, fontSize: 9, lineHeight: 1 }}>▲</span>
+            <span
+              style={{
+                color: "rgba(255,255,255,0.2)",
+                fontSize: 9,
+                letterSpacing: "0.2em",
+                fontFamily: "'Raleway', sans-serif",
+                fontWeight: 300,
+                textTransform: "uppercase",
+              }}
+            >
+              {history.length > 0 ? `${history.length} посланий` : "история"}
+            </span>
+            <span style={{ color: `${cfg.accent}66`, fontSize: 9, lineHeight: 1 }}>▲</span>
           </div>
+        </button>
+
+        {/* Share / Invite buttons */}
+        <div style={{ display: "flex", gap: 12, paddingLeft: 20, paddingRight: 20, width: "100%", maxWidth: 380, boxSizing: "border-box" }}>
+          {[
+            { label: "Поделиться", sub: "ПОСЛАНИЕ", icon: "✦", onClick: handleShare },
+            { label: "Пригласить", sub: "ДРУГА", icon: "☽", onClick: handleInvite },
+          ].map(({ label, sub, icon, onClick }) => (
+            <button
+              key={label}
+              onClick={onClick}
+              style={{
+                flex: 1,
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 2,
+                padding: "12px 8px",
+                borderRadius: 16,
+                background: `linear-gradient(160deg, rgba(${cr},${cg},${cb},0.12) 0%, rgba(2,3,10,0.9) 100%)`,
+                border: `0.5px solid rgba(${cr},${cg},${cb},0.35)`,
+                boxShadow: `0 0 22px rgba(${cr},${cg},${cb},0.15), inset 0 1px 0 rgba(255,255,255,0.05)`,
+                backdropFilter: "blur(20px)",
+                cursor: "pointer",
+                transition: "all 0.25s",
+                position: "relative",
+                overflow: "hidden",
+              }}
+            >
+              <span style={{ fontSize: 14, color: `rgba(${cr},${cg},${cb},0.75)`, lineHeight: 1, marginBottom: 2 }}>
+                {icon}
+              </span>
+              <span
+                style={{
+                  fontFamily: "'Cormorant Garamond', Georgia, serif",
+                  fontStyle: "italic",
+                  fontSize: 15,
+                  fontWeight: 400,
+                  color: "rgba(255,252,245,0.9)",
+                  letterSpacing: "0.04em",
+                  lineHeight: 1,
+                }}
+              >
+                {label}
+              </span>
+              <span
+                style={{
+                  fontFamily: "'Raleway', sans-serif",
+                  fontWeight: 200,
+                  fontSize: 8,
+                  color: `rgba(${cr},${cg},${cb},0.55)`,
+                  letterSpacing: "0.22em",
+                  textTransform: "uppercase",
+                  lineHeight: 1,
+                }}
+              >
+                {sub}
+              </span>
+            </button>
+          ))}
         </div>
       </div>
 
