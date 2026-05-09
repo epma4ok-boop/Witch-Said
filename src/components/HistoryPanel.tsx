@@ -4,13 +4,13 @@ export type HistoryEntry = {
   id: string;
   text: string;
   category: "love" | "work" | "money";
-  date: string; // ISO string
+  date: string;
 };
 
 const CATEGORY_LABELS = {
-  love: { emoji: "💗", label: "Любовь", accent: "#ff4466" },
-  work: { emoji: "⚙️", label: "Работа", accent: "#5599ff" },
-  money: { emoji: "📊", label: "Деньги", accent: "#33dd77" },
+  love:  { label: "Любовь",  accent: "#ff4466", rgb: "220,40,80" },
+  work:  { label: "Работа",  accent: "#5599ff", rgb: "60,140,255" },
+  money: { label: "Деньги",  accent: "#33dd77", rgb: "40,200,100" },
 };
 
 interface HistoryPanelProps {
@@ -19,27 +19,27 @@ interface HistoryPanelProps {
   onClose: () => void;
   accentColor: string;
   accentGlow: string;
+  accentRgb: { r: number; g: number; b: number };
 }
 
 function formatDate(iso: string) {
   const d = new Date(iso);
   const now = new Date();
-  const isToday = d.toDateString() === now.toDateString();
   const yesterday = new Date(now);
   yesterday.setDate(now.getDate() - 1);
-  const isYesterday = d.toDateString() === yesterday.toDateString();
-
   const time = d.toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" });
-  if (isToday) return `Сегодня, ${time}`;
-  if (isYesterday) return `Вчера, ${time}`;
-  return d.toLocaleDateString("ru-RU", { day: "numeric", month: "short" }) + `, ${time}`;
+  if (d.toDateString() === now.toDateString()) return `сегодня · ${time}`;
+  if (d.toDateString() === yesterday.toDateString()) return `вчера · ${time}`;
+  return d.toLocaleDateString("ru-RU", { day: "numeric", month: "short" }) + ` · ${time}`;
 }
 
-export default function HistoryPanel({ entries, open, onClose, accentColor, accentGlow }: HistoryPanelProps) {
+export default function HistoryPanel({
+  entries, open, onClose, accentColor, accentRgb,
+}: HistoryPanelProps) {
   const panelRef = useRef<HTMLDivElement>(null);
   const startYRef = useRef<number | null>(null);
+  const { r, g, b } = accentRgb;
 
-  // Close on swipe down
   useEffect(() => {
     const el = panelRef.current;
     if (!el) return;
@@ -52,116 +52,223 @@ export default function HistoryPanel({ entries, open, onClose, accentColor, acce
     };
     el.addEventListener("touchstart", onTouchStart, { passive: true });
     el.addEventListener("touchend", onTouchEnd, { passive: true });
-    return () => { el.removeEventListener("touchstart", onTouchStart); el.removeEventListener("touchend", onTouchEnd); };
+    return () => {
+      el.removeEventListener("touchstart", onTouchStart);
+      el.removeEventListener("touchend", onTouchEnd);
+    };
   }, [onClose]);
 
   return (
     <>
       {/* Backdrop */}
       <div
-        className="absolute inset-0 z-20 transition-opacity duration-400"
-        style={{ background: "rgba(0,0,0,0.55)", opacity: open ? 1 : 0, pointerEvents: open ? "auto" : "none" }}
+        style={{
+          position: "absolute", inset: 0, zIndex: 20,
+          background: "rgba(0,0,0,0.6)",
+          opacity: open ? 1 : 0,
+          pointerEvents: open ? "auto" : "none",
+          transition: "opacity 0.35s",
+        }}
         onClick={onClose}
       />
 
       {/* Panel */}
       <div
         ref={panelRef}
-        className="absolute bottom-0 left-0 right-0 z-30 rounded-t-3xl transition-transform duration-500"
         style={{
-          background: "rgba(5,8,18,0.97)",
-          backdropFilter: "blur(20px)",
-          border: `1px solid ${accentColor}33`,
-          boxShadow: `0 -8px 40px rgba(0,0,0,0.7), 0 -2px 0 ${accentColor}44`,
+          position: "absolute",
+          bottom: 0, left: 0, right: 0,
+          zIndex: 30,
+          borderRadius: "24px 24px 0 0",
+          background: "rgba(4,5,14,0.98)",
+          backdropFilter: "blur(30px)",
+          borderTop: `0.5px solid rgba(${r},${g},${b},0.25)`,
+          borderLeft: `0.5px solid rgba(${r},${g},${b},0.12)`,
+          borderRight: `0.5px solid rgba(${r},${g},${b},0.12)`,
+          boxShadow: `0 -12px 60px rgba(0,0,0,0.8), 0 -1px 0 rgba(${r},${g},${b},0.2)`,
           transform: open ? "translateY(0)" : "translateY(110%)",
-          maxHeight: "72vh",
+          transition: "transform 0.45s cubic-bezier(0.32, 0.72, 0, 1)",
+          maxHeight: "75vh",
           display: "flex",
           flexDirection: "column",
         }}
       >
-        {/* Handle bar */}
-        <div className="flex justify-center pt-3 pb-1 flex-shrink-0">
+        {/* Handle */}
+        <div style={{ display: "flex", justifyContent: "center", paddingTop: 14, paddingBottom: 10, flexShrink: 0 }}>
           <div
-            className="w-10 h-1 rounded-full"
-            style={{ background: `${accentColor}66` }}
+            style={{
+              width: 36, height: 3, borderRadius: 99,
+              background: `rgba(${r},${g},${b},0.3)`,
+            }}
           />
         </div>
 
         {/* Header */}
-        <div className="px-6 pb-3 flex-shrink-0 flex items-center justify-between">
+        <div
+          style={{
+            display: "flex",
+            alignItems: "flex-end",
+            justifyContent: "space-between",
+            paddingLeft: 24, paddingRight: 20,
+            paddingBottom: 16,
+            flexShrink: 0,
+          }}
+        >
           <div>
-            <h2
-              className="text-sm font-bold tracking-widest uppercase"
-              style={{ color: accentColor, fontFamily: "monospace", textShadow: `0 0 10px ${accentGlow}` }}
+            <p
+              style={{
+                fontFamily: "'Cormorant Garamond', Georgia, serif",
+                fontStyle: "italic",
+                fontWeight: 400,
+                fontSize: 22,
+                color: "rgba(255,252,245,0.9)",
+                letterSpacing: "0.02em",
+                margin: 0,
+                lineHeight: 1.1,
+              }}
             >
-              История посланий
-            </h2>
-            <p className="text-[10px] mt-0.5" style={{ color: "rgba(255,255,255,0.3)", fontFamily: "monospace" }}>
-              Последние {entries.length} из вселенной
+              Послания
+            </p>
+            <p
+              style={{
+                fontFamily: "'Raleway', sans-serif",
+                fontWeight: 200,
+                fontSize: 9,
+                letterSpacing: "0.28em",
+                textTransform: "uppercase",
+                color: `rgba(${r},${g},${b},0.5)`,
+                margin: 0,
+                marginTop: 4,
+              }}
+            >
+              {entries.length > 0 ? `последние ${entries.length}` : "пусто"}
             </p>
           </div>
+
           <button
             onClick={onClose}
-            className="text-lg leading-none"
-            style={{ color: "rgba(255,255,255,0.3)" }}
+            style={{
+              background: "transparent",
+              border: `0.5px solid rgba(255,255,255,0.1)`,
+              borderRadius: 99,
+              padding: "5px 14px",
+              cursor: "pointer",
+              fontFamily: "'Raleway', sans-serif",
+              fontWeight: 300,
+              fontSize: 10,
+              letterSpacing: "0.2em",
+              textTransform: "uppercase",
+              color: "rgba(255,255,255,0.28)",
+            }}
           >
-            ✕
+            закрыть
           </button>
         </div>
 
         {/* Divider */}
-        <div style={{ height: 1, background: `${accentColor}22`, flexShrink: 0 }} />
+        <div style={{ height: 0.5, background: `rgba(${r},${g},${b},0.12)`, flexShrink: 0, marginLeft: 24, marginRight: 24 }} />
 
         {/* List */}
-        <div className="overflow-y-auto flex-1 px-4 py-3 space-y-2">
+        <div style={{ overflowY: "auto", flex: 1, padding: "12px 16px 16px" }}>
           {entries.length === 0 ? (
-            <div className="text-center py-10">
-              <p className="text-2xl mb-2">🌌</p>
-              <p className="text-xs tracking-widest uppercase" style={{ color: "rgba(255,255,255,0.25)", fontFamily: "monospace" }}>
-                Ещё нет посланий
+            <div style={{ textAlign: "center", paddingTop: 48, paddingBottom: 48 }}>
+              <p
+                style={{
+                  fontFamily: "'Cormorant Garamond', Georgia, serif",
+                  fontStyle: "italic",
+                  fontSize: 18,
+                  color: "rgba(255,255,255,0.15)",
+                  margin: 0,
+                }}
+              >
+                Вселенная ещё молчит
+              </p>
+              <p
+                style={{
+                  fontFamily: "'Raleway', sans-serif",
+                  fontWeight: 200,
+                  fontSize: 9,
+                  letterSpacing: "0.25em",
+                  textTransform: "uppercase",
+                  color: "rgba(255,255,255,0.1)",
+                  marginTop: 10,
+                }}
+              >
+                Коснись затмения
               </p>
             </div>
           ) : (
-            [...entries].reverse().map((entry) => {
-              const cat = CATEGORY_LABELS[entry.category];
-              return (
-                <div
-                  key={entry.id}
-                  className="rounded-2xl p-4 transition-all"
-                  style={{
-                    background: "rgba(255,255,255,0.03)",
-                    border: `1px solid ${cat.accent}22`,
-                  }}
-                >
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="text-base">{cat.emoji}</span>
-                    <span
-                      className="text-[10px] font-bold tracking-widest uppercase"
-                      style={{ color: cat.accent, fontFamily: "monospace" }}
-                    >
-                      {cat.label}
-                    </span>
-                    <span
-                      className="ml-auto text-[10px]"
-                      style={{ color: "rgba(255,255,255,0.25)", fontFamily: "monospace" }}
-                    >
-                      {formatDate(entry.date)}
-                    </span>
-                  </div>
-                  <p
-                    className="text-sm leading-relaxed"
-                    style={{ color: "rgba(255,255,255,0.82)", fontFamily: "'Cinzel', serif" }}
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              {[...entries].reverse().map((entry, idx) => {
+                const cat = CATEGORY_LABELS[entry.category];
+                return (
+                  <div
+                    key={entry.id}
+                    style={{
+                      padding: "14px 16px",
+                      borderRadius: 16,
+                      background: idx === 0
+                        ? `rgba(${cat.rgb},0.07)`
+                        : "rgba(255,255,255,0.02)",
+                      border: `0.5px solid rgba(${cat.rgb},${idx === 0 ? "0.22" : "0.1"})`,
+                      transition: "all 0.2s",
+                    }}
                   >
-                    {entry.text}
-                  </p>
-                </div>
-              );
-            })
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        marginBottom: 8,
+                      }}
+                    >
+                      <span
+                        style={{
+                          fontFamily: "'Raleway', sans-serif",
+                          fontWeight: 300,
+                          fontSize: 9,
+                          letterSpacing: "0.22em",
+                          textTransform: "uppercase",
+                          color: cat.accent,
+                          opacity: 0.7,
+                        }}
+                      >
+                        {cat.label}
+                      </span>
+                      <span
+                        style={{
+                          fontFamily: "'Raleway', sans-serif",
+                          fontWeight: 200,
+                          fontSize: 9,
+                          letterSpacing: "0.1em",
+                          color: "rgba(255,255,255,0.2)",
+                        }}
+                      >
+                        {formatDate(entry.date)}
+                      </span>
+                    </div>
+                    <p
+                      style={{
+                        fontFamily: "'Cormorant Garamond', Georgia, serif",
+                        fontStyle: "italic",
+                        fontWeight: 400,
+                        fontSize: 15,
+                        lineHeight: 1.55,
+                        color: "rgba(255,252,245,0.82)",
+                        margin: 0,
+                        letterSpacing: "0.01em",
+                      }}
+                    >
+                      {entry.text}
+                    </p>
+                  </div>
+                );
+              })}
+            </div>
           )}
         </div>
 
-        {/* Bottom safe area */}
-        <div className="flex-shrink-0 pb-6" />
+        <div style={{ flexShrink: 0, height: 20 }} />
       </div>
     </>
   );
