@@ -36,26 +36,26 @@ declare global {
 type Category = "love" | "work" | "money";
 
 const CATEGORY_CONFIG: Record<Category, {
-  emoji: string; label: string; color: EclipseColor;
-  accent: string; glow: string; border: string; activeBg: string;
+  label: string; color: EclipseColor;
+  accent: string; glow: string; activeBg: string;
 }> = {
   love: {
-    emoji: "💗", label: "ЛЮБОВЬ",
+    label: "Любовь",
     color: { r: 220, g: 40, b: 80 },
     accent: "#ff4466", glow: "rgba(220,40,80,0.7)",
-    border: "rgba(220,60,90,0.5)", activeBg: "rgba(180,30,60,0.75)",
+    activeBg: "rgba(180,30,60,0.6)",
   },
   work: {
-    emoji: "⚙️", label: "РАБОТА",
+    label: "Работа",
     color: { r: 60, g: 140, b: 255 },
     accent: "#5599ff", glow: "rgba(60,140,255,0.7)",
-    border: "rgba(80,150,255,0.5)", activeBg: "rgba(30,90,200,0.75)",
+    activeBg: "rgba(30,90,200,0.6)",
   },
   money: {
-    emoji: "📊", label: "ДЕНЬГИ",
+    label: "Деньги",
     color: { r: 40, g: 200, b: 100 },
     accent: "#33dd77", glow: "rgba(40,200,100,0.7)",
-    border: "rgba(50,200,100,0.5)", activeBg: "rgba(20,140,60,0.75)",
+    activeBg: "rgba(20,140,60,0.6)",
   },
 };
 
@@ -102,19 +102,14 @@ export default function Home() {
   const swipeStartYRef = useRef<number | null>(null);
   const cfg = CATEGORY_CONFIG[category];
   const { playInvoke, playReveal, playSwitch } = useMysticSound();
+  const { r: cr, g: cg, b: cb } = cfg.color;
 
   useEffect(() => {
-    if (tg) {
-      tg.ready();
-      tg.expand();
-    }
-
+    if (tg) { tg.ready(); tg.expand(); }
     const updateHeight = () => setViewportHeight(getTgViewportHeight());
-
     if (tg) tg.onEvent("viewportChanged", updateHeight);
     window.addEventListener("resize", updateHeight);
     const t = setTimeout(updateHeight, 300);
-
     return () => {
       if (tg) tg.offEvent("viewportChanged", updateHeight);
       window.removeEventListener("resize", updateHeight);
@@ -174,14 +169,9 @@ export default function Home() {
     setFlashTrigger((n) => n + 1);
     tg?.HapticFeedback?.notificationOccurred("success");
     playReveal();
-    setHintText("✦  ПОСЛАНИЕ ПОЛУЧЕНО  ✦");
+    setHintText("ПОСЛАНИЕ ПОЛУЧЕНО");
     animateReveal(answer.length * 55);
-    const entry: HistoryEntry = {
-      id: Date.now().toString(),
-      text: answer,
-      category,
-      date: new Date().toISOString(),
-    };
+    const entry: HistoryEntry = { id: Date.now().toString(), text: answer, category, date: new Date().toISOString() };
     setHistory((prev) => {
       const updated = [...prev, entry].slice(-MAX_HISTORY);
       saveHistory(updated);
@@ -192,7 +182,7 @@ export default function Home() {
 
   const handleShare = useCallback(() => {
     if (!currentAnswer) { setHintText("СНАЧАЛА ПОЛУЧИ ПОСЛАНИЕ"); return; }
-    const text = `🌌 ${currentAnswer} 🌌`;
+    const text = `${currentAnswer}`;
     const link = getReferralLink();
     if (tg?.openTelegramLink) {
       tg.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent(text)}`);
@@ -201,10 +191,10 @@ export default function Home() {
 
   const handleInvite = useCallback(() => {
     const link = getReferralLink();
-    const text = "🌌 Загляни в солнечное затмение — вселенная отвечает на твои вопросы";
+    const text = "Загляни в солнечное затмение — вселенная отвечает на твои вопросы";
     if (tg?.openTelegramLink) {
       tg.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent(text)}`);
-    } else { alert("👥 Пригласить: " + link); }
+    } else { alert(link); }
   }, [getReferralLink, tg]);
 
   const handleCategoryClick = (cat: Category) => {
@@ -216,8 +206,6 @@ export default function Home() {
     setRevealProgress(1);
     setHintText("КОСНИСЬ ЗАТМЕНИЯ · ОТКРОЙ ИСТИНУ");
   };
-
-  const { r: cr, g: cg, b: cb } = cfg.color;
 
   return (
     <div
@@ -242,7 +230,7 @@ export default function Home() {
           flexShrink: 0,
         }}
       >
-        <div style={{ display: "flex", gap: 8 }}>
+        <div style={{ display: "flex", gap: 6 }}>
           {(Object.keys(CATEGORY_CONFIG) as Category[]).map((cat) => {
             const c = CATEGORY_CONFIG[cat];
             const isActive = category === cat;
@@ -251,30 +239,30 @@ export default function Home() {
                 key={cat}
                 onClick={() => handleCategoryClick(cat)}
                 style={{
-                  padding: "7px 14px",
+                  padding: "7px 18px",
                   borderRadius: 999,
-                  fontSize: 10,
-                  fontWeight: 600,
-                  letterSpacing: "0.14em",
-                  fontFamily: "monospace",
+                  fontSize: 11,
+                  fontWeight: 300,
+                  letterSpacing: "0.18em",
+                  fontFamily: "'Raleway', sans-serif",
                   textTransform: "uppercase",
-                  border: `1px solid ${isActive ? c.accent : "rgba(255,255,255,0.07)"}`,
-                  background: isActive ? c.activeBg : "rgba(5,8,18,0.75)",
-                  color: isActive ? "#fff" : "rgba(255,255,255,0.38)",
-                  boxShadow: isActive ? `0 0 20px ${c.glow}, 0 0 6px ${c.glow}` : "none",
+                  border: `0.5px solid ${isActive ? c.accent : "rgba(255,255,255,0.1)"}`,
+                  background: isActive ? c.activeBg : "transparent",
+                  color: isActive ? "rgba(255,255,255,0.95)" : "rgba(255,255,255,0.3)",
+                  boxShadow: isActive ? `0 0 16px ${c.glow}` : "none",
                   backdropFilter: "blur(12px)",
-                  transition: "all 0.3s",
+                  transition: "all 0.35s",
                   cursor: "pointer",
                 }}
               >
-                {c.emoji} {c.label}
+                {c.label}
               </button>
             );
           })}
         </div>
       </div>
 
-      {/* ── Eclipse canvas (flex-1 so it takes remaining space) ── */}
+      {/* ── Eclipse canvas ── */}
       <div style={{ flex: 1, position: "relative", minHeight: 0 }}>
         <EclipseCanvas
           onTap={handleTap}
@@ -288,7 +276,7 @@ export default function Home() {
         />
       </div>
 
-      {/* ── Bottom: history + share/invite ── */}
+      {/* ── Bottom: history + actions ── */}
       <div
         style={{
           flexShrink: 0,
@@ -296,8 +284,8 @@ export default function Home() {
           flexDirection: "column",
           alignItems: "center",
           gap: 10,
-          paddingBottom: 24,
-          paddingTop: 6,
+          paddingBottom: 28,
+          paddingTop: 8,
           position: "relative",
           zIndex: 10,
         }}
@@ -306,91 +294,75 @@ export default function Home() {
         <button
           onClick={() => setHistoryOpen(true)}
           style={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            gap: 3,
             background: "transparent",
             border: "none",
             cursor: "pointer",
-            padding: "2px 12px",
+            padding: "4px 20px",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            gap: 5,
           }}
         >
-          <div style={{ display: "flex", gap: 4, alignItems: "center" }}>
-            <span style={{ color: `${cfg.accent}66`, fontSize: 9, lineHeight: 1 }}>▲</span>
-            <span
-              style={{
-                color: "rgba(255,255,255,0.2)",
-                fontSize: 9,
-                letterSpacing: "0.2em",
-                fontFamily: "'Raleway', sans-serif",
-                fontWeight: 300,
-                textTransform: "uppercase",
-              }}
-            >
-              {history.length > 0 ? `${history.length} посланий` : "история"}
-            </span>
-            <span style={{ color: `${cfg.accent}66`, fontSize: 9, lineHeight: 1 }}>▲</span>
-          </div>
+          <div
+            style={{
+              width: 24,
+              height: 0.5,
+              background: `rgba(${cr},${cg},${cb},0.35)`,
+            }}
+          />
+          <span
+            style={{
+              fontFamily: "'Raleway', sans-serif",
+              fontWeight: 200,
+              fontSize: 9,
+              letterSpacing: "0.3em",
+              textTransform: "uppercase",
+              color: "rgba(255,255,255,0.18)",
+            }}
+          >
+            {history.length > 0 ? `${history.length} посланий` : "история"}
+          </span>
         </button>
 
-        {/* Share / Invite buttons */}
-        <div style={{ display: "flex", gap: 12, paddingLeft: 20, paddingRight: 20, width: "100%", maxWidth: 380, boxSizing: "border-box" }}>
+        {/* Share / Invite */}
+        <div
+          style={{
+            display: "flex",
+            gap: 10,
+            paddingLeft: 24,
+            paddingRight: 24,
+            width: "100%",
+            maxWidth: 360,
+            boxSizing: "border-box",
+          }}
+        >
           {[
-            { label: "Поделиться", sub: "ПОСЛАНИЕ", icon: "✦", onClick: handleShare },
-            { label: "Пригласить", sub: "ДРУГА", icon: "☽", onClick: handleInvite },
-          ].map(({ label, sub, icon, onClick }) => (
+            { label: "Поделиться", onClick: handleShare },
+            { label: "Пригласить", onClick: handleInvite },
+          ].map(({ label, onClick }) => (
             <button
               key={label}
               onClick={onClick}
               style={{
                 flex: 1,
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: 2,
-                padding: "12px 8px",
-                borderRadius: 16,
-                background: `linear-gradient(160deg, rgba(${cr},${cg},${cb},0.12) 0%, rgba(2,3,10,0.9) 100%)`,
-                border: `0.5px solid rgba(${cr},${cg},${cb},0.35)`,
-                boxShadow: `0 0 22px rgba(${cr},${cg},${cb},0.15), inset 0 1px 0 rgba(255,255,255,0.05)`,
-                backdropFilter: "blur(20px)",
+                padding: "13px 8px",
+                borderRadius: 14,
+                background: `rgba(${cr},${cg},${cb},0.07)`,
+                border: `0.5px solid rgba(${cr},${cg},${cb},0.28)`,
+                boxShadow: `0 0 20px rgba(${cr},${cg},${cb},0.08)`,
+                backdropFilter: "blur(16px)",
                 cursor: "pointer",
                 transition: "all 0.25s",
-                position: "relative",
-                overflow: "hidden",
+                fontFamily: "'Cormorant Garamond', Georgia, serif",
+                fontStyle: "italic",
+                fontWeight: 400,
+                fontSize: 16,
+                color: "rgba(255,252,245,0.75)",
+                letterSpacing: "0.06em",
               }}
             >
-              <span style={{ fontSize: 14, color: `rgba(${cr},${cg},${cb},0.75)`, lineHeight: 1, marginBottom: 2 }}>
-                {icon}
-              </span>
-              <span
-                style={{
-                  fontFamily: "'Cormorant Garamond', Georgia, serif",
-                  fontStyle: "italic",
-                  fontSize: 15,
-                  fontWeight: 400,
-                  color: "rgba(255,252,245,0.9)",
-                  letterSpacing: "0.04em",
-                  lineHeight: 1,
-                }}
-              >
-                {label}
-              </span>
-              <span
-                style={{
-                  fontFamily: "'Raleway', sans-serif",
-                  fontWeight: 200,
-                  fontSize: 8,
-                  color: `rgba(${cr},${cg},${cb},0.55)`,
-                  letterSpacing: "0.22em",
-                  textTransform: "uppercase",
-                  lineHeight: 1,
-                }}
-              >
-                {sub}
-              </span>
+              {label}
             </button>
           ))}
         </div>
@@ -402,6 +374,7 @@ export default function Home() {
         onClose={() => setHistoryOpen(false)}
         accentColor={cfg.accent}
         accentGlow={cfg.glow}
+        accentRgb={{ r: cr, g: cg, b: cb }}
       />
     </div>
   );
