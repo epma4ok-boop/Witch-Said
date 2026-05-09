@@ -4,11 +4,10 @@ import HistoryPanel, { type HistoryEntry } from "@/components/HistoryPanel";
 import { PREDICTIONS } from "@/data/predictions";
 import { useMysticSound } from "@/hooks/useMysticSound";
 
-// Characteristic root frequency per category (used for switch sound tuning)
 const CATEGORY_FREQ: Record<string, number> = {
-  love: 415,  // Ab4 — warm, emotional
-  work: 523,  // C5  — clear, decisive
-  money: 659, // E5  — bright, hopeful
+  love: 415,
+  work: 523,
+  money: 659,
 };
 
 declare global {
@@ -17,6 +16,11 @@ declare global {
       WebApp: {
         ready: () => void;
         expand: () => void;
+        viewportHeight: number;
+        viewportStableHeight: number;
+        isExpanded: boolean;
+        onEvent: (event: string, handler: () => void) => void;
+        offEvent: (event: string, handler: () => void) => void;
         HapticFeedback?: {
           impactOccurred: (style: string) => void;
           notificationOccurred: (type: string) => void;
@@ -70,6 +74,14 @@ function saveHistory(entries: HistoryEntry[]) {
   localStorage.setItem(HISTORY_KEY, JSON.stringify(entries.slice(-MAX_HISTORY)));
 }
 
+function getTgViewportHeight(): number {
+  const tg = window.Telegram?.WebApp;
+  if (tg && tg.viewportStableHeight && tg.viewportStableHeight > 100) {
+    return tg.viewportStableHeight;
+  }
+  return window.innerHeight;
+}
+
 export default function Home() {
   const tg = window.Telegram?.WebApp;
   const referralCode = useRef("universe_" + Math.random().toString(36).substr(2, 8));
@@ -84,6 +96,7 @@ export default function Home() {
   const [catPulseTrigger, setCatPulseTrigger] = useState(0);
   const [historyOpen, setHistoryOpen] = useState(false);
   const [history, setHistory] = useState<HistoryEntry[]>(() => loadHistory());
+  const [viewportHeight, setViewportHeight] = useState(() => getTgViewportHeight());
 
   const revealRafRef = useRef<number>(0);
   const swipeStartYRef = useRef<number | null>(null);
@@ -91,10 +104,33 @@ export default function Home() {
   const { playInvoke, playReveal, playSwitch } = useMysticSound();
 
   useEffect(() => {
-    if (tg) { tg.ready(); tg.expand(); }
+    if (tg) {
+      tg.ready();
+      tg.expand();
+    }
+
+    const updateHeight = () => {
+      setViewportHeight(getTgViewportHeight());
+    };
+
+    if (tg) {
+      tg.onEvent("viewportChanged", updateHeight);
+    }
+
+    window.addEventListener("resize", updateHeight);
+
+    // Give Telegram a moment to settle its viewport after expand()
+    const t = setTimeout(updateHeight, 300);
+
+    return () => {
+      if (tg) {
+        tg.offEvent("viewportChanged", updateHeight);
+      }
+      window.removeEventListener("resize", updateHeight);
+      clearTimeout(t);
+    };
   }, [tg]);
 
-  // Global swipe-up to open history
   useEffect(() => {
     const onTouchStart = (e: TouchEvent) => {
       swipeStartYRef.current = e.touches[0].clientY;
@@ -156,7 +192,6 @@ export default function Home() {
     setHintText("✦  ПОСЛАНИЕ ПОЛУЧЕНО  ✦");
     animateReveal(answer.length * 55);
 
-    // Save to history
     const entry: HistoryEntry = {
       id: Date.now().toString(),
       text: answer,
@@ -200,7 +235,10 @@ export default function Home() {
   };
 
   return (
-    <div className="relative w-full h-screen overflow-hidden" style={{ background: "#030508" }}>
+    <div
+      className="relative w-full overflow-hidden"
+      style={{ background: "#030508", height: `${viewportHeight}px` }}
+    >
       <EclipseCanvas
         onTap={handleTap}
         isCasting={isCasting}
@@ -212,9 +250,8 @@ export default function Home() {
         hintText={hintText}
       />
 
-      <div className="relative z-10 flex flex-col justify-between h-full px-4 pt-8 pb-8 max-w-lg mx-auto pointer-events-none">
+      <div className="relative z-10 flex flex-col justify-between px-4 pt-8 pb-8 max-w-lg mx-auto pointer-events-none" style={{ height: `${viewportHeight}px` }}>
 
-        {/* TOP: category pills */}
         <div className="flex justify-center pointer-events-auto">
           <div className="flex gap-2">
             {(Object.keys(CATEGORY_CONFIG) as Category[]).map((cat) => {
@@ -241,10 +278,8 @@ export default function Home() {
           </div>
         </div>
 
-        {/* BOTTOM */}
         <div className="flex flex-col items-center gap-3 pointer-events-auto">
 
-          {/* Swipe hint */}
           <button
             onClick={() => setHistoryOpen(true)}
             className="flex flex-col items-center gap-1 active:opacity-60 transition-opacity"
@@ -265,7 +300,6 @@ export default function Home() {
             </div>
           </button>
 
-          {/* Action buttons */}
           <div className="flex gap-3 justify-center w-full">
             {[
               { label: "ПОДЕЛИТЬСЯ", icon: "↑", onClick: handleShare },
@@ -294,7 +328,6 @@ export default function Home() {
         </div>
       </div>
 
-      {/* History panel */}
       <HistoryPanel
         entries={history}
         open={historyOpen}
