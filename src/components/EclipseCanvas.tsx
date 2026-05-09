@@ -46,7 +46,7 @@ export default function EclipseCanvas({
   class Star {
     x = 0; y = 0; vx = 0; vy = 0;
     size: number; alpha: number; phase: number; speed: number;
-    burst = false; // scatter mode on flash
+    burst = false;
 
     constructor() {
       this.size = 0.4 + Math.random() * 1.1;
@@ -59,7 +59,7 @@ export default function EclipseCanvas({
     reset() {
       const s = stateRef.current;
       const angle = Math.random() * Math.PI * 2;
-      const dist = Math.random() * 0.88; // within 88% of radius
+      const dist = Math.random() * 0.88;
       this.x = s.cx + Math.cos(angle) * s.r * dist;
       this.y = s.cy + Math.sin(angle) * s.r * dist;
       this.vx = (Math.random() - 0.5) * 0.12;
@@ -68,7 +68,6 @@ export default function EclipseCanvas({
     }
 
     scatter() {
-      // Fly outward from center on flash
       const s = stateRef.current;
       const dx = this.x - s.cx;
       const dy = this.y - s.cy;
@@ -84,13 +83,11 @@ export default function EclipseCanvas({
       this.x += this.vx;
       this.y += this.vy;
       if (this.burst) {
-        // slow down and fade out then reset
         this.vx *= 0.93;
         this.vy *= 0.93;
         const dist = Math.hypot(this.x - s.cx, this.y - s.cy);
         if (dist > s.r * 0.92) this.reset();
       } else {
-        // gentle drift — wrap within disc
         const dist = Math.hypot(this.x - s.cx, this.y - s.cy);
         if (dist > s.r * 0.90) this.reset();
       }
@@ -119,8 +116,8 @@ export default function EclipseCanvas({
     const canvas = canvasRef.current;
     if (!canvas) return;
     const s = stateRef.current;
-    s.width = window.innerWidth;
-    s.height = window.innerHeight;
+    s.width = canvas.parentElement?.clientWidth || window.innerWidth;
+    s.height = canvas.parentElement?.clientHeight || window.innerHeight;
     canvas.width = s.width;
     canvas.height = s.height;
     s.cx = s.width / 2;
@@ -128,7 +125,6 @@ export default function EclipseCanvas({
     s.r = Math.min(s.width, s.height) * 0.265;
   }, []);
 
-  // Word-wrap helper
   function wrapText(ctx: CanvasRenderingContext2D, text: string, maxWidth: number): string[] {
     const words = text.split(" ");
     const lines: string[] = [];
@@ -149,7 +145,6 @@ export default function EclipseCanvas({
   const RUNE_GLYPHS = ["✦", "☽", "⊕", "✶", "⋆", "✴", "⊗"];
 
   const drawCastingRunes = useCallback((ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number, time: number, cr: number, cg: number, cb: number) => {
-    // Central vortex glow — spiralling inward
     ctx.save();
     ctx.globalCompositeOperation = "lighter";
     const vortexR = r * (0.38 + 0.06 * Math.sin(time * 2.1));
@@ -163,7 +158,6 @@ export default function EclipseCanvas({
     ctx.fill();
     ctx.restore();
 
-    // Orbiting rune glyphs — two concentric rings at different speeds
     const runeFont = `300 ${Math.max(14, r * 0.10)}px 'Cormorant Garamond', serif`;
     const glyphs = RUNE_GLYPHS;
     const orbitR = r * 0.44;
@@ -187,7 +181,6 @@ export default function EclipseCanvas({
       ctx.restore();
     });
 
-    // Inner spinning triangle / sigil lines
     ctx.save();
     ctx.globalCompositeOperation = "lighter";
     ctx.globalAlpha = 0.18 + 0.10 * Math.sin(time * 1.5);
@@ -207,7 +200,6 @@ export default function EclipseCanvas({
     ctx.stroke();
     ctx.restore();
 
-    // Central point of light
     ctx.save();
     ctx.globalCompositeOperation = "lighter";
     const dotPulse = 0.5 + 0.5 * Math.sin(time * 3.2);
@@ -230,7 +222,6 @@ export default function EclipseCanvas({
     const cg = Math.round(s.currentG);
     const cb = Math.round(s.currentB);
 
-    // ---- CASTING ANIMATION — magical runes instead of dots ----
     if (castingRef.current) {
       ctx.save();
       ctx.beginPath();
@@ -238,7 +229,6 @@ export default function EclipseCanvas({
       ctx.clip();
       drawCastingRunes(ctx, cx, cy, r, time, cr, cg, cb);
       ctx.restore();
-      // Hint below disc
       if (hint) {
         const hintY = cy + r * 1.22;
         const hintSize = Math.max(8, r * 0.052);
@@ -259,12 +249,9 @@ export default function EclipseCanvas({
 
     if (!text) return;
 
-    // ---- FONT & LAYOUT ----
-    // Start with a target font size, then shrink if text needs more than 4 lines
     const targetFontSize = Math.max(16, Math.min(30, r * 0.148));
-    const maxWidth = r * 1.58; // chord at disc centre is ~1.86r, leave padding
+    const maxWidth = r * 1.58;
 
-    // Find the font size that keeps text to ≤ 4 lines
     let fontSize = targetFontSize;
     let lines: string[] = [];
     for (let attempt = 0; attempt < 4; attempt++) {
@@ -286,19 +273,16 @@ export default function EclipseCanvas({
     const lineH = fontSize * 1.52;
     const totalH = lines.length * lineH;
 
-    // ---- DEPTH EMERGENCE ----
     const eased = 1 - Math.pow(1 - reveal, 3);
     const scale = 0.22 + 0.78 * eased;
     const alpha = Math.pow(Math.max(0, reveal - 0.05) / 0.95, 1.8);
     const yDrift = (1 - eased) * r * 0.12;
     const baseY = cy + yDrift;
 
-    // Clip inside disc
     ctx.beginPath();
     ctx.arc(cx, cy, r * 0.93, 0, Math.PI * 2);
     ctx.clip();
 
-    // ---- DARK BACKDROP behind text — improves contrast dramatically ----
     if (alpha > 0.05) {
       const padX = r * 0.72;
       const padY = totalH * 0.55 + fontSize * 0.4;
@@ -315,16 +299,13 @@ export default function EclipseCanvas({
       ctx.restore();
     }
 
-    // Apply scale transform
     ctx.translate(cx, baseY);
     ctx.scale(scale, scale);
     ctx.translate(-cx, -baseY);
 
-    // ---- DRAW LINES ----
     lines.forEach((line, i) => {
       const lineY = baseY - totalH / 2 + i * lineH + lineH / 2;
 
-      // Pass 1: colored glow (wide, atmospheric)
       ctx.save();
       ctx.globalAlpha = alpha * 0.65;
       ctx.shadowBlur = 32;
@@ -333,7 +314,6 @@ export default function EclipseCanvas({
       ctx.fillText(line, cx, lineY);
       ctx.restore();
 
-      // Pass 2: warm white core with tight glow
       ctx.save();
       ctx.globalAlpha = alpha;
       ctx.shadowBlur = 14;
@@ -343,9 +323,8 @@ export default function EclipseCanvas({
       ctx.restore();
     });
 
-    ctx.restore(); // end clip + transform
+    ctx.restore();
 
-    // ---- HINT TEXT (below disc, not scaled) ----
     if (hint) {
       const hintY = cy + r * 1.22;
       const hintSize = Math.max(8, r * 0.052);
@@ -363,7 +342,6 @@ export default function EclipseCanvas({
       ctx.restore();
     }
 
-    // ---- VOID BURST (flash ring when text first arrives) ----
     if (reveal > 0.02 && reveal < 0.35) {
       const burst = Math.sin(reveal * Math.PI / 0.35);
       ctx.save();
@@ -378,7 +356,6 @@ export default function EclipseCanvas({
       ctx.restore();
     }
 
-    // ---- IDLE SOFT PULSE (when reveal=1, text breathes) ----
     if (reveal >= 0.99) {
       const pulse = 0.92 + 0.08 * Math.sin(time * 1.2);
       ctx.save();
@@ -409,19 +386,15 @@ export default function EclipseCanvas({
     const cg = Math.round(s.currentG);
     const cb = Math.round(s.currentB);
 
-    // BACKGROUND — full screen, no shake so edges stay filled
     ctx.fillStyle = "#030508";
     ctx.fillRect(0, 0, w, h);
 
-    // SHAKE — eclipse trembles on tap, exponential decay
-    // High-frequency Lissajous offsets give chaotic micro-tremor feel
     const shakeMag = s.shake * r * 0.030;
     const shakeX = shakeMag * Math.sin(time * 53.1) * Math.cos(time * 29.7);
     const shakeY = shakeMag * Math.cos(time * 41.3) * Math.sin(time * 67.9);
     ctx.save();
     ctx.translate(shakeX, shakeY);
 
-    // Ambient
     const ambientPulse = 0.9 + 0.1 * Math.sin(time * 0.35);
     const ambient = ctx.createRadialGradient(cx, cy, 0, cx, cy, r * 3.5);
     ambient.addColorStop(0, `rgba(${cr}, ${cg}, ${cb}, ${0.13 * ambientPulse})`);
@@ -433,7 +406,6 @@ export default function EclipseCanvas({
     ctx.fillRect(0, 0, w, h);
     ctx.restore();
 
-    // OUTER HALO
     const haloR = r * (2.9 + flash * 0.7);
     const haloPulse = 1 + 0.05 * Math.sin(time * 0.5);
     ctx.save();
@@ -457,7 +429,6 @@ export default function EclipseCanvas({
     ctx.fill();
     ctx.restore();
 
-    // RING
     const ringR = r * (1 + 0.012 * Math.sin(time * 0.8));
     const layers = [
       { width: r * 0.32, alpha: 0.06 + flash * 0.05 },
@@ -478,9 +449,8 @@ export default function EclipseCanvas({
       ctx.restore();
     }
 
-    // CATEGORY SWITCH PULSE — concentric rings expanding outward from eclipse
     if (s.catPulse > 0) {
-      const phase = 1 - s.catPulse; // 0 = just triggered, 1 = done
+      const phase = 1 - s.catPulse;
       const pulseRings = [
         { offset: 0,    maxScale: 2.2, startAlpha: 0.55, width: 0.022 },
         { offset: 0.18, maxScale: 2.8, startAlpha: 0.30, width: 0.014 },
@@ -489,7 +459,7 @@ export default function EclipseCanvas({
       pulseRings.forEach(({ offset, maxScale, startAlpha, width }) => {
         const p = Math.max(0, Math.min(1, (phase - offset) / (1 - offset)));
         if (p <= 0) return;
-        const eased = 1 - Math.pow(1 - p, 2); // ease-out quad
+        const eased = 1 - Math.pow(1 - p, 2);
         const pulseR = r * (1.0 + eased * (maxScale - 1.0));
         const alpha = startAlpha * (1 - eased);
         ctx.save();
@@ -503,7 +473,6 @@ export default function EclipseCanvas({
       });
     }
 
-    // ARC HOTSPOTS
     ctx.save();
     ctx.globalCompositeOperation = "lighter";
     for (const spot of s.arcSpots) {
@@ -523,7 +492,6 @@ export default function EclipseCanvas({
     }
     ctx.restore();
 
-    // ATMOSPHERIC LIMB
     ctx.save();
     const limb = ctx.createRadialGradient(cx, cy, r * 0.84, cx, cy, r * 0.98);
     limb.addColorStop(0, "rgba(0,0,0,0)");
@@ -534,7 +502,6 @@ export default function EclipseCanvas({
     ctx.fill();
     ctx.restore();
 
-    // BLACK DISC
     ctx.save();
     ctx.beginPath();
     ctx.arc(cx, cy, r * 0.955, 0, Math.PI * 2);
@@ -542,7 +509,6 @@ export default function EclipseCanvas({
     ctx.fill();
     ctx.restore();
 
-    // STAR DUST INSIDE DISC — clip to disc, draw + update all stars
     ctx.save();
     ctx.beginPath();
     ctx.arc(cx, cy, r * 0.93, 0, Math.PI * 2);
@@ -553,13 +519,10 @@ export default function EclipseCanvas({
     }
     ctx.restore();
 
-    // TEXT WITH DEPTH EMERGENCE
     drawTextInDisc(ctx);
 
-    // END SHAKE TRANSFORM — restore before full-screen flash
     ctx.restore();
 
-    // FLASH — full screen, outside shake transform so it stays crisp
     if (flash > 0) {
       ctx.save();
       ctx.globalCompositeOperation = "lighter";
@@ -573,7 +536,6 @@ export default function EclipseCanvas({
     const s = stateRef.current;
     s.time += 0.016;
     if (s.flash > 0) s.flash = Math.max(0, s.flash - 0.022);
-    // Shake decays exponentially — snappy at start, gentle tail-off
     if (s.shake > 0) s.shake = Math.max(0, s.shake * 0.88 - 0.008);
     if (s.catPulse > 0) s.catPulse = Math.max(0, s.catPulse - 0.016);
     drawFrame();
