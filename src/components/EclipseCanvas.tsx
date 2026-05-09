@@ -124,7 +124,7 @@ export default function EclipseCanvas({
     canvas.height = s.height;
     s.cx = s.width / 2;
     s.cy = s.height / 2;
-    s.r = Math.min(s.width, s.height) * 0.265;
+    s.r = Math.min(s.width, s.height) * 0.38;
   }, []);
 
   function wrapText(ctx: CanvasRenderingContext2D, text: string, maxWidth: number): string[] {
