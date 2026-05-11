@@ -1,8 +1,7 @@
 import { useState, useCallback, useRef } from "react";
 import EclipseCanvas, { type EclipseColor } from "@/components/EclipseCanvas";
 import HistoryPanel, { type HistoryEntry } from "@/components/HistoryPanel";
-import { PREDICTIONS } from "@/data/predictions";
-import { PREDICTIONS_EN, UI, type Lang } from "@/data/i18n";
+import { PREDICTIONS, PREDICTIONS_EN, UI, type Lang } from "@/data/i18n";
 import { useMysticSound } from "@/hooks/useMysticSound";
 
 // ── Bot name for mini app links ─────────────────────────────────────────────
