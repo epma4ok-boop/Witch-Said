@@ -61,4 +61,4 @@ export const UI = {
   },
 } as const;
 
-export { PREDICTIONS_EN } from "./predictions";
+export { PREDICTIONS, PREDICTIONS_EN } from "./predictions";
