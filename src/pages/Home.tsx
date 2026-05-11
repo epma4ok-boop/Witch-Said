@@ -7,7 +7,7 @@ import { useMysticSound } from "@/hooks/useMysticSound";
 
 // ── Bot name for mini app links ─────────────────────────────────────────────
 // Change this to your actual bot username after setting it up in BotFather
-const BOT_USERNAME = "universe_speaks_bot";
+const BOT_USERNAME = "universesaid_bot";
 // ── Backend endpoint for Stars invoice ──────────────────────────────────────
 const STARS_ENDPOINT = "/api/payments/invoice";
 // ───────────────────────────────────────────────────────────────────────────
