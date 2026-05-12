@@ -6,7 +6,7 @@ import { PREDICTIONS_EN, UI, type Lang } from "@/data/i18n";
 import { useMysticSound } from "@/hooks/useMysticSound";
 
 // ── Bot name for mini app links ─────────────────────────────────────────────
-const BOT_USERNAME = "universe_speaks_bot";
+const BOT_USERNAME = "UniverseSaid_bot";
 // ── Backend endpoints ────────────────────────────────────────────────────────
 const STARS_ENDPOINT = "/api/payments/invoice";
 const REGISTER_ENDPOINT = "/api/users/register";
