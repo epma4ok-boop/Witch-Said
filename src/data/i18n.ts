@@ -1,0 +1,88 @@
+export type Lang = "ru" | "en";
+
+export const LANG_KEY = "universe_lang";
+
+export const UI = {
+  ru: {
+    catLove: "Любовь",
+    catWork: "Работа",
+    catMoney: "Деньги",
+    oracle: "ВСЕЛЕННАЯ ГОВОРИТ",
+    hint: "КОСНИСЬ ЗАТМЕНИЯ · ОТКРОЙ ИСТИНУ",
+    answering: "ВСЕЛЕННАЯ ОТВЕЧАЕТ...",
+    received: "ПОСЛАНИЕ ПОЛУЧЕНО",
+    firstGet: "СНАЧАЛА ПОЛУЧИ ПОСЛАНИЕ",
+    limitReached: "ВСЕЛЕННАЯ УСТАЛА · ВЕРНИСЬ ЗАВТРА",
+    inviteBonus: "ВСЕЛЕННАЯ ЩЕДРА · +1 К ЛИМИТУ",
+    remainingHint: (n: number) => `ОСТАЛОСЬ СЕГОДНЯ: ${n}`,
+    history: "история",
+    historyCount: (n: number) => `${n} посланий`,
+    share: "Поделиться",
+    invite: "Пригласить",
+    inviteText: "Загляни в солнечное затмение — вселенная отвечает на твои вопросы",
+    panelTitle: "Послания",
+    panelLast: (n: number) => `последние ${n}`,
+    panelEmpty: "пусто",
+    panelClose: "закрыть",
+    panelSilent: "Вселенная ещё молчит",
+    panelSilentSub: "Коснись затмения",
+    dateToday: "сегодня",
+    dateYesterday: "вчера",
+    questionPlaceholder: "Задай вопрос вселенной...",
+    questionClear: "очистить",
+    // streak titles
+    titleInitiate: "Посвящённый",
+    titleGuardian: "Хранитель затмения",
+    streakDays: (n: number) => `${n} дней`,
+    // streak milestone toasts
+    streakToast7: "Ты стал Посвящённым",
+    streakToast7Sub: "Вселенная видит твой путь · +3 предсказания",
+    streakToast30: "Ты стал Хранителем затмения",
+    streakToast30Sub: "Редкий дар · +5 предсказаний",
+    // referral bonus toast
+    refBonus: "Твой друг открыл путь",
+    refBonusSub: "+1 предсказание за приглашение",
+  },
+  en: {
+    catLove: "Love",
+    catWork: "Work",
+    catMoney: "Money",
+    oracle: "THE UNIVERSE SPEAKS",
+    hint: "TOUCH THE ECLIPSE · REVEAL TRUTH",
+    answering: "THE UNIVERSE ANSWERS...",
+    received: "MESSAGE RECEIVED",
+    firstGet: "GET A MESSAGE FIRST",
+    limitReached: "THE UNIVERSE IS TIRED · RETURN TOMORROW",
+    inviteBonus: "THE UNIVERSE IS GENEROUS · +1 TO LIMIT",
+    remainingHint: (n: number) => `REMAINING TODAY: ${n}`,
+    history: "history",
+    historyCount: (n: number) => `${n} messages`,
+    share: "Share",
+    invite: "Invite",
+    inviteText: "Look into the solar eclipse — the universe answers your questions",
+    panelTitle: "Messages",
+    panelLast: (n: number) => `last ${n}`,
+    panelEmpty: "empty",
+    panelClose: "close",
+    panelSilent: "The universe is still silent",
+    panelSilentSub: "Touch the eclipse",
+    dateToday: "today",
+    dateYesterday: "yesterday",
+    questionPlaceholder: "Ask the universe...",
+    questionClear: "clear",
+    // streak titles
+    titleInitiate: "Initiate",
+    titleGuardian: "Guardian of Eclipse",
+    streakDays: (n: number) => `${n} days`,
+    // streak milestone toasts
+    streakToast7: "You became an Initiate",
+    streakToast7Sub: "The universe sees your path · +3 predictions",
+    streakToast30: "You became Guardian of Eclipse",
+    streakToast30Sub: "A rare gift · +5 predictions",
+    // referral bonus toast
+    refBonus: "Your friend opened the path",
+    refBonusSub: "+1 prediction for the invitation",
+  },
+} as const;
+
+export { PREDICTIONS_EN } from "./predictions";
