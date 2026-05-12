@@ -31,11 +31,8 @@ export default async function handler(req: Request): Promise<Response> {
     Prefer: "resolution=ignore-duplicates,return=minimal",
   };
 
-  // FIX: If a referrer is specified, ensure they exist in the DB first.
-  // The foreign key constraint (referred_by → telegram_id) will fail if the
-  // referrer has never opened the bot. We upsert them as a stub so the FK
-  // is always satisfied, and they can claim their bonus later when they open
-  // the app and their row is properly populated.
+  // Если указан реферер — сначала создаём его запись в базе (если ещё нет),
+  // чтобы не нарушить ограничение внешнего ключа
   if (referred_by) {
     await fetch(`${SUPABASE_URL}/rest/v1/users`, {
       method: "POST",
