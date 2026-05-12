@@ -21,6 +21,12 @@
 <script src="https://unpkg.com/@dashgram/javascript@latest/dist/dashgram.min.js"></script>
   </head>
   <body>
+    <script>
+  DashgramMini.init({
+    projectId: "503963", // Сюда получишь айдишник после регистрации
+    trackLevel: 1                // Уровень 1 — только запуски и закрытия
+  })
+</script>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
