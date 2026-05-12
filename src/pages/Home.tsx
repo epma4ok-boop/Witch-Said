@@ -688,7 +688,7 @@ export default function Home({ lang }: HomeProps) {
   const getMiniAppLink = useCallback(() => {
     const userId = getUserId();
     const ref = userId ? `?startapp=ref_${userId}` : "";
-    return `https://t.me/${BOT_USERNAME}/Universe_Said${ref}`;
+    return `https://t.me/${BOT_USERNAME}/Universe_said${ref}`;
   }, [getUserId]);
 
   const handleTap = useCallback(async () => {
