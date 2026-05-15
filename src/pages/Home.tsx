@@ -1,0 +1,1166 @@
+import { useState, useCallback, useRef, useEffect } from "react";
+import EclipseCanvas, { type EclipseColor } from "@/components/EclipseCanvas";
+import HistoryPanel, { type HistoryEntry } from "@/components/HistoryPanel";
+import HoroscopePanel from "@/components/HoroscopePanel";
+import { PREDICTIONS } from "@/data/predictions";
+import { PREDICTIONS_EN, UI, type Lang } from "@/data/i18n";
+import { useMysticSound } from "@/hooks/useMysticSound";
+
+// ── Bot name for mini app links ─────────────────────────────────────────────
+const BOT_USERNAME = "UniverseSaid_bot";
+// ── Backend endpoints ────────────────────────────────────────────────────────
+const STARS_ENDPOINT = "/api/payments/invoice";
+const REGISTER_ENDPOINT = "/api/users/register";
+const FIRST_PRED_ENDPOINT = "/api/users/first-prediction";
+const BALANCE_ENDPOINT = "/api/users/balance";
+// ───────────────────────────────────────────────────────────────────────────
+
+const CATEGORY_FREQ: Record<string, number> = {
+  love: 415, work: 523, money: 659, horoscope: 432,
+};
+
+declare global {
+  interface Window {
+    Telegram?: {
+      WebApp: {
+        ready: () => void;
+        expand: () => void;
+        viewportHeight: number;
+        viewportStableHeight: number;
+        isExpanded: boolean;
+        onEvent: (event: string, handler: () => void) => void;
+        offEvent: (event: string, handler: () => void) => void;
+        HapticFeedback?: {
+          impactOccurred: (style: string) => void;
+          notificationOccurred: (type: string) => void;
+        };
+        openTelegramLink?: (url: string) => void;
+        openInvoice?: (url: string, callback: (status: string) => void) => void;
+        initDataUnsafe?: {
+          user?: { username?: string; id?: number };
+          start_param?: string;
+        };
+        initData?: string;
+        safeAreaInset?: { top: number; right: number; bottom: number; left: number };
+        contentSafeAreaInset?: { top: number; right: number; bottom: number; left: number };
+      };
+    };
+  }
+}
+
+function getTgSafeTop(): number {
+  const tg = window.Telegram?.WebApp;
+  const contentTop = tg?.contentSafeAreaInset?.top;
+  const deviceTop  = tg?.safeAreaInset?.top;
+  if (typeof contentTop === "number" && contentTop > 0) return contentTop;
+  if (typeof deviceTop  === "number" && deviceTop  > 0) return deviceTop;
+  return 0;
+}
+
+type Category = "love" | "work" | "money" | "horoscope";
+type PredCategory = "love" | "work" | "money";
+
+const CATEGORY_CONFIG: Record<Category, {
+  color: EclipseColor;
+  accent: string; glow: string; activeBg: string;
+}> = {
+  love:      { color: { r: 220, g: 40,  b: 80  }, accent: "#ff4466", glow: "rgba(220,40,80,0.7)",   activeBg: "rgba(180,30,60,0.6)"   },
+  work:      { color: { r: 60,  g: 140, b: 255 }, accent: "#5599ff", glow: "rgba(60,140,255,0.7)",  activeBg: "rgba(30,90,200,0.6)"   },
+  money:     { color: { r: 40,  g: 200, b: 100 }, accent: "#33dd77", glow: "rgba(40,200,100,0.7)",  activeBg: "rgba(20,140,60,0.6)"   },
+  horoscope: { color: { r: 160, g: 80,  b: 255 }, accent: "#a050ff", glow: "rgba(160,80,255,0.7)", activeBg: "rgba(100,40,200,0.6)"  },
+};
+
+// ── Daily limit system ──────────────────────────────────────────────────────
+const LIMITS_KEY = "universe_limits_v2";
+const DAILY_LIMIT = 1;
+
+function getTodayStr(): string {
+  return new Date().toISOString().slice(0, 10);
+}
+
+type LimitEntry = { date: string; count: number; bonus: number };
+type LimitsData = Record<PredCategory, LimitEntry>;
+
+function loadLimits(): LimitsData {
+  try {
+    const s = localStorage.getItem(LIMITS_KEY);
+    if (s) return JSON.parse(s);
+  } catch {}
+  return {
+    love:  { date: "", count: 0, bonus: 0 },
+    work:  { date: "", count: 0, bonus: 0 },
+    money: { date: "", count: 0, bonus: 0 },
+  };
+}
+
+function saveLimits(l: LimitsData) {
+  localStorage.setItem(LIMITS_KEY, JSON.stringify(l));
+}
+
+function getRemainingToday(limits: LimitsData, cat: PredCategory): number {
+  const today = getTodayStr();
+  const entry = limits[cat];
+  const usedToday = entry.date === today ? entry.count : 0;
+  const bonusToday = entry.date === today ? entry.bonus : 0;
+  return Math.max(0, DAILY_LIMIT + bonusToday - usedToday);
+}
+// ───────────────────────────────────────────────────────────────────────────
+
+// ── Streak system ───────────────────────────────────────────────────────────
+const STREAK_KEY = "universe_streak_v1";
+const FIRST_PRED_KEY = "universe_first_done";
+
+type StreakData = { lastDate: string; count: number; milestone7Claimed: boolean; milestone30Claimed: boolean };
+
+function loadStreak(): StreakData {
+  try {
+    const s = localStorage.getItem(STREAK_KEY);
+    if (s) return JSON.parse(s);
+  } catch {}
+  return { lastDate: "", count: 0, milestone7Claimed: false, milestone30Claimed: false };
+}
+
+function saveStreak(s: StreakData) {
+  localStorage.setItem(STREAK_KEY, JSON.stringify(s));
+}
+
+// Returns { newStreak, milestone } where milestone is null | 7 | 30
+function updateStreak(current: StreakData): { newStreak: StreakData; milestone: null | 7 | 30 } {
+  const today = getTodayStr();
+  const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+
+  let newStreak: StreakData;
+  if (current.lastDate === today) {
+    newStreak = { ...current }; // already updated today
+  } else if (current.lastDate === yesterday) {
+    newStreak = { ...current, lastDate: today, count: current.count + 1 };
+  } else {
+    newStreak = { ...current, lastDate: today, count: 1 };
+  }
+
+  let milestone: null | 7 | 30 = null;
+  if (newStreak.count >= 30 && !newStreak.milestone30Claimed) {
+    milestone = 30;
+    newStreak = { ...newStreak, milestone30Claimed: true };
+  } else if (newStreak.count >= 7 && !newStreak.milestone7Claimed) {
+    milestone = 7;
+    newStreak = { ...newStreak, milestone7Claimed: true };
+  }
+
+  return { newStreak, milestone };
+}
+
+function getTitle(streakCount: number, t: typeof UI["ru"]): string | null {
+  if (streakCount >= 30) return t.titleGuardian;
+  if (streakCount >= 7) return t.titleInitiate;
+  return null;
+}
+// ───────────────────────────────────────────────────────────────────────────
+
+// ── History ─────────────────────────────────────────────────────────────────
+const HISTORY_KEY = "universe_history";
+const MAX_HISTORY = 20;
+
+function loadHistory(): HistoryEntry[] {
+  try { const s = localStorage.getItem(HISTORY_KEY); if (s) return JSON.parse(s); } catch {}
+  return [];
+}
+function saveHistory(e: HistoryEntry[]) {
+  localStorage.setItem(HISTORY_KEY, JSON.stringify(e.slice(-MAX_HISTORY)));
+}
+function getTgViewportHeight(): number {
+  const tg = window.Telegram?.WebApp;
+  if (tg && tg.viewportStableHeight && tg.viewportStableHeight > 100) return tg.viewportStableHeight;
+  return window.innerHeight;
+}
+// ───────────────────────────────────────────────────────────────────────────
+
+// ── Share image generator ────────────────────────────────────────────────────
+async function generateShareImage(
+  text: string,
+  color: EclipseColor,
+  watermark: string,
+): Promise<Blob | null> {
+  return new Promise((resolve) => {
+    try {
+      const size = 1080;
+      const canvas = document.createElement("canvas");
+      canvas.width = size;
+      canvas.height = size;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) { resolve(null); return; }
+
+      const { r, g, b } = color;
+      const cx = size / 2;
+      const cy = size / 2 - 40;
+      const eclipseR = size * 0.38;
+
+      ctx.fillStyle = "#030508";
+      ctx.fillRect(0, 0, size, size);
+
+      ctx.save();
+      ctx.globalCompositeOperation = "lighter";
+      const ambient = ctx.createRadialGradient(cx, cy, 0, cx, cy, eclipseR * 3.2);
+      ambient.addColorStop(0, `rgba(${r},${g},${b},0.22)`);
+      ambient.addColorStop(0.45, `rgba(${r},${g},${b},0.07)`);
+      ambient.addColorStop(1, "transparent");
+      ctx.fillStyle = ambient;
+      ctx.fillRect(0, 0, size, size);
+      ctx.restore();
+
+      ctx.save();
+      ctx.globalCompositeOperation = "lighter";
+      const halo = ctx.createRadialGradient(cx, cy, eclipseR * 0.9, cx, cy, eclipseR * 2.8);
+      halo.addColorStop(0, `rgba(${r},${g},${b},0.32)`);
+      halo.addColorStop(0.3, `rgba(${r},${g},${b},0.12)`);
+      halo.addColorStop(1, "transparent");
+      ctx.fillStyle = halo;
+      ctx.beginPath();
+      ctx.arc(cx, cy, eclipseR * 2.8, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+
+      const ringLayers = [
+        { width: eclipseR * 0.32, alpha: 0.06 },
+        { width: eclipseR * 0.14, alpha: 0.14 },
+        { width: eclipseR * 0.065, alpha: 0.36 },
+        { width: eclipseR * 0.028, alpha: 0.70 },
+        { width: eclipseR * 0.010, alpha: 0.95 },
+      ];
+      for (const layer of ringLayers) {
+        ctx.save();
+        ctx.globalCompositeOperation = "lighter";
+        ctx.beginPath();
+        ctx.arc(cx, cy, eclipseR, 0, Math.PI * 2);
+        const wh = 1 - layer.alpha * 0.5;
+        const rr = Math.min(255, r + Math.round((255 - r) * wh));
+        const gg = Math.min(255, g + Math.round((255 - g) * wh));
+        const bb = Math.min(255, b + Math.round((255 - b) * wh));
+        ctx.strokeStyle = `rgba(${rr},${gg},${bb},${layer.alpha})`;
+        ctx.lineWidth = layer.width;
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      ctx.fillStyle = "#010203";
+      ctx.beginPath();
+      ctx.arc(cx, cy, eclipseR * 0.955, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(cx, cy, eclipseR * 0.93, 0, Math.PI * 2);
+      ctx.clip();
+      for (let i = 0; i < 60; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const dist = Math.random() * eclipseR * 0.88;
+        const sx = cx + Math.cos(angle) * dist;
+        const sy = cy + Math.sin(angle) * dist;
+        const sa = 0.06 + Math.random() * 0.22;
+        const ss = 0.4 + Math.random() * 1.2;
+        ctx.globalAlpha = sa;
+        ctx.shadowBlur = ss * 6;
+        ctx.shadowColor = `rgb(${r},${g},${b})`;
+        ctx.fillStyle = `rgba(255,252,248,${sa})`;
+        ctx.beginPath();
+        ctx.arc(sx, sy, ss, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.restore();
+      ctx.globalAlpha = 1;
+
+      const maxWidth = eclipseR * 1.62;
+      const c2d = ctx;
+      function wrapWords(txt: string, maxW: number, fs: number): string[] {
+        c2d.font = `italic 700 ${fs}px 'Cormorant Garamond', Georgia, serif`;
+        const words = txt.split(" ");
+        const lines: string[] = [];
+        let cur = "";
+        for (const w of words) {
+          const test = cur ? cur + " " + w : w;
+          if (c2d.measureText(test).width <= maxW) { cur = test; }
+          else { if (cur) lines.push(cur); cur = w; }
+        }
+        if (cur) lines.push(cur);
+        return lines;
+      }
+
+      let fontSize = Math.min(58, eclipseR * 0.155);
+      let lines: string[] = [];
+      for (let attempt = 0; attempt < 5; attempt++) {
+        lines = wrapWords(text, maxWidth, fontSize);
+        if (lines.length <= 4) break;
+        fontSize = Math.max(22, fontSize * 0.84);
+      }
+
+      const lineH = fontSize * 1.52;
+      const totalH = lines.length * lineH;
+
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(cx, cy, eclipseR * 0.93, 0, Math.PI * 2);
+      ctx.clip();
+
+      const padX = eclipseR * 0.72;
+      const padY = totalH * 0.55 + fontSize * 0.4;
+      ctx.save();
+      ctx.globalAlpha = 0.70;
+      const backdrop = ctx.createRadialGradient(cx, cy, 0, cx, cy, padX);
+      backdrop.addColorStop(0, "rgba(0,1,3,0.94)");
+      backdrop.addColorStop(0.6, "rgba(0,1,3,0.80)");
+      backdrop.addColorStop(1, "rgba(0,0,0,0)");
+      ctx.fillStyle = backdrop;
+      ctx.beginPath();
+      ctx.ellipse(cx, cy, padX, padY, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+
+      ctx.font = `italic 700 ${fontSize}px 'Cormorant Garamond', Georgia, serif`;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+
+      lines.forEach((line, i) => {
+        const lineY = cy - totalH / 2 + i * lineH + lineH / 2;
+        ctx.save();
+        ctx.globalAlpha = 0.50;
+        ctx.shadowBlur = 30;
+        ctx.shadowColor = `rgb(${r},${g},${b})`;
+        ctx.fillStyle = `rgb(${r},${g},${b})`;
+        ctx.fillText(line, cx, lineY);
+        ctx.restore();
+        ctx.save();
+        ctx.globalAlpha = 0.97;
+        ctx.shadowBlur = 6;
+        ctx.shadowColor = "rgba(0,0,0,0.95)";
+        ctx.fillStyle = "rgba(255,253,248,0.97)";
+        ctx.fillText(line, cx, lineY);
+        ctx.restore();
+      });
+
+      ctx.restore();
+
+      const wmY = cy + eclipseR * 1.32;
+      ctx.save();
+      ctx.font = `200 22px Arial, sans-serif`;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.globalAlpha = 0.38;
+      ctx.fillStyle = `rgb(${r},${g},${b})`;
+      ctx.fillText(watermark, cx, wmY);
+      ctx.restore();
+
+      canvas.toBlob((blob) => resolve(blob), "image/png");
+    } catch {
+      resolve(null);
+    }
+  });
+}
+// ───────────────────────────────────────────────────────────────────────────
+
+// ── Streak Milestone Toast ───────────────────────────────────────────────────
+interface MilestoneToastProps {
+  title: string;
+  subtitle: string;
+  accentRgb: { r: number; g: number; b: number };
+  visible: boolean;
+}
+
+function MilestoneToast({ title, subtitle, accentRgb, visible }: MilestoneToastProps) {
+  const { r, g, b } = accentRgb;
+  return (
+    <div style={{
+      position: "absolute", top: 80, left: "50%", transform: "translateX(-50%)",
+      zIndex: 60, pointerEvents: "none",
+      opacity: visible ? 1 : 0,
+      transition: "opacity 0.5s",
+      background: `rgba(4,5,14,0.96)`,
+      border: `0.5px solid rgba(${r},${g},${b},0.45)`,
+      boxShadow: `0 0 40px rgba(${r},${g},${b},0.25), 0 8px 32px rgba(0,0,0,0.7)`,
+      borderRadius: 18,
+      padding: "14px 24px",
+      textAlign: "center",
+      whiteSpace: "nowrap",
+      backdropFilter: "blur(20px)",
+    }}>
+      <div style={{
+        fontFamily: "'Cormorant Garamond', Georgia, serif",
+        fontStyle: "italic", fontWeight: 600, fontSize: 20,
+        color: "rgba(255,252,245,0.95)",
+        letterSpacing: "0.04em",
+        textShadow: `0 0 20px rgba(${r},${g},${b},0.6)`,
+      }}>
+        {title}
+      </div>
+      <div style={{
+        fontFamily: "'Raleway', sans-serif",
+        fontWeight: 300, fontSize: 10,
+        color: `rgba(${r},${g},${b},0.75)`,
+        letterSpacing: "0.14em", textTransform: "uppercase",
+        marginTop: 5,
+      }}>
+        {subtitle}
+      </div>
+    </div>
+  );
+}
+// ───────────────────────────────────────────────────────────────────────────
+
+// ── Stars Shop Modal ────────────────────────────────────────────────────────
+interface StarsShopProps {
+  open: boolean;
+  onClose: () => void;
+  onPurchased: (bonusPredictions: number) => void;
+  accentRgb: { r: number; g: number; b: number };
+  lang: Lang;
+}
+
+const STARS_PACK = { stars: 1, bonus: 3 };
+
+function StarsShop({ open, onClose, onPurchased, accentRgb, lang }: StarsShopProps) {
+  const { r, g, b } = accentRgb;
+  const [loading, setLoading] = useState(false);
+  const tg = window.Telegram?.WebApp;
+
+  const handleBuy = async () => {
+    if (loading) return;
+    setLoading(true);
+    try {
+      if (tg?.openInvoice) {
+        const initData = tg.initData ?? "";
+        const res = await fetch(STARS_ENDPOINT, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-telegram-init-data": initData,
+          },
+        });
+        const data = await res.json();
+        if (data.invoiceLink) {
+          tg.openInvoice(data.invoiceLink, (status) => {
+            if (status === "paid") {
+              onPurchased(STARS_PACK.bonus);
+              onClose();
+            }
+            setLoading(false);
+          });
+          return;
+        }
+      }
+      alert(lang === "ru"
+        ? "Покупка за Telegram Stars будет доступна после подключения бота. Инструкция в README."
+        : "Telegram Stars purchase available after connecting a bot. See README."
+      );
+    } catch {
+      alert(lang === "ru" ? "Ошибка. Попробуй позже." : "Error. Try again later.");
+    }
+    setLoading(false);
+  };
+
+  const title     = lang === "ru" ? "Вселенная устала" : "The universe is tired";
+  const subtitle  = lang === "ru" ? "Купи предсказания за ★ Telegram Stars" : "Buy predictions with ★ Telegram Stars";
+  const cancelLbl = lang === "ru" ? "Вернуться завтра" : "Come back tomorrow";
+  const packLabel = lang === "ru" ? "+3 предсказания (по 1 в каждой теме)" : "+3 predictions (1 per topic)";
+
+  return (
+    <>
+      <div
+        onClick={onClose}
+        style={{
+          position: "absolute", inset: 0, zIndex: 40,
+          background: "rgba(0,0,0,0.72)",
+          opacity: open ? 1 : 0,
+          pointerEvents: open ? "auto" : "none",
+          transition: "opacity 0.3s",
+        }}
+      />
+
+      <div style={{
+        position: "absolute", bottom: 0, left: 0, right: 0, zIndex: 50,
+        borderRadius: "24px 24px 0 0",
+        background: "rgba(4,5,14,0.98)",
+        backdropFilter: "blur(32px)",
+        borderTop: `0.5px solid rgba(${r},${g},${b},0.3)`,
+        borderLeft: `0.5px solid rgba(${r},${g},${b},0.12)`,
+        borderRight: `0.5px solid rgba(${r},${g},${b},0.12)`,
+        boxShadow: `0 -16px 60px rgba(0,0,0,0.85), 0 -1px 0 rgba(${r},${g},${b},0.25)`,
+        transform: open ? "translateY(0)" : "translateY(110%)",
+        transition: "transform 0.45s cubic-bezier(0.32,0.72,0,1)",
+        paddingBottom: 28,
+      }}>
+        <div style={{ display: "flex", justifyContent: "center", paddingTop: 14, paddingBottom: 6 }}>
+          <div style={{ width: 36, height: 3, borderRadius: 99, background: `rgba(${r},${g},${b},0.3)` }} />
+        </div>
+
+        <div style={{ textAlign: "center", paddingTop: 8, paddingBottom: 28, paddingLeft: 24, paddingRight: 24 }}>
+          <p style={{
+            fontFamily: "'Cormorant Garamond', Georgia, serif",
+            fontStyle: "italic", fontWeight: 400, fontSize: 26,
+            color: "rgba(255,252,245,0.92)", margin: 0, letterSpacing: "0.03em",
+          }}>
+            {title}
+          </p>
+          <p style={{
+            fontFamily: "'Raleway', sans-serif",
+            fontWeight: 300, fontSize: 12,
+            color: `rgba(${r},${g},${b},0.6)`,
+            margin: "8px 0 0", letterSpacing: "0.04em",
+          }}>
+            {subtitle}
+          </p>
+        </div>
+
+        <div style={{ paddingLeft: 20, paddingRight: 20 }}>
+          <button
+            onClick={handleBuy}
+            disabled={loading}
+            style={{
+              display: "flex", alignItems: "center", justifyContent: "space-between",
+              width: "100%",
+              padding: "18px 20px",
+              borderRadius: 18,
+              background: `rgba(${r},${g},${b},0.09)`,
+              border: `1px solid rgba(${r},${g},${b},${loading ? 0.7 : 0.4})`,
+              boxShadow: loading ? `0 0 28px rgba(${r},${g},${b},0.35)` : `0 0 12px rgba(${r},${g},${b},0.1)`,
+              cursor: loading ? "default" : "pointer",
+              transition: "all 0.2s",
+            }}
+          >
+            <span style={{
+              fontFamily: "'Cormorant Garamond', Georgia, serif",
+              fontStyle: "italic", fontWeight: 500, fontSize: 20,
+              color: "rgba(255,252,245,0.90)", letterSpacing: "0.02em",
+            }}>
+              {packLabel}
+            </span>
+            <span style={{
+              fontFamily: "'Raleway', sans-serif",
+              fontWeight: 400, fontSize: 18,
+              color: `rgba(${r},${g},${b},0.9)`,
+              letterSpacing: "0.04em",
+              flexShrink: 0,
+              marginLeft: 12,
+            }}>
+              {loading ? "..." : `1 ★`}
+            </span>
+          </button>
+        </div>
+
+        <div style={{ paddingLeft: 20, paddingRight: 20, paddingTop: 14 }}>
+          <button
+            onClick={onClose}
+            style={{
+              width: "100%", padding: "13px 8px", borderRadius: 14,
+              background: "transparent",
+              border: "0.5px solid rgba(255,255,255,0.1)",
+              cursor: "pointer",
+              fontFamily: "'Raleway', sans-serif",
+              fontWeight: 300, fontSize: 13, letterSpacing: "0.12em",
+              textTransform: "uppercase",
+              color: "rgba(255,255,255,0.28)",
+            }}
+          >
+            {cancelLbl}
+          </button>
+        </div>
+      </div>
+    </>
+  );
+}
+// ───────────────────────────────────────────────────────────────────────────
+
+interface HomeProps { lang: Lang; }
+
+export default function Home({ lang }: HomeProps) {
+  const t = UI[lang];
+  const predictions = lang === "en" ? PREDICTIONS_EN : PREDICTIONS;
+
+  const tg = window.Telegram?.WebApp;
+
+  const [category, setCategory] = useState<Category>("love");
+  const [isCasting, setIsCasting] = useState(false);
+  const [currentAnswer, setCurrentAnswer] = useState("");
+  const [predictionText, setPredictionText] = useState<string>(t.oracle);
+  const [hintText, setHintText] = useState<string>(t.hint);
+  const [revealProgress, setRevealProgress] = useState(1);
+  const [flashTrigger, setFlashTrigger] = useState(0);
+  const [catPulseTrigger, setCatPulseTrigger] = useState(0);
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const [starsShopOpen, setStarsShopOpen] = useState(false);
+  const [history, setHistory] = useState<HistoryEntry[]>(() => loadHistory());
+  const [viewportHeight, setViewportHeight] = useState(() => getTgViewportHeight());
+  const [safeTop, setSafeTop] = useState(() => getTgSafeTop());
+  const [limits, setLimits] = useState<LimitsData>(() => loadLimits());
+  const [sharingImage, setSharingImage] = useState(false);
+
+  // ── Streak state ───────────────────────────────────────────────────────────
+  const [streak, setStreak] = useState<StreakData>(() => loadStreak());
+  const [milestoneToast, setMilestoneToast] = useState<{ title: string; sub: string } | null>(null);
+  const milestoneTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const showMilestone = useCallback((title: string, sub: string) => {
+    setMilestoneToast({ title, sub });
+    if (milestoneTimerRef.current) clearTimeout(milestoneTimerRef.current);
+    milestoneTimerRef.current = setTimeout(() => setMilestoneToast(null), 4500);
+  }, []);
+  // ──────────────────────────────────────────────────────────────────────────
+
+  const revealRafRef = useRef<number>(0);
+  const swipeStartYRef = useRef<number | null>(null);
+  const cfg = CATEGORY_CONFIG[category];
+  const { playInvoke, playReveal, playSwitch } = useMysticSound();
+  const { r: cr, g: cg, b: cb } = cfg.color;
+
+  // ── Startup: register user + load server bonus ─────────────────────────────
+  useEffect(() => {
+    const userId = tg?.initDataUnsafe?.user?.id;
+    if (!userId) return;
+
+    // Parse referrer from start_param (format: "ref_12345678")
+    const startParam = tg?.initDataUnsafe?.start_param ?? "";
+    const referredBy = startParam.startsWith("ref_")
+      ? Number(startParam.slice(4)) || undefined
+      : undefined;
+
+    // Register user (fire and forget)
+    fetch(REGISTER_ENDPOINT, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ telegram_id: userId, referred_by: referredBy }),
+    }).catch(() => {});
+
+    // Load server-side bonus predictions
+    fetch(`${BALANCE_ENDPOINT}?telegram_id=${userId}`)
+      .then(r => r.json())
+      .then((data: { bonus?: number }) => {
+        const bonus = data.bonus ?? 0;
+        if (bonus > 0) {
+          const today = getTodayStr();
+          setLimits(prev => {
+            const updated = { ...prev };
+            (["love", "work", "money"] as PredCategory[]).forEach(cat => {
+              const entry = updated[cat];
+              if (entry.date !== today) {
+                updated[cat] = { date: today, count: 0, bonus };
+              } else {
+                updated[cat] = { ...entry, bonus: entry.bonus + bonus };
+              }
+            });
+            saveLimits(updated);
+            return updated;
+          });
+          showMilestone(t.refBonus, t.refBonusSub);
+        }
+      })
+      .catch(() => {});
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Telegram viewport + safe-area handling
+  useEffect(() => {
+    if (tg) { tg.ready(); tg.expand(); }
+    const updateHeight = () => setViewportHeight(getTgViewportHeight());
+    const updateSafe  = () => setSafeTop(getTgSafeTop());
+    if (tg) {
+      tg.onEvent("viewportChanged", updateHeight);
+      tg.onEvent("safeAreaChanged", updateSafe);
+      tg.onEvent("contentSafeAreaChanged", updateSafe);
+    }
+    window.addEventListener("resize", updateHeight);
+    // Re-read safe area after a short delay — Telegram fires it late on launch
+    const timer = setTimeout(updateSafe, 300);
+    return () => {
+      if (tg) {
+        tg.offEvent("viewportChanged", updateHeight);
+        tg.offEvent("safeAreaChanged", updateSafe);
+        tg.offEvent("contentSafeAreaChanged", updateSafe);
+      }
+      window.removeEventListener("resize", updateHeight);
+      clearTimeout(timer);
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Swipe up to open history
+  useEffect(() => {
+    const onTouchStart = (e: TouchEvent) => { swipeStartYRef.current = e.touches[0].clientY; };
+    const onTouchEnd = (e: TouchEvent) => {
+      if (swipeStartYRef.current === null) return;
+      if (swipeStartYRef.current - e.changedTouches[0].clientY > 70 && !historyOpen && !starsShopOpen) {
+        setHistoryOpen(true);
+      }
+      swipeStartYRef.current = null;
+    };
+    document.addEventListener("touchstart", onTouchStart, { passive: true });
+    document.addEventListener("touchend", onTouchEnd, { passive: true });
+    return () => {
+      document.removeEventListener("touchstart", onTouchStart);
+      document.removeEventListener("touchend", onTouchEnd);
+    };
+  }, [historyOpen, starsShopOpen]);
+
+  const animateReveal = useCallback((duration: number) => {
+    cancelAnimationFrame(revealRafRef.current);
+    const start = performance.now();
+    const tick = (now: number) => {
+      const p = Math.min(1, (now - start) / duration);
+      const eased = p < 0.5 ? 2 * p * p : 1 - Math.pow(-2 * p + 2, 2) / 2;
+      setRevealProgress(eased);
+      if (p < 1) revealRafRef.current = requestAnimationFrame(tick);
+    };
+    revealRafRef.current = requestAnimationFrame(tick);
+  }, []);
+
+  const getUserId = useCallback(() => tg?.initDataUnsafe?.user?.id, [tg]);
+
+  const getMiniAppLink = useCallback(() => {
+    const userId = getUserId();
+    const ref = userId ? `?startapp=ref_${userId}` : "";
+    return `https://t.me/${BOT_USERNAME}/Universe_said${ref}`;
+  }, [getUserId]);
+
+  const handleTap = useCallback(async () => {
+    if (isCasting || historyOpen || starsShopOpen || category === "horoscope") return;
+
+    const predCat = category as PredCategory;
+    const remaining = getRemainingToday(limits, predCat);
+    if (remaining <= 0) {
+      setFlashTrigger(n => n + 1);
+      tg?.HapticFeedback?.notificationOccurred("error");
+      setStarsShopOpen(true);
+      return;
+    }
+
+    setIsCasting(true);
+    setFlashTrigger(n => n + 1);
+    tg?.HapticFeedback?.impactOccurred("medium");
+    playInvoke();
+    setRevealProgress(0);
+    setPredictionText("");
+    setHintText(t.answering);
+    animateReveal(600);
+    await new Promise(r => setTimeout(r, 1300));
+    const preds = predictions[predCat];
+    const answer = preds[Math.floor(Math.random() * preds.length)];
+    setCurrentAnswer(answer);
+    setPredictionText(answer);
+    setRevealProgress(0);
+    setFlashTrigger(n => n + 1);
+    tg?.HapticFeedback?.notificationOccurred("success");
+    playReveal();
+    setHintText(t.received);
+    animateReveal(answer.length * 55);
+
+    // ── Update daily limits ────────────────────────────────────────────────
+    const today = getTodayStr();
+    setLimits(prev => {
+      const updated = { ...prev };
+      const entry = updated[predCat];
+      if (entry.date !== today) {
+        updated[predCat] = { date: today, count: 1, bonus: 0 };
+      } else {
+        updated[predCat] = { ...entry, count: entry.count + 1 };
+      }
+      saveLimits(updated);
+      return updated;
+    });
+
+    // ── Update streak ──────────────────────────────────────────────────────
+    setStreak(prev => {
+      const { newStreak, milestone } = updateStreak(prev);
+      saveStreak(newStreak);
+
+      if (milestone === 30) {
+        // Award +5 bonus predictions
+        setLimits(lim => {
+          const updated = { ...lim };
+          (["love", "work", "money"] as PredCategory[]).forEach(cat => {
+            const e = updated[cat];
+            if (e.date !== today) {
+              updated[cat] = { date: today, count: 0, bonus: 5 };
+            } else {
+              updated[cat] = { ...e, bonus: e.bonus + 5 };
+            }
+          });
+          saveLimits(updated);
+          return updated;
+        });
+        showMilestone(t.streakToast30, t.streakToast30Sub);
+      } else if (milestone === 7) {
+        // Award +3 bonus predictions
+        setLimits(lim => {
+          const updated = { ...lim };
+          (["love", "work", "money"] as PredCategory[]).forEach(cat => {
+            const e = updated[cat];
+            if (e.date !== today) {
+              updated[cat] = { date: today, count: 0, bonus: 3 };
+            } else {
+              updated[cat] = { ...e, bonus: e.bonus + 3 };
+            }
+          });
+          saveLimits(updated);
+          return updated;
+        });
+        showMilestone(t.streakToast7, t.streakToast7Sub);
+      }
+
+      return newStreak;
+    });
+
+    // ── First prediction: notify server (rewards referrer) ─────────────────
+    const isFirstDone = localStorage.getItem(FIRST_PRED_KEY);
+    if (!isFirstDone) {
+      localStorage.setItem(FIRST_PRED_KEY, "1");
+      const userId = getUserId();
+      if (userId) {
+        fetch(FIRST_PRED_ENDPOINT, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ telegram_id: userId }),
+        }).catch(() => {});
+      }
+    }
+
+    // ── Save history ───────────────────────────────────────────────────────
+    const entry: HistoryEntry = {
+      id: Date.now().toString(),
+      text: answer,
+      category: predCat,
+      date: new Date().toISOString(),
+    };
+    setHistory(prev => {
+      const updated = [...prev, entry].slice(-MAX_HISTORY);
+      saveHistory(updated);
+      return updated;
+    });
+    setIsCasting(false);
+  }, [isCasting, historyOpen, starsShopOpen, category, tg, animateReveal, predictions, t, limits, showMilestone, getUserId]);
+
+  const handleStarsPurchased = useCallback((bonusPredictions: number) => {
+    const today = getTodayStr();
+    setLimits(prev => {
+      const updated = { ...prev };
+      (["love", "work", "money"] as PredCategory[]).forEach(cat => {
+        const entry = updated[cat];
+        if (entry.date !== today) {
+          updated[cat] = { date: today, count: 0, bonus: bonusPredictions };
+        } else {
+          updated[cat] = { ...entry, bonus: entry.bonus + bonusPredictions };
+        }
+      });
+      saveLimits(updated);
+      return updated;
+    });
+    tg?.HapticFeedback?.notificationOccurred("success");
+  }, [tg]);
+
+  const handleShare = useCallback(async () => {
+    if (!currentAnswer) { setHintText(t.firstGet); return; }
+    if (sharingImage) return;
+
+    setSharingImage(true);
+    const watermark = lang === "ru" ? "ВСЕЛЕННАЯ ГОВОРИТ" : "THE UNIVERSE SPEAKS";
+    const appLink = getMiniAppLink();
+
+    try {
+      const blob = await generateShareImage(currentAnswer, cfg.color, watermark);
+      if (blob) {
+        const file = new File([blob], "universe.png", { type: "image/png" });
+        if (
+          navigator.share &&
+          typeof navigator.canShare === "function" &&
+          navigator.canShare({ files: [file] })
+        ) {
+          await navigator.share({ files: [file], title: watermark, text: appLink });
+          setSharingImage(false);
+          return;
+        }
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "universe.png";
+        a.click();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+        setSharingImage(false);
+        return;
+      }
+    } catch {
+      // fall through
+    }
+
+    const shareText = `${currentAnswer}\n\n${appLink}`;
+    if (tg?.openTelegramLink) {
+      tg.openTelegramLink(
+        `https://t.me/share/url?url=${encodeURIComponent(appLink)}&text=${encodeURIComponent(currentAnswer)}`
+      );
+    } else {
+      alert(shareText);
+    }
+    setSharingImage(false);
+  }, [currentAnswer, getMiniAppLink, tg, t, cfg.color, lang, sharingImage]);
+
+  const handleInvite = useCallback(() => {
+    const appLink = getMiniAppLink();
+    const inviteText = t.inviteText;
+    tg?.HapticFeedback?.impactOccurred("light");
+    if (tg?.openTelegramLink) {
+      tg.openTelegramLink(
+        `https://t.me/share/url?url=${encodeURIComponent(appLink)}&text=${encodeURIComponent(inviteText)}`
+      );
+    } else {
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(`${inviteText}\n${appLink}`);
+      } else {
+        alert(`${inviteText}\n${appLink}`);
+      }
+    }
+  }, [getMiniAppLink, tg, t.inviteText]);
+
+  const handleCategoryClick = (cat: Category) => {
+    if (isCasting) return;
+    setCategory(cat);
+    setCatPulseTrigger(n => n + 1);
+    playSwitch(CATEGORY_FREQ[cat] ?? 432);
+    if (cat !== "horoscope") {
+      setPredictionText(t.oracle);
+      setRevealProgress(1);
+      setHintText(t.hint);
+      setCurrentAnswer("");
+    }
+  };
+
+  const catLabels: Record<Category, string> = {
+    love: t.catLove,
+    work: t.catWork,
+    money: t.catMoney,
+    horoscope: lang === "ru" ? "Гороскоп" : "Horoscope",
+  };
+
+  const predCatForRemaining = category === "horoscope" ? "love" : category as PredCategory;
+  const remaining = getRemainingToday(limits, predCatForRemaining);
+  const totalRemaining = (["love", "work", "money"] as PredCategory[]).reduce(
+    (sum, cat) => sum + getRemainingToday(limits, cat), 0
+  );
+
+  const userTitle = getTitle(streak.count, t);
+
+  return (
+    <div style={{ background: "#030508", height: `${viewportHeight}px`, display: "flex", flexDirection: "column", overflow: "hidden", position: "relative" }}>
+
+      {/* Ambient glow */}
+      <div style={{
+        position: "absolute", inset: 0, zIndex: 0, pointerEvents: "none",
+        background: `radial-gradient(ellipse 80% 70% at 50% 48%, rgba(${cr},${cg},${cb},0.13) 0%, rgba(${cr},${cg},${cb},0.05) 45%, transparent 75%)`,
+        transition: "background 0.6s",
+      }} />
+
+      {/* Streak milestone toast */}
+      {milestoneToast && (
+        <MilestoneToast
+          title={milestoneToast.title}
+          subtitle={milestoneToast.sub}
+          accentRgb={cfg.color}
+          visible={!!milestoneToast}
+        />
+      )}
+
+      {/* Title badge (top-left) — appears after 7-day streak */}
+      {userTitle && (
+        <div style={{ position: "absolute", top: safeTop + 16, left: 16, zIndex: 10 }}>
+          <div style={{
+            background: `rgba(${cr},${cg},${cb},0.10)`,
+            border: `0.5px solid rgba(${cr},${cg},${cb},0.30)`,
+            borderRadius: 99,
+            padding: "5px 12px",
+            display: "flex", alignItems: "center", gap: 6,
+          }}>
+            <span style={{
+              fontFamily: "'Cormorant Garamond', Georgia, serif",
+              fontStyle: "italic", fontWeight: 500, fontSize: 12,
+              color: `rgba(${cr},${cg},${cb},0.90)`,
+              letterSpacing: "0.04em",
+            }}>
+              {userTitle}
+            </span>
+            <span style={{
+              fontFamily: "'Raleway', sans-serif",
+              fontWeight: 200, fontSize: 9,
+              color: `rgba(${cr},${cg},${cb},0.50)`,
+              letterSpacing: "0.08em",
+            }}>
+              {t.streakDays(streak.count)}
+            </span>
+          </div>
+        </div>
+      )}
+
+      {/* Balance badge (top-right) */}
+      <div style={{ position: "absolute", top: safeTop + 16, right: 16, zIndex: 10 }}>
+        <button
+          onClick={() => setStarsShopOpen(true)}
+          style={{
+            background: `rgba(${cr},${cg},${cb},0.12)`,
+            border: `0.5px solid rgba(${cr},${cg},${cb},0.35)`,
+            borderRadius: 99,
+            padding: "5px 12px",
+            cursor: "pointer",
+            fontFamily: "'Raleway', sans-serif",
+            fontWeight: 300, fontSize: 11,
+            color: `rgba(${cr},${cg},${cb},0.85)`,
+            letterSpacing: "0.08em",
+          }}
+        >
+          {totalRemaining} ★
+        </button>
+      </div>
+
+      {/* Category tabs */}
+      <div style={{ display: "flex", justifyContent: "center", paddingTop: safeTop + 62, paddingBottom: 4, position: "relative", zIndex: 10, flexShrink: 0 }}>
+        <div style={{ display: "flex", gap: 5, flexWrap: "wrap", justifyContent: "center", paddingLeft: 12, paddingRight: 12 }}>
+          {(["love", "work", "money", "horoscope"] as Category[]).map((cat) => {
+            const c = CATEGORY_CONFIG[cat];
+            const isActive = category === cat;
+            return (
+              <button
+                key={cat}
+                onClick={() => handleCategoryClick(cat)}
+                style={{
+                  padding: "7px 15px", borderRadius: 999,
+                  fontSize: 11, fontWeight: 400, letterSpacing: "0.16em",
+                  fontFamily: "'Raleway', sans-serif", textTransform: "uppercase",
+                  border: `1px solid ${isActive ? c.accent : "rgba(255,255,255,0.18)"}`,
+                  background: isActive ? c.activeBg : "transparent",
+                  color: isActive ? "rgba(255,255,255,0.97)" : "rgba(255,255,255,0.52)",
+                  boxShadow: isActive ? `0 0 16px ${c.glow}` : "none",
+                  backdropFilter: "blur(12px)",
+                  transition: "all 0.35s", cursor: "pointer",
+                }}
+              >
+                {catLabels[cat]}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Limit notice — only for prediction categories */}
+      {category !== "horoscope" && remaining === 0 && (
+        <div style={{ display: "flex", justifyContent: "center", paddingBottom: 2, position: "relative", zIndex: 10, flexShrink: 0 }}>
+          <button
+            onClick={() => setStarsShopOpen(true)}
+            style={{
+              background: "transparent", border: "none", cursor: "pointer",
+              fontFamily: "'Raleway', sans-serif", fontWeight: 200, fontSize: 9,
+              letterSpacing: "0.22em", textTransform: "uppercase",
+              color: `rgba(${cr},${cg},${cb},0.5)`,
+              padding: "4px 12px",
+            }}
+          >
+            {lang === "ru" ? "ВЕРНИСЬ ЗАВТРА · ИЛИ КУПИ 1 ★" : "COME BACK TOMORROW · OR BUY 1 ★"}
+          </button>
+        </div>
+      )}
+
+      {/* Main content area: Eclipse canvas OR Horoscope panel */}
+      <div style={{ flex: 1, position: "relative", minHeight: 0 }}>
+        {category === "horoscope" ? (
+          <HoroscopePanel lang={lang} />
+        ) : (
+          <>
+            <div style={{
+              position: "absolute", bottom: 0, left: 0, right: 0, height: 80,
+              background: `linear-gradient(to bottom, transparent 0%, rgba(3,5,8,0.7) 60%, rgba(3,5,8,1) 100%)`,
+              zIndex: 5, pointerEvents: "none",
+            }} />
+            <EclipseCanvas
+              onTap={handleTap}
+              isCasting={isCasting}
+              flashTrigger={flashTrigger}
+              catPulseTrigger={catPulseTrigger}
+              color={cfg.color}
+              predictionText={predictionText}
+              revealProgress={revealProgress}
+              hintText={hintText}
+            />
+          </>
+        )}
+      </div>
+
+      {/* Bottom bar */}
+      <div style={{
+        display: "flex", flexDirection: "column", alignItems: "center",
+        padding: "10px 24px 14px",
+        position: "relative", zIndex: 10, flexShrink: 0, gap: 10,
+      }}>
+        {/* Action buttons — top row, centered */}
+        <div style={{ display: "flex", gap: 10 }}>
+          <button
+            onClick={handleShare}
+            disabled={sharingImage}
+            style={{
+              padding: "9px 18px", borderRadius: 99,
+              background: `rgba(${cr},${cg},${cb},0.08)`,
+              border: `0.5px solid rgba(${cr},${cg},${cb},0.3)`,
+              cursor: "pointer",
+              fontFamily: "'Raleway', sans-serif", fontWeight: 300, fontSize: 13,
+              letterSpacing: "0.16em", textTransform: "uppercase",
+              color: `rgba(${cr},${cg},${cb},0.90)`,
+              transition: "all 0.2s",
+            }}
+          >
+            {sharingImage ? "..." : t.share}
+          </button>
+          <button
+            onClick={handleInvite}
+            style={{
+              padding: "9px 18px", borderRadius: 99,
+              background: "transparent",
+              border: "0.5px solid rgba(255,255,255,0.22)",
+              cursor: "pointer",
+              fontFamily: "'Raleway', sans-serif", fontWeight: 300, fontSize: 13,
+              letterSpacing: "0.16em", textTransform: "uppercase",
+              color: "rgba(255,255,255,0.62)",
+              transition: "all 0.2s",
+            }}
+          >
+            {t.invite}
+          </button>
+        </div>
+
+        {/* History button — below, centered */}
+        <button
+          onClick={() => setHistoryOpen(true)}
+          style={{
+            background: "transparent", border: "none", cursor: "pointer",
+            fontFamily: "'Raleway', sans-serif", fontWeight: 300, fontSize: 11,
+            letterSpacing: "0.22em", textTransform: "uppercase",
+            color: "rgba(255,255,255,0.45)",
+            display: "flex", flexDirection: "column", alignItems: "center", gap: 2,
+          }}
+        >
+          <span>{t.history}</span>
+          <span style={{ fontSize: 9, opacity: 0.6 }}>{t.historyCount(history.length)}</span>
+        </button>
+      </div>
+
+      {/* History Panel */}
+      <HistoryPanel
+        entries={history}
+        open={historyOpen}
+        onClose={() => setHistoryOpen(false)}
+        accentColor={cfg.accent}
+        accentGlow={cfg.glow}
+        accentRgb={cfg.color}
+        lang={lang}
+      />
+
+      {/* Stars Shop */}
+      <StarsShop
+        open={starsShopOpen}
+        onClose={() => setStarsShopOpen(false)}
+        onPurchased={handleStarsPurchased}
+        accentRgb={cfg.color}
+        lang={lang}
+      />
+    </div>
+  );
+}
